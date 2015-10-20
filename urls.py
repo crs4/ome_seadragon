@@ -1,7 +1,11 @@
 from django.conf.urls import *
 from ome_seadragon import views
 
-urlpatterns = patterns('django.views.generic.simple',
-
-                       url(r'^test/$', views.check_app, name='ome_seadragon_test'),
-                       )
+urlpatterns = patterns(
+    'django.views.generic.simple',
+    # TEST
+    url(r'^test/$', views.check_app, name='ome_seadragon_test'),
+    # OMERO TAGS
+    url(r'^get/tags/$', views.get_tags_list, name='ome_seadragon_get_tags'),
+    url(r'^find/tags/$', views.find_tags, name='ome_seadragon_find_tags'),
+)
