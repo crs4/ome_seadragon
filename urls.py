@@ -8,4 +8,6 @@ urlpatterns = patterns(
     # OMERO TAGS
     url(r'^get/tags/$', views.get_tags_list, name='ome_seadragon_get_tags'),
     url(r'^find/tags/$', views.find_tags, name='ome_seadragon_find_tags'),
+    url(r'^get/imgs_by_tag/(?P<tag_id>[0-9]+)/$', views.find_images_by_tag,
+        name='ome_seadragon_find_images_by_tag'),
 )

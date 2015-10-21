@@ -14,6 +14,18 @@ def check_app(request):
     return HttpResponse("ome_seadragon working!")
 
 
+def _get_images_by_tag(tag_id, conn):
+    imgs_generator = conn.getObjectsByAnnotations('Image', [tag_id])
+    images = list()
+    for img in imgs_generator:
+        images.append({
+            'id': img.getId(),
+            'fileset_id': img.getFileset().getId(),
+            'name': img.getName()
+        })
+    return images
+
+
 @login_required()
 def get_tags_list(request, conn=None, **kwargs):
     tags = list()
@@ -41,3 +53,9 @@ def find_tags(request, conn=None, **kwargs):
             "description": res.getDescription().val
         })
     return HttpResponse(json.dumps(tags), content_type='application/json')
+
+
+@login_required()
+def find_images_by_tag(request, tag_id, conn=None, **kwargs):
+    images = _get_images_by_tag(tag_id, conn)
+    return HttpResponse(json.dumps(images), content_type='application/json')
