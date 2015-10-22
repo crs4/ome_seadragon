@@ -69,7 +69,8 @@ def find_tags(request, conn=None, **kwargs):
     qservices = conn.getQueryService()
     qparams = omero.sys.ParametersI()
     qparams.addString('search_pattern', '%%%s%%' % search_pattern)
-    query = "SELECT t FROM TagAnnotation t WHERE t.description LIKE :search_pattern OR t.textValue LIKE :search_pattern"
+    query = "SELECT t FROM TagAnnotation t WHERE lower(t.description) LIKE lower(:search_pattern)" \
+            " OR lower(t.textValue) LIKE lower(:search_pattern)"
     tags = list()
     for res in qservices.findAllByQuery(query, qparams):
         imgs_list = list()
