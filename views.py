@@ -1,4 +1,5 @@
 from ome_seadragon.ome_data import tags_data
+from ome_seadragon import settings
 
 import logging
 from distutils.util import strtobool
@@ -15,6 +16,13 @@ from django.shortcuts import render
 
 def check_app(request):
     return HttpResponse("ome_seadragon working!")
+
+
+def check_repository(request):
+    if settings.IMGS_REPOSITORY:
+        return HttpResponse(settings.IMGS_REPOSITORY)
+    else:
+        return HttpResponse("No repository has been configured")
 
 
 logger = logging.getLogger(__name__)

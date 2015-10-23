@@ -5,6 +5,7 @@ urlpatterns = patterns(
     'django.views.generic.simple',
     # TEST
     url(r'^test/$', views.check_app, name='ome_seadragon_test'),
+    url(r'test/repository/$', views.check_repository, name='ome_seadragon_test_repository'),
     # OMERO TAGS
     url(r'^get/annotations/$', views.get_annotations,
         name='ome_seadragon_get_annotations'),
