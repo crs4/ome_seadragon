@@ -9,7 +9,7 @@ except ImportError:
 
 from omeroweb.webclient.decorators import login_required
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render
 
 
@@ -38,6 +38,8 @@ def get_tags_by_tagset(request, tagset_id, conn=None, **kwargs):
         fetch_images = False
     logger.debug('"fetch_imgs" value %r', fetch_images)
     tags = tags_data.get_tags_list(tagset_id, conn, fetch_images)
+    if tags is None:
+        return HttpResponseNotFound("There is no TagSet with ID %s" % tagset_id)
     return HttpResponse(json.dumps(tags), content_type='application/json')
 
 

@@ -79,6 +79,8 @@ def get_annotations_list(connection, fetch_images=False):
 def get_tags_list(tagset_id, connection, fetch_images=False, append_raw_object=False):
     tags = list()
     tagset = connection.getObject('TagAnnotation', tagset_id)
+    if tagset is None:
+        return None
     for t in tagset.listTagsInTagset():
         imgs_list = list()
         if fetch_images:
