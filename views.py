@@ -86,7 +86,7 @@ def get_image_dzi(request, image_id, conn=None, **kwargs):
     if slide_obj:
         return HttpResponse(slide_obj.get_dzi(slides_format), content_type='application/xml')
     else:
-        raise HttpResponseNotFound("No image with ID " + image_id)
+        return HttpResponseNotFound("No image with ID " + image_id)
 
 
 @login_required()
@@ -98,4 +98,4 @@ def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kw
     if img_buffer:
         return HttpResponse(img_buffer.getvalue(), mimetype)
     else:
-        raise HttpResponseNotFound("No tile can be found")
+        return HttpResponseNotFound("No tile can be found")
