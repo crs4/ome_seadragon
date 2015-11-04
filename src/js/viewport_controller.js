@@ -35,7 +35,7 @@ function ViewerController(div_id, prefix_url, tile_sources) {
         if (this.viewer !== undefined) {
             var center_point = new OpenSeadragon.Point(center_x, center_y);
             this.viewer.viewport.zoomTo(zoom_level);
-            this.viewer.panTo(center_point);
+            this.viewer.viewport.panTo(center_point);
         } else {
             console.warn("Viewer not initialized!");
         }
