@@ -6,8 +6,7 @@
 
     <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon.min.js"></script>
     <script src="{{ host_name }}/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
-    <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.js"></script>
-    <script type="text/javascript" src="{{ host_name }}/static/webgateway/js/ome.csrf.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.min.js"></script>
 
     <script type="text/javascript">
         $(document).ready(function() {
@@ -18,7 +17,7 @@
                     "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
                     "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi"
             );
-            viewer.build_viewer();
+            viewer.buildViewer();
         });
     </script>
 </head>

@@ -4,7 +4,7 @@ function ViewerController(div_id, prefix_url, tile_sources) {
     this.prefix_url = prefix_url;
     this.tile_sources = tile_sources;
 
-    this.build_viewer = function() {
+    this.buildViewer = function() {
         if (this.viewer === undefined) {
             this.viewer = OpenSeadragon({
                 id: this.div_id,
@@ -16,7 +16,7 @@ function ViewerController(div_id, prefix_url, tile_sources) {
         }
     };
 
-    this.get_viewport_details = function() {
+    this.getViewportDetails = function() {
         if (this.viewer !== undefined) {
             var zoom_level = this.viewer.viewport.getZoom();
             var center_point = this.viewer.viewport.getCenter();
@@ -31,7 +31,7 @@ function ViewerController(div_id, prefix_url, tile_sources) {
         }
     };
 
-    this.set_jump_to = function(zoom_level, center_x, center_y) {
+    this.jumpTo = function(zoom_level, center_x, center_y) {
         if (this.viewer !== undefined) {
             var center_point = new OpenSeadragon.Point(center_x, center_y);
             this.viewer.viewport.zoomTo(zoom_level);
@@ -39,5 +39,5 @@ function ViewerController(div_id, prefix_url, tile_sources) {
         } else {
             console.warn("Viewer not initialized!");
         }
-    }
+    };
 }
