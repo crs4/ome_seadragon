@@ -9,17 +9,9 @@ module.exports = function(grunt) {
     grunt.initConfig({
         clean: {
             dist: [
-                'static/ome_seadragon/js/ome_seadragon.js',
+                'build/js/ome_seadragon.js',
+                'static/ome_seadragon/js/ome_seadragon.min.js'
             ]
-        },
-        jshint: {
-            all: [
-                "Gruntfile.js",
-                "src/js/*.js"
-            ],
-            options: {
-              jshintrc: '.jshintrc'
-            }
         },
         concat: {
             options: {
@@ -31,24 +23,30 @@ module.exports = function(grunt) {
             },
             dist: {
                 src:  [ "<banner>" ].concat(sources),
-                dest: "static/ome_seadragon/js/ome_seadragon.js"
+                dest: "build/js/ome_seadragon.js"
             }
         },
-        watch: {
-            files: [ "src/js/*.js",  "src/js/**/*.js"],
-            tasks: ["jshint", "concat"]
+        uglify: {
+            options: {
+                mangle: true
+            },
+            my_target: {
+                files: {
+                   "static/ome_seadragon/js/ome_seadragon.min.js" : ["build/js/ome_seadragon.js"]
+                }
+            }
         }
     });
 
     // Load tasks
     grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-concat');
-    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-generate');
 
     // Register tasks
     grunt.registerTask('default', [
-        'clean', 'concat'
+        'clean', 'concat', 'uglify'
     ]);
 
 };

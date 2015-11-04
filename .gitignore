@@ -63,4 +63,4 @@ target/
 node_modules
 
 # JS file built using grunt
-static/ome_seadragon/js/ome_seadragon.js
+static/ome_seadragon/js/ome_seadragon.min.js
