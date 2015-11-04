@@ -31,13 +31,21 @@ function ViewerController(div_id, prefix_url, tile_sources) {
         }
     };
 
-    this.jumpTo = function(zoom_level, center_x, center_y) {
+    this.jumpToPoint = function(center_x, center_y) {
         if (this.viewer !== undefined) {
             var center_point = new OpenSeadragon.Point(center_x, center_y);
-            this.viewer.viewport.zoomTo(zoom_level);
             this.viewer.viewport.panTo(center_point);
         } else {
             console.warn("Viewer not initialized!");
         }
     };
-}
+
+    this.jumpTo = function(zoom_level, center_x, center_y) {
+        if (this.viewer !== undefined) {
+            this.jumpToPoint(center_x, center_y);
+            this.viewer.viewport.zoomTo(zoom_level);
+        } else {
+            console.warn("Viewer not initialized!");
+        }
+    };
+
