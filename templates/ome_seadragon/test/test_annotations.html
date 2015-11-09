@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>OPENSEADRAGON TEST VIEWER WITH ANNOTATIONS</title>
+
+    <style type="text/css">
+        .container {
+            position: relative;
+        }
+
+        .graphic_element {
+            width: 800px;
+            height: 600px;
+            position: absolute;
+        }
+    </style>
+
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon-viewerinputhook.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/paper-full.min.js"></script>
+
+    <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            console.log("Loading openseadragon viewer");
+
+            window.viewer = new ViewerController(
+                    "openseadragon_viewer",
+                    "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                    "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi"
+            );
+            viewer.buildViewer();
+
+            viewer.viewer.addHandler('open', function() {
+                window.annotations_canvas = new AnnotationsController('annotations_canvas');
+                annotations_canvas.buildAnnotationsCanvas(viewer);
+                viewer.addAnnotationsController(annotations_canvas, true);
+                // top left corner of the image
+                window.r1 = annotations_canvas.drawRectangle(
+                        0, 0, 1500, 1500, {'fill_color': 'red'}, false
+                );
+                // center of the image
+                window.r2 = annotations_canvas.drawRectangle(
+                        (viewer.getImageDimensions().width / 2) - (1500 / 2),
+                        (viewer.getImageDimensions().height / 2) - (1500 / 2),
+                        1500, 1500, {'fill_color': 'green'}, false
+                );
+                // bottom right corner of the image
+                window.r3 = annotations_canvas.drawRectangle(
+                        viewer.getImageDimensions().width - 1500,
+                        viewer.getImageDimensions().height - 1500,
+                        1500, 1500, {'fill_color': 'blue'}, false
+                );
+                annotations_canvas.refreshView();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="graphics_container" class="container">
+        <div id="openseadragon_viewer" class="graphic_element"></div>
+        <canvas id="annotations_canvas" class="graphic_element"></canvas>
+    </div>
+</body>
+</html>
