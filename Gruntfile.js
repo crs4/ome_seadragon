@@ -3,7 +3,8 @@
 module.exports = function(grunt) {
 
     var sources = [
-        "src/js/viewport_controller.js"
+        "src/js/viewport_controller.js",
+        "src/js/annotations_controller.js"
     ];
 
     grunt.initConfig({

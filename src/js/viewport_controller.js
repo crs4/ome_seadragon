@@ -9,7 +9,8 @@ function ViewerController(div_id, prefix_url, tile_sources) {
             this.viewer = OpenSeadragon({
                 id: this.div_id,
                 prefixUrl: this.prefix_url,
-                tileSources: this.tile_sources
+                tileSources: this.tile_sources,
+                showNavigator: true
             });
         } else {
             console.warn("Viewer already created");
@@ -55,5 +56,75 @@ function ViewerController(div_id, prefix_url, tile_sources) {
             'point_x': vc_point.x,
             'point_y': vc_point.y
         }
+    };
+
+    this.getCanvasSize = function() {
+        if (this.viewer !== undefined) {
+            return {
+                'width': $("div." + this.viewer.viewer.canvas.getAttribute("class")).width(),
+                'height': $("div." + viewer.viewer.canvas.getAttribute("class")).height()
+            }
+        } else {
+            console.warn("Viewer not initialized!");
+            return undefined;
+        }
+    };
+
+    this.getImageDimensions = function() {
+        if (this.viewer !== undefined) {
+            return {
+                'width': this.viewer.viewport.contentSize.x,
+                'height': this.viewer.viewport.contentSize.y
+            }
+        } else {
+            console.warn('Viewer not initialized');
+            return undefined;
+        }
+    };
+
+    this.getCenter = function() {
+        var img_center = this.viewer.viewport.viewportToImageCoordinates(this.viewer.viewport.getCenter());
+        return {'x': img_center.x, 'y': img_center.y};
+    };
+
+    this.getImageZoom = function() {
+        return this.viewer.viewport.viewportToImageZoom(this.viewer.viewport.getZoom());
+    };
+
+    this.handleDrag = function(event) {
+        event.stopHandlers = true;
+        console.log('Dragging!');
+    };
+
+    this.handleClick = function(event) {
+        event.stopHandlers = true;
+        event.preventDefaultAction = true;
+        console.log('Clicked!');
+    };
+
+    this.addAnnotationsController = function(annotations_controller, clear_annotations_controller_events) {
+        // attach annotations_controller to viewer object, this will be useful when handling events
+        this.viewer.annotations_controller = annotations_controller;
+        this.viewer.viewport_controller = this;
+
+        // set zoom level for the annotations_controller
+        var img_zoom = this.getImageZoom();
+        annotations_controller.setZoom(img_zoom);
+        var center = this.getCenter();
+        annotations_controller.setCenter(center.x, center.y);
+
+        // paperjs canvas won't listen to mouse events, they will be propagated to OpenSeadragon viewer
+        if (clear_annotations_controller_events === true) {
+            $("#" + annotations_controller.canvas_id).css('pointer-events', 'none');
+        }
+
+        this.viewer.addHandler('animation', function(event) {
+            //console.log('Zoom level --- Image: ' + event.eventSource.viewport_controller.getImageZoom());
+            var img_zoom = event.eventSource.viewport_controller.getImageZoom();
+            event.eventSource.annotations_controller.setZoom(img_zoom);
+            //console.log('Viewport Center: ' + event.eventSource.viewport_controller.getCenter());
+            var v_center = event.eventSource.viewport_controller.getCenter();
+            event.eventSource.annotations_controller.setCenter(v_center.x, v_center.y);
+        });
     };
 }
