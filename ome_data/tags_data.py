@@ -1,6 +1,8 @@
 import omero
 from omero.gateway import TagAnnotationWrapper
 
+from utils import switch_to_default_search_group
+
 
 def _is_tagset(obj):
     try:
@@ -42,6 +44,7 @@ def _image_to_json(image_object):
 
 
 def _get_images_by_tag(tag_id, connection):
+    switch_to_default_search_group(connection)
     imgs_generator = connection.getObjectsByAnnotations('Image', [tag_id])
     images = list()
     for img in imgs_generator:
@@ -50,6 +53,7 @@ def _get_images_by_tag(tag_id, connection):
 
 
 def get_annotations_list(connection, fetch_images=False):
+    switch_to_default_search_group(connection)
     tag_sets = list()
     tags = list()
     for t in connection.getObjects("TagAnnotation"):
@@ -77,6 +81,7 @@ def get_annotations_list(connection, fetch_images=False):
 
 
 def get_tags_list(tagset_id, connection, fetch_images=False, append_raw_object=False):
+    switch_to_default_search_group(connection)
     tags = list()
     tagset = connection.getObject('TagAnnotation', tagset_id)
     if tagset is None:
@@ -97,6 +102,7 @@ def get_images(tag_id, connection):
 
 
 def find_annotations(search_pattern, connection, fetch_images=False):
+    switch_to_default_search_group(connection)
     query_service = connection.getQueryService()
     query_params = omero.sys.ParametersI()
     query_params.addString('search_pattern', '%%%s%%' % search_pattern)
