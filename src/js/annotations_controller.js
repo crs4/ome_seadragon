@@ -57,22 +57,64 @@ function AnnotationsController(canvas_id, default_config) {
         paper.view.setCenter(center);
     };
 
-    this.configurePathObject = function(path_obj, conf) {
+    this.configureShape = function(shape, conf) {
+        if (typeof conf === 'undefined') {
+            conf = {};
+        }
         var fill_color = (typeof conf.fill_color === 'undefined') ? this.default_fill_color : conf.fill_color;
-        path_obj.setFillColor(fill_color);
+        var fill_alpha = (typeof  conf.fill_alpha === 'undefined') ? this.default_fill_alpha : conf.fill_alpha;
+        shape.setFillColor(ColorsAdapter.hexToPaperColor(fill_color, fill_alpha));
+        var stroke_color = (typeof conf.stroke_color === 'undefined') ? this.default_stroke_color : conf.stroke_color;
+        var stroke_alpha = (typeof conf.stroke_alpha === 'undefined') ? this.default_stroke_alpha : conf.stroke_alpha;
+        shape.setStrokeColor(ColorsAdapter.hexToPaperColor(stroke_color, stroke_alpha));
+        var stroke_width = (typeof conf.stroke_width === 'undefined') ? this.default_stroke_width : conf.stroke_width;
+        shape.setStrokeWidth(stroke_width);
     };
 
-    this.drawRectangle = function(top_left_x, top_left_y, width, height, shape_conf, refresh_view) {
+    this.drawShape = function(shape, shape_conf, refresh_view) {
         refresh_view = (typeof refresh_view === 'undefined') ? true : refresh_view;
-        var rect = new paper.Rectangle(
-            top_left_x - this.x_offset,
-            top_left_y - this.y_offset,
-            width, height);
-        var rpath = new paper.Path.Rectangle(rect);
+        this.configureShape(shape, shape_conf);
         if (refresh_view === true) {
             this.refreshView();
         }
-        this.configurePathObject(rpath, shape_conf);
-        return rpath;
+    };
+
+    this.drawRectangle = function(top_left_x, top_left_y, width, height, shape_conf, refresh_view) {
+        var rect = new paper.Shape.Rectangle({
+            point: [
+                top_left_x - this.x_offset,
+                top_left_y - this.y_offset
+            ],
+            size: [width, height]
+        });
+        this.drawShape(rect, shape_conf, refresh_view);
+        return rect;
+    };
+
+    this.drawEllipse = function(center_x, center_y, size_x, size_y, shape_conf, refresh_view) {
+        var ellipse = new paper.Shape.Ellipse({
+            point: [
+                center_x - this.x_offset,
+                center_y - this.y_offset
+            ],
+            size: [size_x, size_y]
+        });
+        this.drawShape(ellipse, shape_conf, refresh_view);
+        return ellipse;
+    };
+
+    this.drawLine = function(from_x, from_y, to_x, to_y, shape_conf, refresh_view) {
+        var line = new paper.Path.Line({
+            from: [
+                from_x - this.x_offset,
+                from_y - this.y_offset
+            ],
+            to: [
+                to_x - this.x_offset,
+                to_y - this.y_offset
+            ]
+        });
+        this.drawShape(line, shape_conf, refresh_view);
+        return line;
     };
 }
