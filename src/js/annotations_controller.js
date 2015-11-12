@@ -1,10 +1,19 @@
-function AnnotationsController(canvas_id, fill_color) {
+function AnnotationsController(canvas_id, default_config) {
     this.canvas_id = canvas_id;
     this.x_offset = undefined;
     this.y_offset = undefined;
     this.canvas = undefined;
     // geometries appearance default configuration
-    this.default_fill_color = (typeof fill_color === 'undefined') ? 'black' : fill_color;
+    if (typeof default_config === 'undefined') {
+        // to prevent errors in the following lines
+        console.log('No configuration provided, using default values for shapes config');
+        default_config = {};
+    }
+    this.default_fill_color = (typeof default_config.fill_color === 'undefined') ? '#ffffff' : default_config.fill_color;
+    this.default_fill_alpha = (typeof default_config.opacity === 'undefined') ? 1 : default_config.fill_alpha;
+    this.default_stroke_color = (typeof default_config.stroke_color === 'undefined') ? '#000000' : default_config.stroke_color;
+    this.default_stroke_alpha = (typeof default_config.stroke_alpha === 'undefined') ? 1 : default_config.stroke_alpha;
+    this.default_stroke_width = (typeof default_config.stroke_width === 'undefined') ? 20: default_config.stroke_width;
 
     this.buildAnnotationsCanvas = function (viewport_controller) {
         if (this.canvas === undefined) {
