@@ -102,7 +102,7 @@ function ViewerController(div_id, prefix_url, tile_sources) {
         console.log('Clicked!');
     };
 
-    this.addAnnotationsController = function(annotations_controller, clear_annotations_controller_events) {
+    this.addAnnotationsController = function(annotations_controller, stop_annotations_controller_events) {
         // attach annotations_controller to viewer object, this will be useful when handling events
         this.viewer.annotations_controller = annotations_controller;
         this.viewer.viewport_controller = this;
@@ -114,17 +114,17 @@ function ViewerController(div_id, prefix_url, tile_sources) {
         annotations_controller.setCenter(center.x, center.y);
 
         // paperjs canvas won't listen to mouse events, they will be propagated to OpenSeadragon viewer
-        if (clear_annotations_controller_events === true) {
+        if (stop_annotations_controller_events === true) {
             $("#" + annotations_controller.canvas_id).css('pointer-events', 'none');
         }
 
         this.viewer.addHandler('animation', function(event) {
-            //console.log('Zoom level --- Image: ' + event.eventSource.viewport_controller.getImageZoom());
-            var img_zoom = event.eventSource.viewport_controller.getImageZoom();
-            event.eventSource.annotations_controller.setZoom(img_zoom);
-            //console.log('Viewport Center: ' + event.eventSource.viewport_controller.getCenter());
             var v_center = event.eventSource.viewport_controller.getCenter();
+            console.log('Viewport Center --- x ' + v_center.x + ' y ' + v_center.y);
             event.eventSource.annotations_controller.setCenter(v_center.x, v_center.y);
+            var img_zoom = event.eventSource.viewport_controller.getImageZoom();
+            console.log('Zoom level --- Image: ' + img_zoom);
+            event.eventSource.annotations_controller.setZoom(img_zoom);
         });
     };
 }
