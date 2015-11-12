@@ -104,6 +104,8 @@ function ViewerController(div_id, prefix_url, tile_sources) {
     };
 
     this.addAnnotationsController = function(annotations_controller, stop_annotations_controller_events) {
+        var stop_events = (typeof stop_annotations_controller_events === 'undefined') ?
+            true : stop_annotations_controller_events;
         // attach annotations_controller to viewer object, this will be useful when handling events
         this.viewer.annotations_controller = annotations_controller;
         this.viewer.viewport_controller = this;
@@ -115,7 +117,7 @@ function ViewerController(div_id, prefix_url, tile_sources) {
         annotations_controller.setCenter(center.x, center.y);
 
         // paperjs canvas won't listen to mouse events, they will be propagated to OpenSeadragon viewer
-        if (stop_annotations_controller_events === true) {
+        if (stop_events === true) {
             $("#" + annotations_controller.canvas_id).css('pointer-events', 'none');
         }
 
