@@ -10,7 +10,8 @@ function ViewerController(div_id, prefix_url, tile_sources) {
                 id: this.div_id,
                 prefixUrl: this.prefix_url,
                 tileSources: this.tile_sources,
-                showNavigator: true
+                showNavigator: true,
+                animationTime: 0.1
             });
         } else {
             console.warn("Viewer already created");
