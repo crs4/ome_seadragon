@@ -4,7 +4,8 @@ module.exports = function(grunt) {
 
     var sources = [
         "src/js/viewport_controller.js",
-        "src/js/annotations_controller.js"
+        "src/js/annotations_controller.js",
+        "src/js/utils.js"
     ];
 
     grunt.initConfig({
@@ -43,7 +44,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-generate');
 
     // Register tasks
     grunt.registerTask('default', [
