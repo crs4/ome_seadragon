@@ -40,19 +40,22 @@
                 viewer.addAnnotationsController(annotations_canvas, true);
                 // top left corner of the image
                 window.r1 = annotations_canvas.drawRectangle(
-                        0, 0, 1500, 1500, {'fill_color': 'red'}, false
+                        0, 0, 1500, 1500,
+                        {'fill_color': '#ff0000', 'fill_alpha': 0.8}, false
                 );
                 // center of the image
                 window.r2 = annotations_canvas.drawRectangle(
                         (viewer.getImageDimensions().width / 2) - (1500 / 2),
                         (viewer.getImageDimensions().height / 2) - (1500 / 2),
-                        1500, 1500, {'fill_color': 'green'}, false
+                        1500, 1500,
+                        {'fill_color': '#00ff00', 'fill_alpha': 0.8}, false
                 );
                 // bottom right corner of the image
                 window.r3 = annotations_canvas.drawRectangle(
                         viewer.getImageDimensions().width - 1500,
                         viewer.getImageDimensions().height - 1500,
-                        1500, 1500, {'fill_color': 'blue'}, false
+                        1500, 1500,
+                        {'fill_color': '#0000ff', 'fill_alpha': 0.8}, false
                 );
                 annotations_canvas.refreshView();
             });
