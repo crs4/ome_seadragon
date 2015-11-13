@@ -3,6 +3,7 @@ function AnnotationsController(canvas_id, default_config) {
     this.x_offset = undefined;
     this.y_offset = undefined;
     this.canvas = undefined;
+    this.shapes_cache = {};
     // geometries appearance default configuration
     if (typeof default_config === 'undefined') {
         // to prevent errors in the following lines
@@ -57,64 +58,68 @@ function AnnotationsController(canvas_id, default_config) {
         paper.view.setCenter(center);
     };
 
-    this.configureShape = function(shape, conf) {
+    this.addShapeToCache = function(shape) {
+        if (! (shape.id in this.shapes_cache)) {
+            this.shapes_cache[shape.id] = shape;
+            return true;
+        } else {
+            console.error('ID ' + shape.id + ' already in use');
+            return false;
+        }
+    };
+
+    this.getShape = function(shape_id) {
+        if (shape_id in this.shapes_cache) {
+            return this.shapes_cache[shape_id];
+        } else {
+            return undefined;
+        }
+    };
+
+    this.normalizeShapeConfig = function(conf) {
         if (typeof conf === 'undefined') {
             conf = {};
         }
-        var fill_color = (typeof conf.fill_color === 'undefined') ? this.default_fill_color : conf.fill_color;
-        var fill_alpha = (typeof  conf.fill_alpha === 'undefined') ? this.default_fill_alpha : conf.fill_alpha;
-        shape.setFillColor(ColorsAdapter.hexToPaperColor(fill_color, fill_alpha));
-        var stroke_color = (typeof conf.stroke_color === 'undefined') ? this.default_stroke_color : conf.stroke_color;
-        var stroke_alpha = (typeof conf.stroke_alpha === 'undefined') ? this.default_stroke_alpha : conf.stroke_alpha;
-        shape.setStrokeColor(ColorsAdapter.hexToPaperColor(stroke_color, stroke_alpha));
-        var stroke_width = (typeof conf.stroke_width === 'undefined') ? this.default_stroke_width : conf.stroke_width;
-        shape.setStrokeWidth(stroke_width);
+        return {
+            'fill_color': (typeof conf.fill_color === 'undefined') ? this.default_fill_color : conf.fill_color,
+            'fill_alpha': (typeof  conf.fill_alpha === 'undefined') ? this.default_fill_alpha : conf.fill_alpha,
+            'stroke_color': (typeof conf.stroke_color === 'undefined') ? this.default_stroke_color : conf.stroke_color,
+            'stroke_alpha': (typeof conf.stroke_alpha === 'undefined') ? this.default_stroke_alpha : conf.stroke_alpha,
+            'stroke_width': (typeof conf.stroke_width === 'undefined') ? this.default_stroke_width : conf.stroke_width
+        };
     };
 
     this.drawShape = function(shape, shape_conf, refresh_view) {
         refresh_view = (typeof refresh_view === 'undefined') ? true : refresh_view;
-        this.configureShape(shape, shape_conf);
+        var conf = this.normalizeShapeConfig(shape_conf);
+        shape.toPaperShape();
+        shape.configure(conf);
         if (refresh_view === true) {
             this.refreshView();
         }
     };
 
-    this.drawRectangle = function(top_left_x, top_left_y, width, height, shape_conf, refresh_view) {
-        var rect = new paper.Shape.Rectangle({
-            point: [
-                top_left_x - this.x_offset,
-                top_left_y - this.y_offset
-            ],
-            size: [width, height]
-        });
-        this.drawShape(rect, shape_conf, refresh_view);
-        return rect;
+    this.drawRectangle = function(shape_id, top_left_x, top_left_y, width, height, shape_conf, refresh_view) {
+        var rect = new Rectangle(shape_id, top_left_x - this.x_offset, top_left_y - this.y_offset,
+            width, height);
+        if (this.addShapeToCache(rect)) {
+            this.drawShape(rect, shape_conf, refresh_view);
+        }
     };
 
-    this.drawEllipse = function(center_x, center_y, size_x, size_y, shape_conf, refresh_view) {
-        var ellipse = new paper.Shape.Ellipse({
-            point: [
-                center_x - this.x_offset,
-                center_y - this.y_offset
-            ],
-            size: [size_x, size_y]
-        });
-        this.drawShape(ellipse, shape_conf, refresh_view);
-        return ellipse;
+    this.drawEllipse = function(shape_id, center_x, center_y, size_x, size_y, shape_conf, refresh_view) {
+        var ellipse = new Ellipse(shape_id, center_x - this.x_offset, center_y - this.y_offset,
+            size_x, size_y);
+        if (this.addShapeToCache(ellipse)) {
+            this.drawShape(ellipse, shape_conf, refresh_view);
+        }
     };
 
-    this.drawLine = function(from_x, from_y, to_x, to_y, shape_conf, refresh_view) {
-        var line = new paper.Path.Line({
-            from: [
-                from_x - this.x_offset,
-                from_y - this.y_offset
-            ],
-            to: [
-                to_x - this.x_offset,
-                to_y - this.y_offset
-            ]
-        });
-        this.drawShape(line, shape_conf, refresh_view);
-        return line;
+    this.drawLine = function(shape_id, from_x, from_y, to_x, to_y, shape_conf, refresh_view) {
+        var line = new Line(shape_id, from_x - this.x_offset, from_y - this.y_offset,
+            to_x - this.x_offset, to_y - this.y_offset);
+        if (this.addShapeToCache(line)) {
+            this.drawShape(line, shape_conf, refresh_view);
+        }
     };
 }
