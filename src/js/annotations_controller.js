@@ -76,6 +76,32 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    this.selectShape = function(shape_id, clear_selected, refresh_view) {
+        var clear = (typeof clear_selected === 'undefined') ? false : clear_selected;
+        if (clear === true) {
+            for (var sh_id in this.shapes_cache) {
+                this.deselectShape(sh_id);
+            }
+        }
+        if (shape_id in this.shapes_cache) {
+            this.shapes_cache[shape_id].select();
+        }
+        var refresh = (typeof refresh_view === 'undefined') ? true : refresh_view;
+        if (refresh === true) {
+            this.refreshView();
+        }
+    };
+
+    this.deselectShape = function(shape_id, refresh_view) {
+        if (shape_id in this.shapes_cache) {
+            this.shapes_cache[shape_id].deselect();
+        }
+        var refresh = (typeof refresh_view === 'undefined') ? true : refresh_view;
+        if (refresh === true) {
+            this.refreshView();
+        }
+    };
+
     this.normalizeShapeConfig = function(conf) {
         if (typeof conf === 'undefined') {
             conf = {};

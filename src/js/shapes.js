@@ -22,10 +22,30 @@ function Shape(id) {
         if (typeof this.paper_shape !== 'undefined') {
             this.fill_color = ColorsAdapter.hexToPaperColor(shape_config.fill_color, shape_config.fill_alpha);
             this.paper_shape.setFillColor(this.fill_color);
-            this.stroke_color = ColorsAdapter.hexToPaperColor(shape_config.stroke_color, shape_config.stroke_alpha)
+            this.stroke_color = ColorsAdapter.hexToPaperColor(shape_config.stroke_color, shape_config.stroke_alpha);
             this.paper_shape.setStrokeColor(this.stroke_color);
             this.stroke_width = shape_config.stroke_width;
             this.paper_shape.setStrokeWidth(this.stroke_width);
+        }
+    };
+
+    this.select = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            this.paper_shape.setSelected(true);
+        }
+    };
+
+    this.deselect = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            this.paper_shape.setSelected(false);
+        }
+    };
+
+    this.isSelected = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            return this.paper_shape.selected;
+        } else {
+            return undefined;
         }
     };
 }
