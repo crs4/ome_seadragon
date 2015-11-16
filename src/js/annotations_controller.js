@@ -41,6 +41,13 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    var refresh = function(global_obj, auto_refresh) {
+        var r = (typeof auto_refresh === 'undefined') ? true : auto_refresh;
+        if (r) {
+            global_obj.refreshView();
+        }
+    };
+
     this.refreshView = function() {
         console.log('Refreshing canvas');
         paper.view.draw();
@@ -86,20 +93,112 @@ function AnnotationsController(canvas_id, default_config) {
         if (shape_id in this.shapes_cache) {
             this.shapes_cache[shape_id].select();
         }
-        var refresh = (typeof refresh_view === 'undefined') ? true : refresh_view;
-        if (refresh === true) {
-            this.refreshView();
+        refresh(this, refresh_view);
+    };
+
+    this.selectShapes = function(shapes_id, clear_selected, refresh_view) {
+        var clear = (typeof clear_selected === 'undefined') ? false : clear_selected;
+        if (clear === true) {
+            for (var index in this.shapes_cache) {
+                this.deselectShape(shapes_id[index]);
+            }
         }
+        if (typeof shapes_id !== 'undefined') {
+            for (var sh in shapes_id) {
+                this.selectShape(sh, false, false);
+            }
+        } else {
+            for (var sh in this.shapes_cache) {
+                this.selectShape(sh, false, false);
+            }
+        }
+        refresh(this, refresh_view);
     };
 
     this.deselectShape = function(shape_id, refresh_view) {
         if (shape_id in this.shapes_cache) {
             this.shapes_cache[shape_id].deselect();
         }
-        var refresh = (typeof refresh_view === 'undefined') ? true : refresh_view;
-        if (refresh === true) {
-            this.refreshView();
+        refresh(this, refresh_view);
+    };
+
+    this.deselectShapes = function (shapes_id, refresh_view) {
+        if (typeof shapes_id !== 'undefined') {
+            for (var index in shapes_id) {
+                this.deselectShape(shapes_id[index], false);
+            }
+        } else {
+            for (var sh in this.shapes_cache) {
+                this.deselectShape(sh, false);
+            }
         }
+        refresh(this, refresh_view);
+    };
+
+    this.showShape = function(shape_id, refresh_view) {
+        if (shape_id in this.shapes_cache) {
+            this.shapes_cache[shape_id].show();
+        }
+        refresh(this, refresh_view);
+    };
+
+    this.showShapes = function(shapes_id, refresh_view) {
+        if (typeof shapes_id !== 'undefined') {
+            for (var index in shapes_id) {
+                this.showShape(shapes_id[index], false);
+            }
+        } else {
+            for (var sh in this.shapes_cache) {
+                this.showShape(sh, false);
+            }
+        }
+        refresh(this, refresh_view);
+    };
+
+    this.hideShape = function(shape_id, refresh_view) {
+        if (shape_id in this.shapes_cache) {
+            this.shapes_cache[shape_id].hide();
+        }
+        refresh(this, refresh_view);
+    };
+
+    this.hideShapes = function (shapes_id, refresh_view) {
+        if (typeof shapes_id !== 'undefined') {
+            for (var index in shapes_id) {
+                this.hideShape(shapes_id[index], false);
+            }
+        } else {
+            for (var sh in this.shapes_cache) {
+                this.hideShape(sh, false);
+            }
+        }
+        refresh(this, refresh_view);
+    };
+
+    this.deleteShape = function(shape_id, refresh_view) {
+        if (shape_id in this.shapes_cache) {
+            this.shapes_cache[shape_id].delete();
+            delete this.shapes_cache[shape_id];
+        }
+        refresh(this, refresh_view);
+    };
+
+    this.deleteShapes = function(shapes_id, refresh_view) {
+        if (typeof shapes_id !== 'undefined') {
+            for (var index in shapes_id) {
+                this.deleteShape(shapes_id[index], false);
+            }
+            refresh(this, refresh_view);
+        } else {
+            this.clear(refresh_view);
+        }
+    };
+
+    this.clear = function(refresh_view) {
+        for (var shape_id in this.shapes_cache) {
+            this.deleteShape(shape_id, false);
+        }
+        refresh(this, refresh_view);
     };
 
     this.normalizeShapeConfig = function(conf) {
@@ -116,13 +215,10 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.drawShape = function(shape, shape_conf, refresh_view) {
-        refresh_view = (typeof refresh_view === 'undefined') ? true : refresh_view;
         var conf = this.normalizeShapeConfig(shape_conf);
         shape.toPaperShape();
         shape.configure(conf);
-        if (refresh_view === true) {
-            this.refreshView();
-        }
+        refresh(this, refresh_view);
     };
 
     this.drawRectangle = function(shape_id, top_left_x, top_left_y, width, height, shape_conf, refresh_view) {

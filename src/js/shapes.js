@@ -48,6 +48,24 @@ function Shape(id) {
             return undefined;
         }
     };
+
+    this.show = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            this.paper_shape.setVisible(true);
+        }
+    };
+
+    this.hide = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            this.paper_shape.setVisible(false);
+        }
+    };
+
+    this.delete = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            this.paper_shape.remove();
+        }
+    }
 }
 
 
