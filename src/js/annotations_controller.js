@@ -229,9 +229,9 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
-    this.drawEllipse = function(shape_id, center_x, center_y, size_x, size_y, shape_conf, refresh_view) {
+    this.drawEllipse = function(shape_id, center_x, center_y, radius_x, radius_y, shape_conf, refresh_view) {
         var ellipse = new Ellipse(shape_id, center_x - this.x_offset, center_y - this.y_offset,
-            size_x, size_y);
+            radius_x, radius_y);
         if (this.addShapeToCache(ellipse)) {
             this.drawShape(ellipse, shape_conf, refresh_view);
         }

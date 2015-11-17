@@ -89,18 +89,18 @@ function Rectangle(id, origin_x, origin_y, width, height) {
 Rectangle.prototype = new Shape();
 
 
-function Ellipse(id, center_x, center_y, size_x, size_y) {
+function Ellipse(id, center_x, center_y, radius_x, radius_y) {
     Shape.call(this, id);
 
     this.center_x = center_x;
     this.center_y = center_y;
-    this.size_x = size_x;
-    this.size_y = size_y;
+    this.radius_x = radius_x;
+    this.radius_y = radius_y;
 
     this.toPaperShape = function() {
         var ellipse = new paper.Shape.Ellipse({
-            point: [this.center_x, this.center_y],
-            size: [this.size_x, this.size_y]
+            center: [this.center_x, this.center_y],
+            radius: [this.radius_x, this.radius_y]
         });
         this.paper_shape = ellipse;
     };
