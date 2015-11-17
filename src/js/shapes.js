@@ -69,17 +69,17 @@ function Shape(id) {
 }
 
 
-function Rectangle(id, center_x, center_y, width, height) {
+function Rectangle(id, origin_x, origin_y, width, height) {
     Shape.call(this, id);
 
-    this.center_x = center_x;
-    this.center_y = center_y;
+    this.origin_x = origin_x;
+    this.origin_y = origin_y;
     this.width = width;
     this.height = height;
 
     this.toPaperShape = function() {
         var rect = new paper.Shape.Rectangle({
-            point: [this.center_x, this.center_y],
+            point: [this.origin_x, this.origin_y],
             size: [this.width, this.height]
         });
         this.paper_shape = rect;
