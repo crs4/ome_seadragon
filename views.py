@@ -45,6 +45,12 @@ def get_example_annotations(request, image_id):
                   {'image_id': image_id, 'host_name': base_url})
 
 
+def get_example_ome_rois(request, image_id):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    return render(request, 'ome_seadragon/test/test_ome_roi.html',
+                  {'image_id': image_id, 'host_name': base_url})
+
+
 @login_required()
 def get_annotations(request, conn=None, **kwargs):
     try:
