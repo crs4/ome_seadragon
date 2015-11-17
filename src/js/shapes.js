@@ -118,7 +118,7 @@ function Line(id, from_x, from_y, to_x, to_y) {
     this.to_y = to_y;
 
     this.toPaperShape = function() {
-        var line = new paper.Shape.Line({
+        var line = new paper.Path.Line({
             from: [this.from_x, this.from_y],
             to: [this.to_x, this.to_y]
         });
