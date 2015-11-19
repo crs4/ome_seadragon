@@ -111,3 +111,9 @@ def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kw
         return HttpResponse(img_buffer.getvalue(), mimetype)
     else:
         return HttpResponseNotFound("No tile can be found")
+
+
+@login_required()
+def get_image_mpp(request, image_id, conn=None, **kwargs):
+    image_mpp = slides_manager.get_image_mpp(image_id, conn)
+    return HttpResponse(json.dumps({'image_mpp': image_mpp}), content_type='application_json')

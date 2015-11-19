@@ -54,6 +54,19 @@ def get_deepzoom_metadata(image_id, conn):
         return None, settings.DEEPZOOM_FORMAT
 
 
+def get_image_mpp(image_id, conn):
+    image_path = _get_image_path(image_id, conn)
+    if image_path:
+        slide = OpenSlide(image_path)
+        try:
+            mpp_x = slide.properties[openslide.PROPERTY_NAME_MPP_X]
+            mpp_y = slide.properties[openslide.PROPERTY_NAME_MPP_Y]
+            return (float(mpp_x) + float(mpp_y)) / 2
+        except (KeyError, ValueError):
+            return 0
+
+
+
 def get_tile(image_id, level, column, row, conn):
     image_path = _get_image_path(image_id, conn)
     if image_path:
