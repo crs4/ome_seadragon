@@ -66,6 +66,15 @@ def get_image_mpp(image_id, conn):
             return 0
 
 
+def get_thumbnail(image_id, width, height, conn):
+    image_path = _get_image_path(image_id, conn)
+    if image_path:
+        slide = OpenSlide(image_path)
+        thumbnail = slide.get_thumbnail((width, height))
+    else:
+        thumbnail = None
+    return thumbnail, settings.DEEPZOOM_FORMAT
+
 
 def get_tile(image_id, level, column, row, conn):
     image_path = _get_image_path(image_id, conn)

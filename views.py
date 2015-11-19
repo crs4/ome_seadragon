@@ -102,6 +102,20 @@ def get_image_dzi(request, image_id, conn=None, **kwargs):
 
 
 @login_required()
+def get_image_thumbnail(request, image_id, conn=None, **kwargs):
+    thumbnail, image_format = slides_manager.get_thumbnail(image_id,
+                                                           int(request.GET.get('width')),
+                                                           int(request.GET.get('height')),
+                                                           conn)
+    if thumbnail:
+        response = HttpResponse(mimetype="image/%s" % image_format)
+        thumbnail.save(response, image_format)
+        return response
+    else:
+        return HttpResponseServerError('Unable to load thumbnail')
+
+
+@login_required()
 def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kwargs):
     if tile_format != settings.DEEPZOOM_FORMAT:
         return HttpResponseServerError("Format %s not supported by the server" % tile_format)
