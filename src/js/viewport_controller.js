@@ -19,6 +19,12 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
         }
     };
 
+    this.setMinDZILevel = function(level) {
+        if (typeof this.viewer !== 'undefined') {
+            this.viewer.source.minLevel = level;
+        }
+    };
+
     this.getViewportDetails = function() {
         if (this.viewer !== undefined) {
             var zoom_level = this.viewer.viewport.getZoom();
