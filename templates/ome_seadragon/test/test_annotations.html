@@ -26,14 +26,23 @@
         $(document).ready(function() {
             console.log("Loading openseadragon viewer");
 
+            var viewer_config = {
+                'showNavigator': true,
+                'showFullPageControl': false,
+                'animationTime': 0.01
+            };
+
             window.viewer = new ViewerController(
                     "openseadragon_viewer",
                     "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
-                    "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi"
+                    "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
+                    viewer_config
             );
             viewer.buildViewer();
 
             viewer.viewer.addHandler('open', function() {
+                viewer.setMinDZILevel(8);
+
                 window.annotations_canvas = new AnnotationsController('annotations_canvas');
                 annotations_canvas.buildAnnotationsCanvas(viewer);
                 viewer.addAnnotationsController(annotations_canvas, true);
