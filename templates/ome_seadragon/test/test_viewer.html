@@ -6,18 +6,45 @@
 
     <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon.min.js"></script>
     <script src="{{ host_name }}/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
     <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.min.js"></script>
 
     <script type="text/javascript">
         $(document).ready(function() {
-            console.log("Loading openseadragon viewer");
+            $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+                console.log("Loading openseadragon viewer");
 
-            window.viewer = new ViewerController(
-                    "openseadragon_viewer",
-                    "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
-                    "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi"
-            );
-            viewer.buildViewer();
+                var viewer_config = {
+                    'showNavigator': true,
+                    'showFullPageControl': false
+                };
+
+                window.viewer = new ViewerController(
+                        "openseadragon_viewer",
+                        "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                        "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
+                        viewer_config
+                );
+                viewer.buildViewer();
+
+                // Scalebar setup
+                var image_mpp = data.image_mpp ? data.image_mpp : 0;
+                var scalebar_config = {
+                    "xOffset": 10,
+                    "yOffset": 10,
+                    "barThickness": 5,
+                    "color": "#777777",
+                    "fontColor": "#000000",
+                    "backgroundColor": 'rgba(255, 255, 255, 0.5)'
+                };
+                viewer.enableScalebar(image_mpp, scalebar_config);
+
+                viewer.viewer.addHandler('open', function () {
+                    console.log('Open!');
+                    // Ignore lowest-resolution levels in order to improve load times
+                    viewer.setMinDZILevel(8);
+                });
+            });
         });
     </script>
 </head>
