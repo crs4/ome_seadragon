@@ -1,20 +1,38 @@
-function ViewerController(div_id, prefix_url, tile_sources) {
+function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
     this.viewer = undefined;
     this.div_id = div_id;
     this.prefix_url = prefix_url;
     this.tile_sources = tile_sources;
+    this.config = viewer_config;
 
     this.buildViewer = function() {
         if (this.viewer === undefined) {
-            this.viewer = OpenSeadragon({
+            var base_config = {
                 id: this.div_id,
                 prefixUrl: this.prefix_url,
-                tileSources: this.tile_sources,
-                showNavigator: true,
-                animationTime: 0.1
-            });
+                tileSources: this.tile_sources
+            };
+            $.extend(base_config, this.config);
+            this.viewer = OpenSeadragon(base_config);
         } else {
             console.warn("Viewer already created");
+        }
+    };
+
+    this.setMinDZILevel = function(level) {
+        if (typeof this.viewer !== 'undefined') {
+            this.viewer.source.minLevel = level;
+        }
+    };
+
+    this.enableScalebar = function(image_mpp, scalebar_config) {
+        if (typeof this.viewer !== "undefined" && image_mpp > 0) {
+            var pixels_per_meter = (1e6 / image_mpp);
+            var sc_conf = {'pixelsPerMeter': pixels_per_meter};
+            if (typeof scalebar_config !== "undefined") {
+                $.extend(sc_conf, scalebar_config);
+            }
+            this.viewer.scalebar(sc_conf);
         }
     };
 
@@ -90,17 +108,6 @@ function ViewerController(div_id, prefix_url, tile_sources) {
 
     this.getImageZoom = function() {
         return this.viewer.viewport.viewportToImageZoom(this.viewer.viewport.getZoom());
-    };
-
-    this.handleDrag = function(event) {
-        event.stopHandlers = true;
-        console.log('Dragging!');
-    };
-
-    this.handleClick = function(event) {
-        event.stopHandlers = true;
-        event.preventDefaultAction = true;
-        console.log('Clicked!');
     };
 
     this.addAnnotationsController = function(annotations_controller, stop_annotations_controller_events) {

@@ -27,6 +27,10 @@ urlpatterns = patterns(
     # DEEPZOOM
     url(r'^deepzoom/get/(?P<image_id>[0-9]+).dzi$', views.get_image_dzi,
         name='ome_seadragon_image_dzi_metadata'),
+    url(r'^deepzoom/get/thumbnail/(?P<image_id>[0-9]+).dzi$', views.get_image_thumbnail,
+        name='ome_seadragon_image_thumbnail'),
     url(r'^deepzoom/get/(?P<image_id>[0-9]+)_files/(?P<level>[0-9]+)/(?P<column>[0-9]+)_(?P<row>[0-9]+).(?P<tile_format>[\w]+)$',
         views.get_tile, name='ome_seadragon_get_tile'),
+    url(r'^deepzoom/image_mpp/(?P<image_id>[0-9]).dzi$', views.get_image_mpp,
+        name='ome_seadragon_get_image_mpp')
 )

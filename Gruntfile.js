@@ -35,7 +35,8 @@ module.exports = function(grunt) {
             },
             my_target: {
                 files: {
-                   "static/ome_seadragon/js/ome_seadragon.min.js" : ["build/js/ome_seadragon.js"]
+                   "static/ome_seadragon/js/ome_seadragon.min.js" : ["build/js/ome_seadragon.js"],
+                   "static/ome_seadragon/js/openseadragon-scalebar.min.js":["src/js/openseadragon-scalebar.js"]
                 }
             }
         }
