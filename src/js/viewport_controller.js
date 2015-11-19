@@ -72,8 +72,8 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
     this.getViewportCoordinates = function(point_x, point_y) {
         var vc_point = this.viewer.viewport.imageToViewportCoordinates(point_x, point_y);
         return {
-            'point_x': vc_point.x,
-            'point_y': vc_point.y
+            'x': vc_point.x,
+            'y': vc_point.y
         }
     };
 

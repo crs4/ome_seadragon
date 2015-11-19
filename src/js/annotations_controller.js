@@ -83,6 +83,22 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    this.getShapeCenter = function(shape_id, apply_offset) {
+        var add_offset = (typeof apply_offset === 'undefined') ? true : apply_offset;
+        var shape = this.getShape(shape_id);
+        if (shape !== 'undefined') {
+            var x_offset = (add_offset === true) ? this.x_offset : 0;
+            var y_offset = (add_offset === true) ? this.y_offset : 0;
+            var shape_center = shape.getCenter();
+            return {
+                'x': shape_center.x + x_offset,
+                'y': shape_center.y + y_offset
+            }
+        } else {
+            return undefined;
+        }
+    };
+
     this.selectShape = function(shape_id, clear_selected, refresh_view) {
         var clear = (typeof clear_selected === 'undefined') ? false : clear_selected;
         if (clear === true) {
