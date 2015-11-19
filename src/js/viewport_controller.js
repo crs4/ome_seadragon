@@ -25,6 +25,17 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
         }
     };
 
+    this.enableScalebar = function(image_mpp, scalebar_config) {
+        if (typeof this.viewer !== "undefined" && image_mpp > 0) {
+            var pixels_per_meter = (1e6 / image_mpp);
+            var sc_conf = {'pixelsPerMeter': pixels_per_meter};
+            if (typeof scalebar_config !== "undefined") {
+                $.extend(sc_conf, scalebar_config);
+            }
+            this.viewer.scalebar(sc_conf);
+        }
+    };
+
     this.getViewportDetails = function() {
         if (this.viewer !== undefined) {
             var zoom_level = this.viewer.viewport.getZoom();
