@@ -3,8 +3,10 @@ import redis
 from cStringIO import StringIO
 from PIL import Image
 
+from cache_interface import CacheInterface
 
-class RedisCache(object):
+
+class RedisCache(CacheInterface):
 
     def __init__(self, host, port, database, default_expire):
         self.client = redis.StrictRedis(host=host, port=port, db=database)
@@ -12,12 +14,12 @@ class RedisCache(object):
         self.logger = logging.getLogger(__name__)
 
     def _get_tile_key(self, image_id, level, column, row, tile_size, image_format):
-        return 'TILE::IMG_%s|L_%s|C_%s-R_%s|S_%spx|F_%s' % (image_id, level, column, row,
-                                                            tile_size, image_format.upper())
+        return super(RedisCache, self)._get_tile_key(image_id, level, column, row,
+                                                     tile_size, image_format)
 
     def _get_thumbnail_key(self, image_id, image_width, image_height, image_format):
-        return 'THUMB::IMG_%s|W_%spx-H_%spx|F_%s' % (image_id, image_width, image_height,
-                                                     image_format.upper())
+        return super(RedisCache, self)._get_thumbnail_key(image_id, image_width,
+                                                          image_height, image_format)
 
     def tile_to_cache(self, image_id, image_obj, level, column, row, tile_size, image_format):
         out_buffer = StringIO()
