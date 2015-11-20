@@ -7,6 +7,7 @@ from cStringIO import StringIO
 from PIL import Image
 
 from ome_seadragon import settings
+from ome_seadragon.images_cache import CacheDriverFactory
 
 
 logger = logging.getLogger(__name__)
@@ -63,28 +64,50 @@ def get_image_mpp(image_id, conn):
 
 
 def get_thumbnail(image_id, width, height, conn):
-    image_path = _get_image_path(image_id, conn)
-    if image_path:
-        slide = OpenSlide(image_path)
-        thumbnail = slide.get_thumbnail((width, height))
+    cache_factory = CacheDriverFactory()
+    cache = cache_factory.get_cache()
+    # get thumbnail from cache
+    thumbnail = cache.thumbnail_from_cache(image_id, width, height,
+                                           settings.DEEPZOOM_FORMAT)
+    # if thumbnail is not in cache build it...
+    if thumbnail is None:
+        logger.info('No item loaded from cache, building it')
+        image_path = _get_image_path(image_id, conn)
+        if image_path:
+            slide = OpenSlide(image_path)
+            thumbnail = slide.get_thumbnail((width, height))
+            # ... and store it to cache
+            cache.thumbnail_to_cache(image_id, thumbnail, width, height,
+                                     settings.DEEPZOOM_FORMAT)
+        else:
+            thumbnail = None
     else:
-        thumbnail = None
+        logger.info('Thumbnail loaded from cache')
     return thumbnail, settings.DEEPZOOM_FORMAT
 
 
 def get_tile(image_id, level, column, row, conn):
-    image_path = _get_image_path(image_id, conn)
-    if image_path:
-        slide = _get_slide(image_path)
-        tile = slide.get_tile(level, (column, row))
-        img_buffer = StringIO()
-        tile_conf = {
-            'format': settings.DEEPZOOM_FORMAT
-        }
-        if settings.DEEPZOOM_FORMAT == 'jpeg':
-            tile_conf['quality'] = settings.DEEPZOOM_JPEG_COMPRESSION
-        tile.save(img_buffer, **tile_conf)
-        image = Image.open(img_buffer)
-        return image, settings.DEEPZOOM_FORMAT
-    else:
-        return None, settings.DEEPZOOM_FORMAT
+    cache_factory = CacheDriverFactory()
+    cache = cache_factory.get_cache()
+    image = cache.tile_from_cache(image_id, level, column, row,
+                                  settings.DEEPZOOM_TILE_SIZE,
+                                  settings.DEEPZOOM_FORMAT)
+    # if tile is not in cache build it...
+    if image is None:
+        image_path = _get_image_path(image_id, conn)
+        if image_path:
+            slide = _get_slide(image_path)
+            tile = slide.get_tile(level, (column, row))
+            img_buffer = StringIO()
+            tile_conf = {
+                'format': settings.DEEPZOOM_FORMAT
+            }
+            if settings.DEEPZOOM_FORMAT == 'jpeg':
+                tile_conf['quality'] = settings.DEEPZOOM_JPEG_COMPRESSION
+            tile.save(img_buffer, **tile_conf)
+            image = Image.open(img_buffer)
+            # ... and store it to cache
+            cache.tile_to_cache(image_id, image, level, column, row,
+                                settings.DEEPZOOM_TILE_SIZE,
+                                settings.DEEPZOOM_FORMAT)
+    return image, settings.DEEPZOOM_FORMAT
