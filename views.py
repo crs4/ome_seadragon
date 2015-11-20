@@ -108,7 +108,7 @@ def get_image_thumbnail(request, image_id, conn=None, **kwargs):
                                                            int(request.GET.get('height')),
                                                            conn)
     if thumbnail:
-        response = HttpResponse(mimetype="image/%s" % image_format)
+        response = HttpResponse(content_type="image/%s" % image_format)
         thumbnail.save(response, image_format)
         return response
     else:
