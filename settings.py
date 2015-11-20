@@ -13,5 +13,12 @@ CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.deepzoom.format': ['DEEPZOOM_FORMAT', 'png', identity, None],
     'omero.web.ome_seadragon.deepzoom.limit_bounds': ['DEEPZOOM_LIMIT_BOUNDS', True, identity, None],
     'omero.web.ome_seadragon.deepzoom.jpeg_tile_compression': ['DEEPZOOM_JPEG_COMPRESSION', 75, identity, None],
-    'omero.web.ome_seadragon.deepzoom.tile_size': ['DEEPZOOM_TILE_SIZE', 256, identity, None]
+    'omero.web.ome_seadragon.deepzoom.tile_size': ['DEEPZOOM_TILE_SIZE', 256, identity, None],
+    # images cache
+    'omero.web.ome_seadragon.images_cache.driver': ['IMAGES_CACHE_DRIVER', 'redis', identity, None],
+    'omero.web.ome_seadragon.images_cache.expire_time': ['CACHE_EXPIRE_TIME', 60*15, identity, None],
+    # redis config
+    'omero.web.ome_seadragon.images_cache.redis.host': ['REDIS_HOST', 'localhost', identity, None],
+    'omero.web.ome_seadragon.images_cache.redis.port': ['REDIS_PORT', 6379, identity, None],
+    'omero.web.ome_seadragon.images_cache.redis.database': ['REDIS_DB', 0, identity, None]
 }
