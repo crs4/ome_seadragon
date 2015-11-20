@@ -3,17 +3,13 @@ import os
 import openslide
 from openslide import OpenSlide, OpenSlideError
 from openslide.deepzoom import DeepZoomGenerator
-from io import BytesIO
+from cStringIO import StringIO
+from PIL import Image
 
 from ome_seadragon import settings
 
 
 logger = logging.getLogger(__name__)
-
-
-class PilBytesIO(BytesIO):
-    def fileno(self, *args, **kwargs):
-        raise AttributeError("Not supported")
 
 
 def _get_image_path(image_id, conn):
@@ -81,13 +77,14 @@ def get_tile(image_id, level, column, row, conn):
     if image_path:
         slide = _get_slide(image_path)
         tile = slide.get_tile(level, (column, row))
-        img_buffer = PilBytesIO()
+        img_buffer = StringIO()
         tile_conf = {
             'format': settings.DEEPZOOM_FORMAT
         }
         if settings.DEEPZOOM_FORMAT == 'jpeg':
             tile_conf['quality'] = settings.DEEPZOOM_JPEG_COMPRESSION
         tile.save(img_buffer, **tile_conf)
-        return img_buffer, 'image/%s' % settings.DEEPZOOM_FORMAT
+        image = Image.open(img_buffer)
+        return image, settings.DEEPZOOM_FORMAT
     else:
-        return None, 'image/%s' % settings.DEEPZOOM_FORMAT
+        return None, settings.DEEPZOOM_FORMAT
