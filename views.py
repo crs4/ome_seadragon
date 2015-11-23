@@ -108,7 +108,7 @@ def get_image_thumbnail(request, image_id, conn=None, **kwargs):
                                                            int(request.GET.get('height')),
                                                            conn)
     if thumbnail:
-        response = HttpResponse(mimetype="image/%s" % image_format)
+        response = HttpResponse(content_type="image/%s" % image_format)
         thumbnail.save(response, image_format)
         return response
     else:
@@ -119,10 +119,12 @@ def get_image_thumbnail(request, image_id, conn=None, **kwargs):
 def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kwargs):
     if tile_format != settings.DEEPZOOM_FORMAT:
         return HttpResponseServerError("Format %s not supported by the server" % tile_format)
-    img_buffer, mimetype = slides_manager.get_tile(image_id, int(level),
-                                                   int(column), int(row), conn)
-    if img_buffer:
-        return HttpResponse(img_buffer.getvalue(), mimetype)
+    image, image_format = slides_manager.get_tile(image_id, int(level),
+                                                  int(column), int(row), conn)
+    if image:
+        response = HttpResponse(content_type='image/%s' % image_format)
+        image.save(response, image_format)
+        return response
     else:
         return HttpResponseNotFound("No tile can be found")
 
