@@ -6,7 +6,10 @@ class CacheInterface(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def _get_tile_key(self, image_id, level, column, row, tile_size, image_format):
+    def _get_tile_key(self, image_id, level, column, row, tile_size, image_format,
+                      image_compression=None):
+        if image_compression:
+            image_format = '%s%s' % (image_format, image_compression)
         return 'TILE::IMG_%s|L_%s|C_%s-R_%s|S_%spx|F_%s' % (image_id, level, column, row,
                                                             tile_size, image_format.upper())
 
@@ -16,11 +19,13 @@ class CacheInterface(object):
                                                      image_format.upper())
 
     @abstractmethod
-    def tile_to_cache(self, image_id, image_obj, level, column, row, tile_size, image_format):
+    def tile_to_cache(self, image_id, image_obj, level, column, row, tile_size, image_format,
+                      image_compression=None):
         pass
 
     @abstractmethod
-    def tile_from_cache(self, image_id, level, column, row, tile_size, image_format):
+    def tile_from_cache(self, image_id, level, column, row, tile_size, image_format,
+                        image_compression=None):
         pass
 
     @abstractmethod

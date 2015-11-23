@@ -89,9 +89,18 @@ def get_thumbnail(image_id, width, height, conn):
 def get_tile(image_id, level, column, row, conn):
     cache_factory = CacheDriverFactory()
     cache = cache_factory.get_cache()
-    image = cache.tile_from_cache(image_id, level, column, row,
-                                  settings.DEEPZOOM_TILE_SIZE,
-                                  settings.DEEPZOOM_FORMAT)
+    # configure cache callback
+    cache_callback_params = {
+        'image_id': image_id,
+        'level': level,
+        'column': column,
+        'row': row,
+        'tile_size': settings.DEEPZOOM_TILE_SIZE,
+        'image_format': settings.DEEPZOOM_FORMAT
+    }
+    if settings.DEEPZOOM_FORMAT.lower() == 'jpeg':
+        cache_callback_params['image_compression'] = settings.DEEPZOOM_JPEG_COMPRESSION
+    image = cache.tile_from_cache(**cache_callback_params)
     # if tile is not in cache build it...
     if image is None:
         image_path = _get_image_path(image_id, conn)
@@ -107,7 +116,6 @@ def get_tile(image_id, level, column, row, conn):
             tile.save(img_buffer, **tile_conf)
             image = Image.open(img_buffer)
             # ... and store it to cache
-            cache.tile_to_cache(image_id, image, level, column, row,
-                                settings.DEEPZOOM_TILE_SIZE,
-                                settings.DEEPZOOM_FORMAT)
+            cache_callback_params['image_obj'] = image
+            cache.tile_to_cache(**cache_callback_params)
     return image, settings.DEEPZOOM_FORMAT
