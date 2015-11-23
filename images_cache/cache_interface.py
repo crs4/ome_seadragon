@@ -7,9 +7,9 @@ class CacheInterface(object):
 
     @abstractmethod
     def _get_tile_key(self, image_id, level, column, row, tile_size, image_format,
-                      image_compression=None):
-        if image_compression:
-            image_format = '%s%s' % (image_format, image_compression)
+                      image_quality=None):
+        if image_quality:
+            image_format = '%s%s' % (image_format, image_quality)
         return 'TILE::IMG_%s|L_%s|C_%s-R_%s|S_%spx|F_%s' % (image_id, level, column, row,
                                                             tile_size, image_format.upper())
 
@@ -20,12 +20,12 @@ class CacheInterface(object):
 
     @abstractmethod
     def tile_to_cache(self, image_id, image_obj, level, column, row, tile_size, image_format,
-                      image_compression=None):
+                      image_quality=None):
         pass
 
     @abstractmethod
     def tile_from_cache(self, image_id, level, column, row, tile_size, image_format,
-                        image_compression=None):
+                        image_quality=None):
         pass
 
     @abstractmethod

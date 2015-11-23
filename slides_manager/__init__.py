@@ -99,7 +99,7 @@ def get_tile(image_id, level, column, row, conn):
         'image_format': settings.DEEPZOOM_FORMAT
     }
     if settings.DEEPZOOM_FORMAT.lower() == 'jpeg':
-        cache_callback_params['image_compression'] = settings.DEEPZOOM_JPEG_COMPRESSION
+        cache_callback_params['image_compression'] = settings.DEEPZOOM_JPEG_QUALITY
     image = cache.tile_from_cache(**cache_callback_params)
     # if tile is not in cache build it...
     if image is None:
@@ -112,7 +112,7 @@ def get_tile(image_id, level, column, row, conn):
                 'format': settings.DEEPZOOM_FORMAT
             }
             if settings.DEEPZOOM_FORMAT == 'jpeg':
-                tile_conf['quality'] = settings.DEEPZOOM_JPEG_COMPRESSION
+                tile_conf['quality'] = settings.DEEPZOOM_JPEG_QUALITY
             tile.save(img_buffer, **tile_conf)
             image = Image.open(img_buffer)
             # ... and store it to cache
