@@ -10,9 +10,9 @@ CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.images_folder': ['IMGS_FOLDER', 'ManagedRepository', identity, None],
     # deepzoom properties
     'omero.web.ome_seadragon.deepzoom.overlap': ['DEEPZOOM_OVERLAP', 1, identity, None],
-    'omero.web.ome_seadragon.deepzoom.format': ['DEEPZOOM_FORMAT', 'png', identity, None],
+    'omero.web.ome_seadragon.deepzoom.format': ['DEEPZOOM_FORMAT', 'jpeg', identity, None],
     'omero.web.ome_seadragon.deepzoom.limit_bounds': ['DEEPZOOM_LIMIT_BOUNDS', True, identity, None],
-    'omero.web.ome_seadragon.deepzoom.jpeg_tile_quality': ['DEEPZOOM_JPEG_QUALITY', 75, identity, None],
+    'omero.web.ome_seadragon.deepzoom.jpeg_tile_quality': ['DEEPZOOM_JPEG_QUALITY', 90, identity, None],
     'omero.web.ome_seadragon.deepzoom.tile_size': ['DEEPZOOM_TILE_SIZE', 256, identity, None],
     # images cache
     'omero.web.ome_seadragon.images_cache.cache_enabled': ['IMAGES_CACHE_ENABLED', False, identity, None],
