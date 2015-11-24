@@ -36,10 +36,14 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
         }
     };
 
-    this.getViewportDetails = function() {
+    this.getViewportDetails = function(viewport_coordinates) {
         if (this.viewer !== undefined) {
+            var vp_coord = (typeof viewport_coordinates === 'undefined') ? false : viewport_coordinates;
             var zoom_level = this.viewer.viewport.getZoom();
             var center_point = this.viewer.viewport.getCenter();
+            if (vp_coord === false) {
+                center_point = this.getImageCoordinates(center_point.x, center_point.y);
+            }
             return {
                 'zoom_level': zoom_level,
                 'center_x': center_point.x,
@@ -74,6 +78,14 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
         return {
             'x': vc_point.x,
             'y': vc_point.y
+        }
+    };
+
+    this.getImageCoordinates = function(point_x, point_y) {
+        var img_point = this.viewer.viewport.viewportToImageCoordinates(point_x, point_y);
+        return {
+            'x': img_point.x,
+            'y': img_point.y
         }
     };
 
