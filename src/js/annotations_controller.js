@@ -41,6 +41,14 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    this.enableMouseEvents = function() {
+        $("#" + this.canvas_id).css('pointer-events', 'auto');
+    };
+
+    this.disableMouseEvents = function() {
+        $("#" + this.canvas_id).css('pointer-events', 'none');
+    };
+
     var refresh = function(global_obj, auto_refresh) {
         var r = (typeof auto_refresh === 'undefined') ? true : auto_refresh;
         if (r) {
