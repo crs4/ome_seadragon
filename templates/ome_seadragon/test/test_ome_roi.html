@@ -17,6 +17,7 @@
     </style>
 
     <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
     <script src="{{ host_name }}/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
     <script src="{{ host_name }}/static/ome_seadragon/js/paper-full.min.js"></script>
 
@@ -24,74 +25,88 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
-            console.log("Loading openseadragon viewer");
+            $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+                console.log("Loading openseadragon viewer");
 
-            var viewer_config = {
-                'showNavigator': true,
-                'showFullPageControl': false,
-                'animationTime': 0.01,
-                'toolbar': 'toolbar'
-            };
+                var viewer_config = {
+                    'showNavigator': true,
+                    'showFullPageControl': false,
+                    'animationTime': 0.01,
+                    'toolbar': 'toolbar'
+                };
 
-            window.viewer = new ViewerController(
-                    "openseadragon_viewer",
-                    "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
-                    "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
-                    viewer_config
-            );
-            viewer.buildViewer();
+                window.viewer = new ViewerController(
+                        "openseadragon_viewer",
+                        "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                        "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
+                        viewer_config
+                );
+                viewer.buildViewer();
 
-            viewer.viewer.addHandler('open', function() {
-                viewer.setMinDZILevel(8);
+                // Scalebar setup
+                var image_mpp = data.image_mpp ? data.image_mpp : 0;
+                var scalebar_config = {
+                    "xOffset": 10,
+                    "yOffset": 10,
+                    "barThickness": 5,
+                    "color": "#777777",
+                    "fontColor": "#000000",
+                    "backgroundColor": 'rgba(255, 255, 255, 0.5)'
+                };
+                viewer.enableScalebar(image_mpp, scalebar_config);
 
-                window.annotations_canvas = new AnnotationsController('annotations_canvas');
-                annotations_canvas.buildAnnotationsCanvas(viewer);
-                viewer.addAnnotationsController(annotations_canvas, true);
-                // get ROIs from OMERO and draw them
-                var request = $.ajax({
-                    url: "{{ host_name }}/webgateway/get_rois_json/{{ image_id }}/",
-                    dataType: "json"
-                });
-                request.success(function(data) {
-                    for (var roi in data) {
-                        var shapes = data[roi].shapes;
-                        for (var shape in shapes) {
-                            var shape_type = shapes[shape].type;
-                            var shape_config = {
-                                'fill_color': shapes[shape].fillColor,
-                                'fill_alpha': shapes[shape].fillAlpha,
-                                'stroke_color': shapes[shape].strokeColor,
-                                'stroke_alpha': shapes[shape].strokeAlpha,
-                                'stroke_width': shapes[shape].strokeWidth
-                            }
+                viewer.viewer.addHandler('open', function () {
+                    viewer.setMinDZILevel(8);
 
-                            switch(shape_type) {
-                                case "Rectangle":
-                                    annotations_canvas.drawRectangle(
-                                            shapes[shape].id, shapes[shape].x, shapes[shape].y, shapes[shape].width,
-                                            shapes[shape].height, shape_config, false
-                                    );
-                                    break
-                                case "Ellipse":
-                                    annotations_canvas.drawEllipse(
-                                            shapes[shape].id, shapes[shape].cx, shapes[shape].cy,
-                                            shapes[shape].rx, shapes[shape].ry, shape_config,
-                                            false
-                                    );
-                                    break;
-                                case "Line":
-                                    annotations_canvas.drawLine(
-                                            shapes[shape].id, shapes[shape].x1, shapes[shape].y1,
-                                            shapes[shape].x2, shapes[shape].y2, shape_config,
-                                            false
-                                    );
-                                    break;
-                                default:
-                                    console.warn('Unable to handle shape type ' + shape_type);
+                    window.annotations_canvas = new AnnotationsController('annotations_canvas');
+                    annotations_canvas.buildAnnotationsCanvas(viewer);
+                    viewer.addAnnotationsController(annotations_canvas, true);
+                    // get ROIs from OMERO and draw them
+                    var request = $.ajax({
+                        url: "{{ host_name }}/webgateway/get_rois_json/{{ image_id }}/",
+                        dataType: "json"
+                    });
+                    request.success(function (data) {
+                        for (var roi in data) {
+                            var shapes = data[roi].shapes;
+                            for (var shape in shapes) {
+                                var shape_type = shapes[shape].type;
+                                var shape_config = {
+                                    'fill_color': shapes[shape].fillColor,
+                                    'fill_alpha': shapes[shape].fillAlpha,
+                                    'stroke_color': shapes[shape].strokeColor,
+                                    'stroke_alpha': shapes[shape].strokeAlpha,
+                                    'stroke_width': shapes[shape].strokeWidth
+                                }
+
+                                switch (shape_type) {
+                                    case "Rectangle":
+                                        annotations_canvas.drawRectangle(
+                                                shapes[shape].id, shapes[shape].x, shapes[shape].y, shapes[shape].width,
+                                                shapes[shape].height, shape_config, false
+                                        );
+                                        break
+                                    case "Ellipse":
+                                        annotations_canvas.drawEllipse(
+                                                shapes[shape].id, shapes[shape].cx, shapes[shape].cy,
+                                                shapes[shape].rx, shapes[shape].ry, shape_config,
+                                                false
+                                        );
+                                        break;
+                                    case "Line":
+                                        annotations_canvas.drawLine(
+                                                shapes[shape].id, shapes[shape].x1, shapes[shape].y1,
+                                                shapes[shape].x2, shapes[shape].y2, shape_config,
+                                                false
+                                        );
+                                        break;
+                                    default:
+                                        console.warn('Unable to handle shape type ' + shape_type);
+                                }
                             }
                         }
-                    }
-                    annotations_canvas.refreshView();
+                        annotations_canvas.refreshView();
+                    });
                 });
             });
         });
