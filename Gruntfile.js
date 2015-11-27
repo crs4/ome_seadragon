@@ -6,6 +6,7 @@ module.exports = function(grunt) {
         "src/js/viewport_controller.js",
         "src/js/shapes.js",
         "src/js/annotations_controller.js",
+        "src/js/annotations_events_controller.js",
         "src/js/utils.js"
     ];
 
