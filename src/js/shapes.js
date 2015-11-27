@@ -109,6 +109,25 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y) {
 Ellipse.prototype = new Shape();
 
 
+function Circle(id, center_x, center_y, radius) {
+    Shape.call(this, id);
+
+    this.center_x = center_x;
+    this.center_y = center_y;
+    this.radius = radius;
+
+    this.toPaperShape = function() {
+        var circle = new paper.Shape.Circle({
+            center: [this.center_x, this.center_y],
+            radius: this.radius
+        });
+        this.paper_shape = circle;
+    };
+}
+
+Circle.prototype = new Shape();
+
+
 function Line(id, from_x, from_y, to_x, to_y) {
     Shape.call(this, id);
 

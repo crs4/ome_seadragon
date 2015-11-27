@@ -261,6 +261,13 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    this.drawCircle = function(shape_id, center_x, center_y, radius, shape_conf, refresh_view) {
+        var circle = new Circle(shape_id, center_x - this.x_offset, center_y - this.y_offset, radius);
+        if (this.addShapeToCache(circle)) {
+            this.drawShape(circle, shape_conf, refresh_view);
+        }
+    };
+
     this.drawLine = function(shape_id, from_x, from_y, to_x, to_y, shape_conf, refresh_view) {
         var line = new Line(shape_id, from_x - this.x_offset, from_y - this.y_offset,
             to_x - this.x_offset, to_y - this.y_offset);
