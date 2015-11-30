@@ -142,8 +142,12 @@ function AnnotationsController(canvas_id, default_config) {
     this.deselectShape = function(shape_id, refresh_view) {
         if (shape_id in this.shapes_cache) {
             this.shapes_cache[shape_id].deselect();
+            var deleted = true;
+        } else {
+            var deleted = false;
         }
         refresh(this, refresh_view);
+        return deleted;
     };
 
     this.deselectShapes = function (shapes_id, refresh_view) {
