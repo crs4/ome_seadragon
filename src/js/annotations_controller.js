@@ -73,6 +73,16 @@ function AnnotationsController(canvas_id, default_config) {
         paper.view.setCenter(center);
     };
 
+    this._getShapeId = function(id_prefix) {
+        var id_counter = 1;
+        var shape_id = id_prefix + '_' + id_counter;
+        while (shape_id in this.shapes_cache) {
+            id_counter += 1;
+            shape_id = id_prefix + '_' + id_counter;
+        }
+        return shape_id;
+    };
+
     this.addShapeToCache = function(shape) {
         if (! (shape.id in this.shapes_cache)) {
             this.shapes_cache[shape.id] = shape;
