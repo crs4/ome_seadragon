@@ -1,5 +1,6 @@
 function AnnotationsEventsController(annotations_controller) {
 
+    this.DUMMY_TOOL = 'dummy_tool';
     this.IMAGE_MARKING_TOOL = 'image_marker';
 
     this.annotation_controller = annotations_controller;
@@ -15,7 +16,18 @@ function AnnotationsEventsController(annotations_controller) {
         );
     };
 
+    // Create a tool that simply ignores mouse events, this will be used, for example, to avoid
+    // events propagation when capturing events on Shapes
+    this.initializeDummyTool = function() {
+        if (! (this.DUMMY_TOOL in this.initialized_tools)) {
+            this.initialized_tools[this.DUMMY_TOOL] = new paper.Tool();
+        }
+    };
+
     this.initializeImageMarkingTool = function(marker_size, markers_limit, switch_id) {
+        // by default, initialize dummy tool
+        this.initializeDummyTool();
+
         if(! (this.IMAGE_MARKING_TOOL in this.initialized_tools)) {
 
             AnnotationsController.prototype.markers_counter = 0;
