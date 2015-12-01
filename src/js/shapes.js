@@ -29,6 +29,65 @@ function Shape(id) {
         }
     };
 
+    this.enableEvents = function(events_list) {
+        if (typeof events_list === 'undefined') {
+            for (var ev in this.default_events) {
+                this.paper_shape[this.default_events[ev]] = true;
+            }
+        } else {
+            for (var ev in events_list) {
+                if (this.default_events.indexOf(events_list[ev]) !== -1) {
+                    this.paper_shape[events_list[ev]] = true;
+                } else {
+                    console.warn('Unknown event ' + events_list[ev]);
+                }
+            }
+        }
+    };
+
+    this.disableEvents = function(events_list) {
+        if (typeof events_list === 'undefined') {
+            for (var ev in this.default_events) {
+                this.paper_shape[this.default_events[ev]] = false;
+            }
+        } else {
+            for (var ev in events_list) {
+                if (this.default_events.indexOf(events_list[ev]) !== -1) {
+                    this.paper_shape[events_list[ev]] = false;
+                } else {
+                    console.warn('Unknown event ' + events_list[ev]);
+                }
+            }
+        }
+    };
+
+    this._buildEvents = function() {
+        this.paper_shape.on({
+            mousedrag: function(event) {
+                if (this[Shape.MOUSE_DRAG_EVENT] === true) {
+                    document.body.style.cursor = 'move';
+                    this.position = new paper.Point(
+                        this.position.x + event.delta.x,
+                        this.position.y + event.delta.y
+                    );
+                }
+            },
+            mouseup:  function(event) {
+                document.body.style.cursor = 'auto';
+            }
+        });
+    };
+
+    this.initializeEvents = function(activate_events) {
+        var activate = (typeof activate_events === 'undefined') ? false : activate_events;
+        this._buildEvents();
+        if (activate) {
+            this.enableEvents();
+        } else {
+            this.disableEvents();
+        }
+    };
+
     this.select = function() {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.setSelected(true);
@@ -68,6 +127,11 @@ function Shape(id) {
     }
 }
 
+Shape.MOUSE_DRAG_EVENT = 'mouse_drag_event';
+Shape.prototype.default_events = [
+    Shape.MOUSE_DRAG_EVENT
+];
+
 
 function Rectangle(id, origin_x, origin_y, width, height) {
     Shape.call(this, id);
@@ -77,12 +141,13 @@ function Rectangle(id, origin_x, origin_y, width, height) {
     this.width = width;
     this.height = height;
 
-    this.toPaperShape = function() {
+    this.toPaperShape = function(activate_events) {
         var rect = new paper.Shape.Rectangle({
             point: [this.origin_x, this.origin_y],
             size: [this.width, this.height]
         });
         this.paper_shape = rect;
+        this.initializeEvents(activate_events);
     };
 }
 
@@ -97,12 +162,13 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y) {
     this.radius_x = radius_x;
     this.radius_y = radius_y;
 
-    this.toPaperShape = function() {
+    this.toPaperShape = function(activate_events) {
         var ellipse = new paper.Shape.Ellipse({
             center: [this.center_x, this.center_y],
             radius: [this.radius_x, this.radius_y]
         });
         this.paper_shape = ellipse;
+        this.initializeEvents(activate_events);
     };
 }
 
@@ -116,12 +182,13 @@ function Circle(id, center_x, center_y, radius) {
     this.center_y = center_y;
     this.radius = radius;
 
-    this.toPaperShape = function() {
+    this.toPaperShape = function(activate_events) {
         var circle = new paper.Shape.Circle({
             center: [this.center_x, this.center_y],
             radius: this.radius
         });
         this.paper_shape = circle;
+        this.initializeEvents(activate_events);
     };
 }
 
@@ -136,12 +203,13 @@ function Line(id, from_x, from_y, to_x, to_y) {
     this.to_x = to_x;
     this.to_y = to_y;
 
-    this.toPaperShape = function() {
+    this.toPaperShape = function(activate_events) {
         var line = new paper.Path.Line({
             from: [this.from_x, this.from_y],
             to: [this.to_x, this.to_y]
         });
         this.paper_shape = line;
+        this.initializeEvents(activate_events);
     };
 }
 
