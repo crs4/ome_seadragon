@@ -83,8 +83,11 @@ function AnnotationsEventsController(annotations_controller) {
         }
     };
 
-    this.activateTool = function(tool_label) {
+    this.activateTool = function(tool_label, disable_events_on_shapes) {
         if (tool_label in this.initialized_tools) {
+            var sh_ev_off = (typeof disable_events_on_shapes === 'undefined') ? true : disable_events_on_shapes;
+            if (sh_ev_off === true)
+                this.annotation_controller.disableEventsOnShapes();
             var tool = this.initialized_tools[tool_label];
             tool.activate();
             this.annotation_controller.enableMouseEvents();
