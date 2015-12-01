@@ -65,6 +65,11 @@
                         window.annotations_canvas.disableMouseEvents();
                     });
 
+                    $("#edit_markers").click(function() {
+                        window.events_controller.activateTool(window.events_controller.DUMMY_TOOL, false);
+                        window.annotations_canvas.enableEventsOnShapes();
+                    });
+
                     window.events_controller = new AnnotationsEventsController(annotations_canvas);
                     events_controller.initializeImageMarkingTool(500, 0, "enable_events");
                 });
@@ -74,8 +79,9 @@
 </head>
 <body>
     <div>
-        <button type="button" id="enable_events">Enable interactive events</button>
-        <button type="button" id="disable_events">Disable interactive events</button>
+        <button type="button" id="disable_events">Image navigation mode</button>
+        <button type="button" id="enable_events">Add markers</button>
+        <button type="button" id="edit_markers">Edit markers</button>
     </div>
     <div id="graphics_container" class="container">
         <div id="openseadragon_viewer" class="graphic_element"></div>
