@@ -48,6 +48,7 @@ function AnnotationsEventsController(annotations_controller) {
                 var deleted = this.deleteShape(marker_id);
                 if (deleted === true) {
                     this.markers_counter -= 1;
+                    $(document).trigger('marker_deleted', [marker_id]);
                 }
             };
 
