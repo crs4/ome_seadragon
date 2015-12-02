@@ -52,6 +52,13 @@ function AnnotationsEventsController(annotations_controller) {
                 }
             };
 
+            AnnotationsController.prototype.clearMarkers = function() {
+                this.deleteShapes(this.markers_id);
+                for (var i=0; i<this.markers_id.length; i++)
+                    $(document).trigger('marker_deleted', this.markers_id[i]);
+                this.markers_id = [];
+            };
+
             AnnotationsController.prototype.addMarker = function(event) {
                 var add_new_marker = this._check_markers_limit();
                 if (add_new_marker === true) {
