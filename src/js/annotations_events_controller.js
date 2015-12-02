@@ -60,6 +60,7 @@ function AnnotationsEventsController(annotations_controller) {
                     var shape_id = this._getShapeId('marker');
                     this.drawCircle(shape_id, img_x, img_y, event.marker_radius, undefined, true);
                     this.markers_counter += 1;
+                    $(document).trigger('marker_created', [shape_id]);
                 }
             };
 

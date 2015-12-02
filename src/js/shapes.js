@@ -124,7 +124,7 @@ function Shape(id) {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.remove();
         }
-    }
+    };
 }
 
 Shape.MOUSE_DRAG_EVENT = 'mouse_drag_event';
