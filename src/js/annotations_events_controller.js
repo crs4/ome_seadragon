@@ -39,7 +39,7 @@ function AnnotationsEventsController(annotations_controller) {
             }
 
             AnnotationsController.prototype._check_markers_limit = function() {
-                if (this.markers_id.length > 0 && (this.markers_counter >= this.max_markers_count))
+                if (this.markers_id.length > 0 && (this.markers_id.length >= this.max_markers_count))
                     return false;
                 return true;
             };
