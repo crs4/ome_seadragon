@@ -13,6 +13,7 @@
             width: 800px;
             height: 600px;
             position: absolute;
+            margin-top: 10px;
         }
     </style>
 
@@ -71,21 +72,42 @@
                     });
 
                     window.events_controller = new AnnotationsEventsController(annotations_canvas);
-                    events_controller.initializeImageMarkingTool(500, 0, "enable_events");
+                    events_controller.initializeImageMarkingTool(500, 3, "enable_events");
+
+                    // when a new marker is created, add a button to delete it
+                    $(document).on('marker_created', function(event, marker_id) {
+                        console.log('A new marker with ID ' + marker_id + ' was created');
+                        var $delm_btn = $("<button type='button' id='del_" + marker_id +"'> DEL " + marker_id +"</button>");
+                        $("#del_button_group").append($delm_btn);
+                        $delm_btn.bind(
+                                'click', {'marker_id': marker_id, 'btn_id': 'del_' + marker_id},
+                                function(event) {
+                                    window.annotations_canvas.removeMarker(event.data.marker_id);
+                                }
+                        );
+                    });
+                    // when a marker is deleted, remove related button
+                    $(document).on('marker_deleted', function(event, marker_id) {
+                        $("#del_" + marker_id).remove();
+                    });
                 });
             });
         });
     </script>
 </head>
 <body>
-    <div>
-        <button type="button" id="disable_events">Image navigation mode</button>
-        <button type="button" id="enable_events">Add markers</button>
-        <button type="button" id="edit_markers">Edit markers</button>
+    <div id = "del_button_group" style="float: left;">
     </div>
-    <div id="graphics_container" class="container">
-        <div id="openseadragon_viewer" class="graphic_element"></div>
-        <canvas id="annotations_canvas" class="graphic_element"></canvas>
+    <div style="float: left;" class="container">
+        <div id="toolbar">
+            <button type="button" id="disable_events">Image navigation mode</button>
+            <button type="button" id="enable_events">Add markers</button>
+            <button type="button" id="edit_markers">Edit markers</button>
+        </div>
+        <div id="graphics_container" class="container">
+            <div id="openseadragon_viewer" class="graphic_element"></div>
+            <canvas id="annotations_canvas" class="graphic_element"></canvas>
+        </div>
     </div>
 </body>
 </html>
