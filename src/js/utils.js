@@ -40,3 +40,10 @@ ColorsAdapter.hexToPaperColor = function(hex_color, alpha_value) {
     var alpha = (typeof alpha_value === 'undefined') ? 1 : alpha_value;
     return new paper.Color(rgb_color.red, rgb_color.green, rgb_color.blue, alpha);
 };
+
+ColorsAdapter.paperColorToHex = function(paper_color) {
+    return {
+        'hex_color': paper_color.toCSS(true),
+        'alpha': paper_color.getAlpha()
+    }
+};
