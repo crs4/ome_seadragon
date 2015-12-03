@@ -171,7 +171,8 @@ function Rectangle(id, origin_x, origin_y, width, height) {
                 'origin_x': this.origin_x + x_offset,
                 'origin_y': this.origin_y + y_offset,
                 'width': this.width,
-                'height': this.height
+                'height': this.height,
+                'type': 'rectangle'
             });
         return shape_json;
     };
@@ -205,7 +206,8 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y) {
                 'center_x': this.center_x + x_offset,
                 'center_y': this.center_y + y_offset,
                 'radius_x': this.radius_x,
-                'radius_y': this.radius_y
+                'radius_y': this.radius_y,
+                'type': 'ellipse'
             });
         return shape_json;
     };
@@ -237,7 +239,8 @@ function Circle(id, center_x, center_y, radius) {
             {
                 'center_x': this.center_x + x_offset,
                 'center_y': this.center_y + y_offset,
-                'radius': this.radius
+                'radius': this.radius,
+                'type': 'circle'
             });
         return shape_json;
     };
@@ -271,7 +274,8 @@ function Line(id, from_x, from_y, to_x, to_y) {
                 'from_x': this.from_x + x_offset,
                 'from_y': this.from_y + y_offset,
                 'to_x': this.to_x + x_offset,
-                'to_y': this.to_y + y_offset
+                'to_y': this.to_y + y_offset,
+                'type': 'line'
             });
         return shape_json;
     };
