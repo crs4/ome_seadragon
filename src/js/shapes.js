@@ -6,6 +6,19 @@ function Shape(id) {
     this.stroke_color = undefined;
     this.stroke_width = undefined;
 
+    this._configJSON = function() {
+        var fill_color_json = ColorsAdapter.paperColorToHex(this.fill_color);
+        var stroke_color_json = ColorsAdapter.paperColorToHex(this.stroke_color);
+        return {
+            'shape_id': this.id,
+            'fill_color': fill_color_json.hex_color,
+            'fill_alpha': fill_color_json.alpha,
+            'stroke_color': stroke_color_json.hex_color,
+            'stroke_alpha': stroke_color_json.alpha,
+            'stroke_width': this.stroke_width
+        }
+    };
+
     this.getCenter = function() {
         if (typeof this.paper_shape !== 'undefined') {
             var bbox = this.paper_shape.bounds;
@@ -149,6 +162,19 @@ function Rectangle(id, origin_x, origin_y, width, height) {
         this.paper_shape = rect;
         this.initializeEvents(activate_events);
     };
+
+    this.toJSON = function(x_offset, y_offset) {
+        var shape_json = this._configJSON();
+        $.extend(
+            shape_json,
+            {
+                'origin_x': this.origin_x + x_offset,
+                'origin_y': this.origin_y + y_offset,
+                'width': this.width,
+                'height': this.height
+            });
+        return shape_json;
+    };
 }
 
 Rectangle.prototype = new Shape();
@@ -170,6 +196,19 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y) {
         this.paper_shape = ellipse;
         this.initializeEvents(activate_events);
     };
+
+    this.toJSON = function(x_offset, y_offset) {
+        var shape_json = this._configJSON();
+        $.extend(
+            shape_json,
+            {
+                'center_x': this.center_x + x_offset,
+                'center_y': this.center_y + y_offset,
+                'radius_x': this.radius_x,
+                'radius_y': this.radius_y
+            });
+        return shape_json;
+    };
 }
 
 Ellipse.prototype = new Shape();
@@ -189,6 +228,18 @@ function Circle(id, center_x, center_y, radius) {
         });
         this.paper_shape = circle;
         this.initializeEvents(activate_events);
+    };
+
+    this.toJSON = function(x_offset, y_offset) {
+        var shape_json = this._configJSON();
+        $.extend(
+            shape_json,
+            {
+                'center_x': this.center_x + x_offset,
+                'center_y': this.center_y + y_offset,
+                'radius': this.radius
+            });
+        return shape_json;
     };
 }
 
@@ -210,6 +261,19 @@ function Line(id, from_x, from_y, to_x, to_y) {
         });
         this.paper_shape = line;
         this.initializeEvents(activate_events);
+    };
+
+    this.toJSON = function(x_offset, y_offset) {
+        var shape_json = this._configJSON();
+        $.extend(
+            shape_json,
+            {
+                'from_x': this.from_x + x_offset,
+                'from_y': this.from_y + y_offset,
+                'to_x': this.to_x + x_offset,
+                'to_y': this.to_y + y_offset
+            });
+        return shape_json;
     };
 }
 
