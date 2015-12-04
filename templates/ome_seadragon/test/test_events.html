@@ -4,16 +4,47 @@
     <meta charset="UTF-8">
     <title>OPENSEADRAGON TEST VIEWER WITH ANNOTATIONS</title>
 
+    <link href="{{ host_name }}/static/ome_seadragon/css/bootstrap.min.css" rel="stylesheet">
+
     <style type="text/css">
-        .container {
-            position: relative;
+        #main_frame {
+            margin-top: 10px;
+            display: table;
+        }
+        
+        #main_frame_row {
+            display: table-row;
         }
 
         .graphic_element {
-            width: 800px;
-            height: 600px;
             position: absolute;
-            margin-top: 10px;
+            height: 600px;
+            width: 800px;
+        }
+
+        .img_navigator {
+            height: 150px;
+            width: 200px;
+        }
+
+        #toolbar {
+            width: 200px;
+            display: table-cell;
+            padding: 10px;
+            text-align: center;
+        }
+
+        #viewer {
+            width: 850px;
+            display: table-cell;
+            padding: 10px;
+        }
+
+        #navigator{
+            width: 200px;
+            text-align: center;
+            display: table-cell;
+            padding: 2px;
         }
     </style>
 
@@ -21,6 +52,7 @@
     <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
     <script src="{{ host_name }}/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
     <script src="{{ host_name }}/static/ome_seadragon/js/paper-full.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/bootstrap.min.js"></script>
 
     <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.min.js"></script>
 
@@ -32,7 +64,8 @@
                 var viewer_config = {
                     'showNavigator': true,
                     'showFullPageControl': false,
-                    'animationTime': 0.01
+                    'animationTime': 0.01,
+                    'navigatorId': "image_navigator"
                 };
 
                 window.viewer = new ViewerController(
@@ -63,21 +96,32 @@
                     viewer.addAnnotationsController(annotations_canvas, true);
 
                     $("#disable_events").click(function() {
+                        $("#disable_events").addClass("active");
+                        $("#enable_events").removeClass("active");
+                        $("#edit_markers").removeClass("active");
                         window.annotations_canvas.disableMouseEvents();
                     });
 
                     $("#edit_markers").click(function() {
+                        $("#disable_events").removeClass("active");
+                        $("#enable_events").removeClass("active");
+                        $("#edit_markers").addClass("active");
                         window.events_controller.activateTool(window.events_controller.DUMMY_TOOL, false);
                         window.annotations_canvas.enableEventsOnShapes();
                     });
 
+                    $("#enable_events").click(function() {
+                        $("#disable_events").removeClass("active");
+                        $("#enable_events").addClass("active");
+                        $("#edit_markers").removeClass("active");
+                    });
                     window.events_controller = new AnnotationsEventsController(annotations_canvas);
                     events_controller.initializeImageMarkingTool(500, 3, "enable_events");
 
                     // when a new marker is created, add a button to delete it
                     $(document).on('marker_created', function(event, marker_id) {
                         console.log('A new marker with ID ' + marker_id + ' was created');
-                        var $delm_btn = $("<button type='button' id='del_" + marker_id +"'> DEL " + marker_id +"</button>");
+                        var $delm_btn = $("<li><button id='del_" + marker_id +"' type='button' class='btn btn-danger'>DEL " + marker_id + "</button></li>");
                         $("#del_button_group").append($delm_btn);
                         $delm_btn.bind(
                                 'click', {'marker_id': marker_id, 'btn_id': 'del_' + marker_id},
@@ -96,17 +140,27 @@
     </script>
 </head>
 <body>
-    <div id = "del_button_group" style="float: left;">
-    </div>
-    <div style="float: left;" class="container">
-        <div id="toolbar">
-            <button type="button" id="disable_events">Image navigation mode</button>
-            <button type="button" id="enable_events">Add markers</button>
-            <button type="button" id="edit_markers">Edit markers</button>
-        </div>
-        <div id="graphics_container" class="container">
-            <div id="openseadragon_viewer" class="graphic_element"></div>
-            <canvas id="annotations_canvas" class="graphic_element"></canvas>
+    <div id="main_frame">
+        <div id="main_frame_row">
+            <div id="toolbar">
+                <ul class="nav nav-pills nav-stacked">
+                    <li id="disable_events" class="active"><a href="#">Navigation Mode</a></li>
+                    <li id="enable_events"><a href="#">Add Markers</a></li>
+                    <li id="edit_markers"><a href="#">Edit Markers</a></li>
+                </ul>
+            </div>
+            <div id="viewer">
+                <div id="openseadragon_viewer" class="graphic_element"></div>
+                <canvas id="annotations_canvas" class="graphic_element"></canvas>
+            </div>
+            <div id="navigator">
+                <div class="row">
+                    <div id="image_navigator" class="img_navigator"></div>
+                </div>
+                <div class="row">
+                    <ul id="del_button_group" class="nav nav-pills nav-stacked"></ul>
+                </div>
+            </div>
         </div>
     </div>
 </body>
