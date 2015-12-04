@@ -135,17 +135,15 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
         var center = this.getCenter();
         annotations_controller.setCenter(center.x, center.y);
 
-        // paperjs canvas won't listen to mouse events, they will be propagated to OpenSeadragon viewer
+        // paper.js canvas won't listen to mouse events, they will be propagated to OpenSeadragon viewer
         if (stop_events === true) {
-            $("#" + annotations_controller.canvas_id).css('pointer-events', 'none');
+            annotations_controller.disableMouseEvents();
         }
 
         this.viewer.addHandler('animation', function(event) {
             var v_center = event.eventSource.viewport_controller.getCenter();
-            console.log('Viewport Center --- x ' + v_center.x + ' y ' + v_center.y);
             event.eventSource.annotations_controller.setCenter(v_center.x, v_center.y);
             var img_zoom = event.eventSource.viewport_controller.getImageZoom();
-            console.log('Zoom level --- Image: ' + img_zoom);
             event.eventSource.annotations_controller.setZoom(img_zoom);
         });
     };
