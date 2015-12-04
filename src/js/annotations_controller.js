@@ -41,6 +41,14 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    this.enableMouseEvents = function() {
+        $("#" + this.canvas_id).css('pointer-events', 'auto');
+    };
+
+    this.disableMouseEvents = function() {
+        $("#" + this.canvas_id).css('pointer-events', 'none');
+    };
+
     var refresh = function(global_obj, auto_refresh) {
         var r = (typeof auto_refresh === 'undefined') ? true : auto_refresh;
         if (r) {
@@ -65,6 +73,16 @@ function AnnotationsController(canvas_id, default_config) {
         paper.view.setCenter(center);
     };
 
+    this._getShapeId = function(id_prefix) {
+        var id_counter = 1;
+        var shape_id = id_prefix + '_' + id_counter;
+        while (shape_id in this.shapes_cache) {
+            id_counter += 1;
+            shape_id = id_prefix + '_' + id_counter;
+        }
+        return shape_id;
+    };
+
     this.addShapeToCache = function(shape) {
         if (! (shape.id in this.shapes_cache)) {
             this.shapes_cache[shape.id] = shape;
@@ -81,6 +99,24 @@ function AnnotationsController(canvas_id, default_config) {
         } else {
             return undefined;
         }
+    };
+
+    this.getShapesJSON = function(shapes_id) {
+        var shapes_json = [];
+        if (typeof shapes_id !== 'undefined') {
+            for (var index in shapes_id) {
+                if (shapes_id[index] in this.shapes_cache) {
+                    shapes_json.push(this.shapes_cache[shapes_id[index]].toJSON(this.x_offset, this.y_offset));
+                } else {
+                    console.warn('There is no shape with ID ' + shapes_id[index]);
+                }
+            }
+        } else {
+            for (var sh in this.shapes_cache) {
+                shapes_json.push(this.shapes_cache[sh].toJSON(this.x_offset, this.y_offset));
+            }
+        }
+        return shapes_json;
     };
 
     this.getShapeCenter = function(shape_id, apply_offset) {
@@ -129,6 +165,38 @@ function AnnotationsController(canvas_id, default_config) {
             }
         }
         refresh(this, refresh_view);
+    };
+
+    this.enableEventsOnShapes = function(shapes_id, events) {
+        if (typeof shapes_id !== 'undefined') {
+            for (var index in shapes_id) {
+                if (shapes_id[index] in this.shapes_cache) {
+                    this.shapes_cache[shapes_id[index]].enableEvents(events);
+                } else {
+                    console.warn('There is no shape with ID ' + shapes_id[index]);
+                }
+            }
+        } else {
+            for (var sh in this.shapes_cache) {
+                this.shapes_cache[sh].enableEvents(events);
+            }
+        }
+    };
+
+    this.disableEventsOnShapes = function(shapes_id, events) {
+        if (typeof shapes_id !== 'undefined') {
+            for (var index in shapes_id) {
+                if (shapes_id[index] in this.shapes_cache) {
+                    this.shapes_cache[shapes_id[index]].disableEvents(events);
+                } else {
+                    console.warn('There is no shape with ID ' + shapes_id[index]);
+                }
+            }
+        } else {
+            for (var sh in this.shapes_cache) {
+                this.shapes_cache[sh].disableEvents(events);
+            }
+        }
     };
 
     this.deselectShape = function(shape_id, refresh_view) {
@@ -195,8 +263,12 @@ function AnnotationsController(canvas_id, default_config) {
         if (shape_id in this.shapes_cache) {
             this.shapes_cache[shape_id].delete();
             delete this.shapes_cache[shape_id];
+            var deleted = true;
+        } else {
+            var deleted = false;
         }
         refresh(this, refresh_view);
+        return deleted;
     };
 
     this.deleteShapes = function(shapes_id, refresh_view) {
@@ -250,6 +322,13 @@ function AnnotationsController(canvas_id, default_config) {
             radius_x, radius_y);
         if (this.addShapeToCache(ellipse)) {
             this.drawShape(ellipse, shape_conf, refresh_view);
+        }
+    };
+
+    this.drawCircle = function(shape_id, center_x, center_y, radius, shape_conf, refresh_view) {
+        var circle = new Circle(shape_id, center_x - this.x_offset, center_y - this.y_offset, radius);
+        if (this.addShapeToCache(circle)) {
+            this.drawShape(circle, shape_conf, refresh_view);
         }
     };
 

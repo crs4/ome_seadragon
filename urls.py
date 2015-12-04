@@ -15,6 +15,8 @@ urlpatterns = patterns(
         name='ome_seadragon_test_annotations'),
     url(r'^examples/ome_rois/(?P<image_id>[0-9]+)/$', views.get_example_ome_rois,
         name='ome_seadragon_test_ome_rois'),
+    url(r'^examples/custom_handlers/(?P<image_id>[0-9]+)/$', views.get_example_custom_handlers,
+        name='ome_seadragon_test_custom_handlers'),
     # OMERO TAGS
     url(r'^get/annotations/$', views.get_annotations,
         name='ome_seadragon_get_annotations'),
