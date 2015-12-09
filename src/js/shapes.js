@@ -31,6 +31,14 @@ function Shape(id) {
         }
     };
 
+    this.contains = function(point_x, point_y) {
+        var point_obj = new paper.Point(point_x, point_y);
+        if (typeof this.paper_shape !== 'undefined')
+            return this.paper_shape.contains(point_obj);
+        else
+            console.warn('Paper.js shape not initialized');
+    };
+
     this.configure = function(shape_config) {
         if (typeof this.paper_shape !== 'undefined') {
             this.fill_color = ColorsAdapter.hexToPaperColor(shape_config.fill_color, shape_config.fill_alpha);
