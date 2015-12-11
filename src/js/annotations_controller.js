@@ -11,7 +11,7 @@ function AnnotationsController(canvas_id, default_config) {
         default_config = {};
     }
     this.default_fill_color = (typeof default_config.fill_color === 'undefined') ? '#ffffff' : default_config.fill_color;
-    this.default_fill_alpha = (typeof default_config.opacity === 'undefined') ? 1 : default_config.fill_alpha;
+    this.default_fill_alpha = (typeof default_config.fill_alpha === 'undefined') ? 1 : default_config.fill_alpha;
     this.default_stroke_color = (typeof default_config.stroke_color === 'undefined') ? '#000000' : default_config.stroke_color;
     this.default_stroke_alpha = (typeof default_config.stroke_alpha === 'undefined') ? 1 : default_config.stroke_alpha;
     this.default_stroke_width = (typeof default_config.stroke_width === 'undefined') ? 20: default_config.stroke_width;
