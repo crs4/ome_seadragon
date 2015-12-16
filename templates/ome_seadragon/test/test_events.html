@@ -116,7 +116,18 @@
                         $("#edit_markers").removeClass("active");
                     });
                     window.events_controller = new AnnotationsEventsController(annotations_canvas);
-                    events_controller.initializeImageMarkingTool(500, 3, "enable_events");
+
+                    var img_size = viewer.getImageDimensions();
+                    var markers_size = ((img_size.width + img_size.height) / 2) * 0.005;
+                    console.log(markers_size);
+
+                    var markers_config = {
+                        'fill_color': "#0000ff",
+                        'fill_alpha': '0.5',
+                        'stroke_width': 0
+                    };
+
+                    events_controller.initializeImageMarkingTool(markers_size, markers_config, 3, "enable_events");
 
                     // when a new marker is created, add a button to delete it
                     $(document).on('marker_created', function(event, marker_id) {

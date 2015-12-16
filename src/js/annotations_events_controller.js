@@ -24,13 +24,15 @@ function AnnotationsEventsController(annotations_controller) {
         }
     };
 
-    this.initializeImageMarkingTool = function(marker_size, markers_limit, switch_id) {
+    this.initializeImageMarkingTool = function(marker_size, markers_config, markers_limit, switch_id) {
         // by default, initialize dummy tool
         this.initializeDummyTool();
 
         if(! (this.IMAGE_MARKING_TOOL in this.initialized_tools)) {
 
             AnnotationsController.prototype.markers_id = [];
+
+            AnnotationsController.prototype.markers_config = markers_config;
 
             if ((typeof markers_limit !== 'undefined') || (markers_limit > 0)) {
                 AnnotationsController.prototype.max_markers_count = markers_limit;
@@ -66,7 +68,8 @@ function AnnotationsEventsController(annotations_controller) {
                     var img_x = event.point.x + this.x_offset;
                     var img_y = event.point.y + this.y_offset;
                     var shape_id = this._getShapeId('marker');
-                    this.drawCircle(shape_id, img_x, img_y, event.marker_radius, undefined, true);
+                    this.drawCircle(shape_id, img_x, img_y, event.marker_radius,
+                        this.markers_config, true);
                     this.markers_id.push(shape_id);
                     $(document).trigger('marker_created', [shape_id]);
                 }
