@@ -29,6 +29,8 @@ function AnnotationsEventsController(annotations_controller) {
         this.initializeDummyTool();
 
         if(! (this.IMAGE_MARKING_TOOL in this.initialized_tools)) {
+            
+            this.annotation_controller._activate_paper_scope();
 
             AnnotationsController.prototype.markers_id = [];
 
