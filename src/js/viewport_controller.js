@@ -55,6 +55,46 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
         }
     };
 
+    this.jumpToShape = function(shape_id, maximize_zoom) {
+        var zoom = (typeof maximize_zoom === 'undefined') ? false : maximize_zoom;
+
+        // check if a shape with ID shape_id exists
+        var shape = this.viewer.annotations_controller.getShape(shape_id);
+        var shape_center = this.getViewportCoordinates(
+            this.viewer.annotations_controller.getShapeCenter(shape_id).x,
+            this.viewer.annotations_controller.getShapeCenter(shape_id).y
+        );
+        if (typeof shape !== 'undefined') {
+            if (zoom === true) {
+                // get the bigger dimension for the bounding box of the shape
+                var shape_sizes = shape.getBoundingBoxDimensions();
+                if (shape_sizes.width > shape_sizes.height) {
+                    var shape_ref = {'type': 'width', 'size': shape_sizes.width};
+                } else {
+                    var shape_ref = {'type': 'height', 'size': shape_sizes.height};
+                }
+                // add stroke width to shape size
+                shape_ref.size += (shape.stroke_width * 2);
+                // get the size of the dimension of the canvas that matches the selected dimenion
+                // of the bounding box
+                var canvas_size = this.getCanvasSize();
+                var canvas_ref = canvas_size[shape_ref.type];
+                // get the actual size of shape's dimension (with respect to current zoom level)
+                var sh_actual_size = shape_ref.size * this.viewer.annotations_controller.getZoom();
+                // calculate zoom scale factor
+                var zoom_scale_factor = canvas_ref / sh_actual_size;
+                this.jumpTo(
+                    this.viewer.viewport.getZoom() * zoom_scale_factor,
+                    shape_center.x, shape_center.y
+                );
+            } else {
+                this.jumpToPoint(shape_center.x, shape_center.y)
+            }
+        } else {
+            console.warn('There is no shape with ID ' + shape_id);
+        }
+    };
+
     this.jumpToPoint = function(center_x, center_y) {
         if (this.viewer !== undefined) {
             var center_point = new OpenSeadragon.Point(center_x, center_y);
