@@ -55,6 +55,10 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
         }
     };
 
+    this._get_box_ratio = function(width, height) {
+        return  width/height;
+    };
+
     this.jumpToShape = function(shape_id, maximize_zoom) {
         var zoom = (typeof maximize_zoom === 'undefined') ? false : maximize_zoom;
 
@@ -66,27 +70,22 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
         );
         if (typeof shape !== 'undefined') {
             if (zoom === true) {
-                // get the bigger dimension for the bounding box of the shape
                 var shape_sizes = shape.getBoundingBoxDimensions();
-                if (shape_sizes.width > shape_sizes.height) {
-                    var shape_ref = {'type': 'width', 'size': shape_sizes.width};
-                } else {
-                    var shape_ref = {'type': 'height', 'size': shape_sizes.height};
-                }
-                // add stroke width to shape size
-                shape_ref.size += (shape.stroke_width * 2);
-                // get the size of the dimension of the canvas that matches the selected dimenion
-                // of the bounding box
-                var canvas_size = this.getCanvasSize();
-                var canvas_ref = canvas_size[shape_ref.type];
-                // get the actual size of shape's dimension (with respect to current zoom level)
-                var sh_actual_size = shape_ref.size * this.viewer.annotations_controller.getZoom();
+                var viewport_ratio = this._get_box_ratio(this.getCanvasSize().width,
+                    this.getCanvasSize().height);
+                var shape_ratio = this._get_box_ratio(shape_sizes.width, shape_sizes.height);
+                var canvas_ref = shape_ratio >= viewport_ratio ? this.getCanvasSize().width :
+                    this.getCanvasSize().height;
+                var shape_ref = Math.max(shape_sizes.width, shape_sizes.height);
+                shape_ref += (shape.stroke_width * 2);
+                var sh_actual_size = shape_ref * this.viewer.annotations_controller.getZoom();
                 // calculate zoom scale factor
                 var zoom_scale_factor = canvas_ref / sh_actual_size;
-                this.jumpTo(
+                var new_zoom = Math.min(
                     this.viewer.viewport.getZoom() * zoom_scale_factor,
-                    shape_center.x, shape_center.y
+                    this.viewer.viewport.getMaxZoom()
                 );
+                this.jumpTo(new_zoom, shape_center.x, shape_center.y);
             } else {
                 this.jumpToPoint(shape_center.x, shape_center.y)
             }
