@@ -92,8 +92,8 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
     this.getCanvasSize = function() {
         if (this.viewer !== undefined) {
             return {
-                'width': $("div." + this.viewer.viewer.canvas.getAttribute("class")).width(),
-                'height': $("div." + viewer.viewer.canvas.getAttribute("class")).height()
+                'width': $("#" + this.div_id).width(),
+                'height': $("#" + this.div_id).height()
             }
         } else {
             console.warn("Viewer not initialized!");
