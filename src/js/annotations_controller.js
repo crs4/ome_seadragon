@@ -15,7 +15,7 @@ function AnnotationsController(canvas_id, default_config) {
     this.default_fill_alpha = (typeof default_config.fill_alpha === 'undefined') ? 1 : default_config.fill_alpha;
     this.default_stroke_color = (typeof default_config.stroke_color === 'undefined') ? '#000000' : default_config.stroke_color;
     this.default_stroke_alpha = (typeof default_config.stroke_alpha === 'undefined') ? 1 : default_config.stroke_alpha;
-    this.default_stroke_width = (typeof default_config.stroke_width === 'undefined') ? 20: default_config.stroke_width;
+    this.default_stroke_width = (typeof default_config.stroke_width === 'undefined') ? 20 : default_config.stroke_width;
 
     this.buildAnnotationsCanvas = function (viewport_controller) {
         if (this.canvas === undefined) {
@@ -44,7 +44,7 @@ function AnnotationsController(canvas_id, default_config) {
     
     this._activate_paper_scope = function() {
         this.paper_scope.activate();
-    }
+    };
 
     this.enableMouseEvents = function() {
         this._activate_paper_scope();
@@ -66,6 +66,10 @@ function AnnotationsController(canvas_id, default_config) {
         this._activate_paper_scope();
         console.log('Refreshing canvas');
         paper.view.draw();
+    };
+
+    this.getZoom = function() {
+        return this.paper_scope.getView().zoom;
     };
 
     this.setZoom = function(zoom_level) {
