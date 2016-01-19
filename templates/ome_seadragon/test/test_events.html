@@ -129,8 +129,9 @@
 
                     events_controller.initializeImageMarkingTool(markers_size, markers_config, 3, "enable_events");
 
+                    var $acanvas = $("#annotations_canvas");
                     // when a new marker is created, add a button to delete it
-                    $(document).on('marker_created', function(event, marker_id) {
+                    $acanvas.on('marker_created', function(event, marker_id) {
                         console.log('A new marker with ID ' + marker_id + ' was created');
                         var $delm_btn = $("<li><button id='del_" + marker_id +"' type='button' class='btn btn-danger'>DEL " + marker_id + "</button></li>");
                         $("#del_button_group").append($delm_btn);
@@ -142,7 +143,7 @@
                         );
                     });
                     // when a marker is deleted, remove related button
-                    $(document).on('marker_deleted', function(event, marker_id) {
+                    $acanvas.on('marker_deleted', function(event, marker_id) {
                         $("#del_" + marker_id).remove();
                     });
                 });

@@ -52,14 +52,14 @@ function AnnotationsEventsController(annotations_controller) {
                 var deleted = this.deleteShape(marker_id);
                 if (deleted === true) {
                     this.markers_id.splice(this.markers_id.indexOf(marker_id), 1);
-                    $(document).trigger('marker_deleted', [marker_id]);
+                    $("#" + this.canvas_id).trigger('marker_deleted', [marker_id]);
                 }
             };
 
             this.annotation_controller.clearMarkers = function() {
                 this.deleteShapes(this.markers_id);
                 for (var i=0; i<this.markers_id.length; i++)
-                    $(document).trigger('marker_deleted', this.markers_id[i]);
+                    $("#" + this.canvas_id).trigger('marker_deleted', this.markers_id[i]);
                 this.markers_id = [];
             };
 
@@ -73,7 +73,7 @@ function AnnotationsEventsController(annotations_controller) {
                     this.drawCircle(shape_id, img_x, img_y, event.marker_radius,
                         this.markers_config, true);
                     this.markers_id.push(shape_id);
-                    $(document).trigger('marker_created', [shape_id]);
+                    $("#" + this.canvas_id).trigger('marker_created', [shape_id]);
                 }
             };
 
