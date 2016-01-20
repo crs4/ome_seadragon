@@ -29,39 +29,41 @@ function AnnotationsEventsController(annotations_controller) {
         this.initializeDummyTool();
 
         if(! (this.IMAGE_MARKING_TOOL in this.initialized_tools)) {
+            
+            this.annotation_controller._activate_paper_scope();
 
-            AnnotationsController.prototype.markers_id = [];
+            this.annotation_controller.markers_id = [];
 
-            AnnotationsController.prototype.markers_config = markers_config;
+            this.annotation_controller.markers_config = markers_config;
 
             if ((typeof markers_limit !== 'undefined') || (markers_limit > 0)) {
-                AnnotationsController.prototype.max_markers_count = markers_limit;
+                this.annotation_controller.max_markers_count = markers_limit;
             } else {
-                AnnotationsController.prototype.max_markers_count = 0;
+                this.annotation_controller.max_markers_count = 0;
             }
 
-            AnnotationsController.prototype._check_markers_limit = function() {
+            this.annotation_controller._check_markers_limit = function() {
                 if (this.markers_id.length > 0 && (this.markers_id.length >= this.max_markers_count))
                     return false;
                 return true;
             };
 
-            AnnotationsController.prototype.removeMarker = function(marker_id) {
+            this.annotation_controller.removeMarker = function(marker_id) {
                 var deleted = this.deleteShape(marker_id);
                 if (deleted === true) {
                     this.markers_id.splice(this.markers_id.indexOf(marker_id), 1);
-                    $(document).trigger('marker_deleted', [marker_id]);
+                    $("#" + this.canvas_id).trigger('marker_deleted', [marker_id]);
                 }
             };
 
-            AnnotationsController.prototype.clearMarkers = function() {
+            this.annotation_controller.clearMarkers = function() {
                 this.deleteShapes(this.markers_id);
                 for (var i=0; i<this.markers_id.length; i++)
-                    $(document).trigger('marker_deleted', this.markers_id[i]);
+                    $("#" + this.canvas_id).trigger('marker_deleted', this.markers_id[i]);
                 this.markers_id = [];
             };
 
-            AnnotationsController.prototype.addMarker = function(event) {
+            this.annotation_controller.addMarker = function(event) {
                 var add_new_marker = this._check_markers_limit();
                 if (add_new_marker === true) {
                     console.log('Adding marker');
@@ -71,7 +73,7 @@ function AnnotationsEventsController(annotations_controller) {
                     this.drawCircle(shape_id, img_x, img_y, event.marker_radius,
                         this.markers_config, true);
                     this.markers_id.push(shape_id);
-                    $(document).trigger('marker_created', [shape_id]);
+                    $("#" + this.canvas_id).trigger('marker_created', [shape_id]);
                 }
             };
 

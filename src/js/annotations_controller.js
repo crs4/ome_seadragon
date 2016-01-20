@@ -4,6 +4,7 @@ function AnnotationsController(canvas_id, default_config) {
     this.y_offset = undefined;
     this.canvas = undefined;
     this.shapes_cache = {};
+    this.paper_scope = new paper.PaperScope();
     // geometries appearance default configuration
     if (typeof default_config === 'undefined') {
         // to prevent errors in the following lines
@@ -14,7 +15,7 @@ function AnnotationsController(canvas_id, default_config) {
     this.default_fill_alpha = (typeof default_config.fill_alpha === 'undefined') ? 1 : default_config.fill_alpha;
     this.default_stroke_color = (typeof default_config.stroke_color === 'undefined') ? '#000000' : default_config.stroke_color;
     this.default_stroke_alpha = (typeof default_config.stroke_alpha === 'undefined') ? 1 : default_config.stroke_alpha;
-    this.default_stroke_width = (typeof default_config.stroke_width === 'undefined') ? 20: default_config.stroke_width;
+    this.default_stroke_width = (typeof default_config.stroke_width === 'undefined') ? 20 : default_config.stroke_width;
 
     this.buildAnnotationsCanvas = function (viewport_controller) {
         if (this.canvas === undefined) {
@@ -35,13 +36,18 @@ function AnnotationsController(canvas_id, default_config) {
                 this.canvas = canvas[0];
             }
 
-            paper.setup(this.canvas);
+            this.paper_scope.setup(this.canvas);
         } else {
             console.warn("Canvas already initialized");
         }
     };
+    
+    this._activate_paper_scope = function() {
+        this.paper_scope.activate();
+    };
 
     this.enableMouseEvents = function() {
+        this._activate_paper_scope();
         $("#" + this.canvas_id).css('pointer-events', 'auto');
     };
 
@@ -57,15 +63,22 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.refreshView = function() {
+        this._activate_paper_scope();
         console.log('Refreshing canvas');
         paper.view.draw();
     };
 
+    this.getZoom = function() {
+        return this.paper_scope.getView().zoom;
+    };
+
     this.setZoom = function(zoom_level) {
+        this._activate_paper_scope();
         paper.view.setZoom(zoom_level);
     };
 
     this.setCenter = function(center_x, center_y) {
+        this._activate_paper_scope();
         var center = new paper.Point(
             center_x - this.x_offset,
             center_y - this.y_offset
@@ -154,6 +167,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.selectShape = function(shape_id, clear_selected, refresh_view) {
+        this._activate_paper_scope();
         var clear = (typeof clear_selected === 'undefined') ? false : clear_selected;
         if (clear === true) {
             for (var sh_id in this.shapes_cache) {
@@ -167,6 +181,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.selectShapes = function(shapes_id, clear_selected, refresh_view) {
+        this._activate_paper_scope();
         var clear = (typeof clear_selected === 'undefined') ? false : clear_selected;
         if (clear === true) {
             for (var index in this.shapes_cache) {
@@ -218,6 +233,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.deselectShape = function(shape_id, refresh_view) {
+        this._activate_paper_scope();
         if (shape_id in this.shapes_cache) {
             this.shapes_cache[shape_id].deselect();
         }
@@ -225,6 +241,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.deselectShapes = function (shapes_id, refresh_view) {
+        this._activate_paper_scope();
         if (typeof shapes_id !== 'undefined') {
             for (var index in shapes_id) {
                 this.deselectShape(shapes_id[index], false);
@@ -238,6 +255,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.showShape = function(shape_id, refresh_view) {
+        this._activate_paper_scope();
         if (shape_id in this.shapes_cache) {
             this.shapes_cache[shape_id].show();
         }
@@ -245,6 +263,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.showShapes = function(shapes_id, refresh_view) {
+        this._activate_paper_scope();
         if (typeof shapes_id !== 'undefined') {
             for (var index in shapes_id) {
                 this.showShape(shapes_id[index], false);
@@ -258,6 +277,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.hideShape = function(shape_id, refresh_view) {
+        this._activate_paper_scope();
         if (shape_id in this.shapes_cache) {
             this.shapes_cache[shape_id].hide();
         }
@@ -265,6 +285,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.hideShapes = function (shapes_id, refresh_view) {
+        this._activate_paper_scope();
         if (typeof shapes_id !== 'undefined') {
             for (var index in shapes_id) {
                 this.hideShape(shapes_id[index], false);
@@ -278,6 +299,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.deleteShape = function(shape_id, refresh_view) {
+        this._activate_paper_scope();
         if (shape_id in this.shapes_cache) {
             this.shapes_cache[shape_id].delete();
             delete this.shapes_cache[shape_id];
@@ -291,6 +313,7 @@ function AnnotationsController(canvas_id, default_config) {
 
     this.deleteShapes = function(shapes_id, refresh_view) {
         if (typeof shapes_id !== 'undefined') {
+            this._activate_paper_scope();
             for (var index in shapes_id) {
                 this.deleteShape(shapes_id[index], false);
             }
@@ -301,6 +324,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.clear = function(refresh_view) {
+        this._activate_paper_scope();
         for (var shape_id in this.shapes_cache) {
             this.deleteShape(shape_id, false);
         }
@@ -321,6 +345,7 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.drawShape = function(shape, shape_conf, refresh_view) {
+        this._activate_paper_scope();
         var conf = this.normalizeShapeConfig(shape_conf);
         shape.toPaperShape();
         shape.configure(conf);

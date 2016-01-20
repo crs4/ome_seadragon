@@ -55,6 +55,45 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
         }
     };
 
+    this._get_box_ratio = function(width, height) {
+        return  width/height;
+    };
+
+    this.jumpToShape = function(shape_id, maximize_zoom) {
+        var zoom = (typeof maximize_zoom === 'undefined') ? false : maximize_zoom;
+
+        // check if a shape with ID shape_id exists
+        var shape = this.viewer.annotations_controller.getShape(shape_id);
+        var shape_center = this.getViewportCoordinates(
+            this.viewer.annotations_controller.getShapeCenter(shape_id).x,
+            this.viewer.annotations_controller.getShapeCenter(shape_id).y
+        );
+        if (typeof shape !== 'undefined') {
+            if (zoom === true) {
+                var shape_sizes = shape.getBoundingBoxDimensions();
+                var viewport_ratio = this._get_box_ratio(this.getCanvasSize().width,
+                    this.getCanvasSize().height);
+                var shape_ratio = this._get_box_ratio(shape_sizes.width, shape_sizes.height);
+                var canvas_ref = shape_ratio >= viewport_ratio ? this.getCanvasSize().width :
+                    this.getCanvasSize().height;
+                var shape_ref = Math.max(shape_sizes.width, shape_sizes.height);
+                shape_ref += (shape.stroke_width * 2);
+                var sh_actual_size = shape_ref * this.viewer.annotations_controller.getZoom();
+                // calculate zoom scale factor
+                var zoom_scale_factor = canvas_ref / sh_actual_size;
+                var new_zoom = Math.min(
+                    this.viewer.viewport.getZoom() * zoom_scale_factor,
+                    this.viewer.viewport.getMaxZoom()
+                );
+                this.jumpTo(new_zoom, shape_center.x, shape_center.y);
+            } else {
+                this.jumpToPoint(shape_center.x, shape_center.y)
+            }
+        } else {
+            console.warn('There is no shape with ID ' + shape_id);
+        }
+    };
+
     this.jumpToPoint = function(center_x, center_y) {
         if (this.viewer !== undefined) {
             var center_point = new OpenSeadragon.Point(center_x, center_y);
@@ -92,8 +131,8 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
     this.getCanvasSize = function() {
         if (this.viewer !== undefined) {
             return {
-                'width': $("div." + this.viewer.viewer.canvas.getAttribute("class")).width(),
-                'height': $("div." + viewer.viewer.canvas.getAttribute("class")).height()
+                'width': $("#" + this.div_id).width(),
+                'height': $("#" + this.div_id).height()
             }
         } else {
             console.warn("Viewer not initialized!");

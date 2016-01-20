@@ -31,6 +31,18 @@ function Shape(id) {
         }
     };
 
+    this.getBoundingBoxDimensions = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            var bbox = this.paper_shape.bounds;
+            return {
+                'width': bbox.width,
+                'height': bbox.height
+            };
+        } else {
+            console.info('Shape not initialized');
+        }
+    };
+
     this.contains = function(point_x, point_y) {
         var point_obj = new paper.Point(point_x, point_y);
         if (typeof this.paper_shape !== 'undefined')
