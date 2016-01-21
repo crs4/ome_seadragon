@@ -241,8 +241,8 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y) {
     this.updateShapeDetails = function() {
         this.center_x = this.paper_shape.position.x;
         this.center_y = this.paper_shape.position.y;
-        this.radius_x = this.paper_shape.size.width / 2;
-        this.radius_y = this.paper_shape.size.height / 2;
+        this.radius_x = this.paper_shape.radius.width;
+        this.radius_y = this.paper_shape.radius.height;
     };
 
     this.toJSON = function(x_offset, y_offset) {
@@ -283,7 +283,7 @@ function Circle(id, center_x, center_y, radius) {
     this.updateShapeDetails = function() {
         this.center_x = this.paper_shape.position.x;
         this.center_y = this.paper_shape.position.y;
-        this.radius = this.paper_shape.size.x / 2;
+        this.radius = this.paper_shape.radius;
     };
 
     this.toJSON = function(x_offset, y_offset) {
