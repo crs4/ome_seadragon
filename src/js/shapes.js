@@ -1,5 +1,6 @@
-function Shape(id) {
+function Shape(id, transform_matrix) {
     this.id = id;
+    this.original_transform_matrix = transform_matrix;
     this.paper_shape = undefined;
 
     this.fill_color = undefined;
@@ -11,6 +12,8 @@ function Shape(id) {
         var stroke_color_json = ColorsAdapter.paperColorToHex(this.stroke_color);
         return {
             'shape_id': this.id,
+            'transform': (typeof this.original_transform_matrix !== 'undefined') ?
+                this.original_transform_matrix.toJSON() : undefined,
             'fill_color': fill_color_json.hex_color,
             'fill_alpha': fill_color_json.alpha,
             'stroke_color': stroke_color_json.hex_color,
@@ -25,8 +28,12 @@ function Shape(id) {
         }
     };
 
-    this.updateShapeDetails = function() {
-        console.log('Using default updateShapeDetails method');
+    this.transformShape = function(transform_matrix) {
+        if (typeof this.paper_shape !== 'undefined') {
+            this.paper_shape.transform(transform_matrix);
+        } else {
+            console.info('Shape not initialized');
+        }
     };
 
     this.getCenter = function() {
@@ -58,7 +65,7 @@ function Shape(id) {
         if (typeof this.paper_shape !== 'undefined')
             return this.paper_shape.contains(point_obj);
         else
-            console.warn('Paper.js shape not initialized');
+            console.info('Shape not initialized');
     };
 
     this.configure = function(shape_config) {
@@ -113,10 +120,10 @@ function Shape(id) {
                         this.position.x + event.delta.x,
                         this.position.y + event.delta.y
                     );
+                    this.shape_wrapper.updateShapePosition(event.delta.x, event.delta.y);
                 }
             },
             mouseup:  function(event) {
-                this.shape_wrapper.updateShapeDetails();
                 document.body.style.cursor = 'auto';
             }
         });
@@ -177,8 +184,8 @@ Shape.prototype.default_events = [
 ];
 
 
-function Rectangle(id, origin_x, origin_y, width, height) {
-    Shape.call(this, id);
+function Rectangle(id, origin_x, origin_y, width, height, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
 
     this.origin_x = origin_x;
     this.origin_y = origin_y;
@@ -191,24 +198,24 @@ function Rectangle(id, origin_x, origin_y, width, height) {
             size: [this.width, this.height]
         });
         this.paper_shape = rect;
+        if (typeof this.original_transform_matrix !== 'undefined')
+            this.transformShape(this.original_transform_matrix);
         this._bindWrapper();
         this.initializeEvents(activate_events);
     };
 
-    this.updateShapeDetails = function() {
-        this.origin_x = this.paper_shape.point.x;
-        this.origin_y = this.paper_shape.point.y;
-        this.width = this.paper_shape.size.width;
-        this.height = this.paper_shape.size.height;
+    this.updateShapePosition = function(delta_x, delta_y) {
+        this.origin_x += delta_x;
+        this.origin_y += delta_y;
     };
 
-    this.toJSON = function(x_offset, y_offset) {
+    this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'origin_x': this.origin_x + x_offset,
-                'origin_y': this.origin_y + y_offset,
+                'origin_x': this.origin_x,
+                'origin_y': this.origin_y,
                 'width': this.width,
                 'height': this.height,
                 'type': 'rectangle'
@@ -220,8 +227,8 @@ function Rectangle(id, origin_x, origin_y, width, height) {
 Rectangle.prototype = new Shape();
 
 
-function Ellipse(id, center_x, center_y, radius_x, radius_y) {
-    Shape.call(this, id);
+function Ellipse(id, center_x, center_y, radius_x, radius_y, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
 
     this.center_x = center_x;
     this.center_y = center_y;
@@ -234,24 +241,24 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y) {
             radius: [this.radius_x, this.radius_y]
         });
         this.paper_shape = ellipse;
+        if (typeof this.original_transform_matrix !== 'undefined')
+            this.transformShape(this.original_transform_matrix);
         this._bindWrapper();
         this.initializeEvents(activate_events);
     };
 
-    this.updateShapeDetails = function() {
-        this.center_x = this.paper_shape.position.x;
-        this.center_y = this.paper_shape.position.y;
-        this.radius_x = this.paper_shape.radius.width;
-        this.radius_y = this.paper_shape.radius.height;
+    this.updateShapePosition = function(delta_x, delta_y) {
+        this.center_x += delta_x;
+        this.center_y += delta_y;
     };
 
-    this.toJSON = function(x_offset, y_offset) {
+    this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'center_x': this.center_x + x_offset,
-                'center_y': this.center_y + y_offset,
+                'center_x': this.center_x,
+                'center_y': this.center_y,
                 'radius_x': this.radius_x,
                 'radius_y': this.radius_y,
                 'type': 'ellipse'
@@ -263,8 +270,8 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y) {
 Ellipse.prototype = new Shape();
 
 
-function Circle(id, center_x, center_y, radius) {
-    Shape.call(this, id);
+function Circle(id, center_x, center_y, radius, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
 
     this.center_x = center_x;
     this.center_y = center_y;
@@ -276,23 +283,24 @@ function Circle(id, center_x, center_y, radius) {
             radius: this.radius
         });
         this.paper_shape = circle;
+        if (typeof this.original_transform_matrix !== 'undefined')
+            this.transformShape(this.original_transform_matrix);
         this._bindWrapper();
         this.initializeEvents(activate_events);
     };
 
-    this.updateShapeDetails = function() {
-        this.center_x = this.paper_shape.position.x;
-        this.center_y = this.paper_shape.position.y;
-        this.radius = this.paper_shape.radius;
+    this.updateShapePosition = function(delta_x, delta_y) {
+        this.center_x += delta_x;
+        this.center_y += delta_y;
     };
 
-    this.toJSON = function(x_offset, y_offset) {
+    this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'center_x': this.center_x + x_offset,
-                'center_y': this.center_y + y_offset,
+                'center_x': this.center_x,
+                'center_y': this.center_y,
                 'radius': this.radius,
                 'type': 'circle'
             });
@@ -303,8 +311,8 @@ function Circle(id, center_x, center_y, radius) {
 Circle.prototype = new Shape();
 
 
-function Line(id, from_x, from_y, to_x, to_y) {
-    Shape.call(this, id);
+function Line(id, from_x, from_y, to_x, to_y, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
 
     this.from_x = from_x;
     this.from_y = from_y;
@@ -317,26 +325,28 @@ function Line(id, from_x, from_y, to_x, to_y) {
             to: [this.to_x, this.to_y]
         });
         this.paper_shape = line;
+        if (typeof this.original_transform_matrix !== 'undefined')
+            this.transformShape(this.original_transform_matrix);
         this._bindWrapper();
         this.initializeEvents(activate_events);
     };
 
-    this.updateShapeDetails = function() {
-        this.from_x = this.paper_shape.segments[0].point.x;
-        this.from_y = this.paper_shape.segments[0].point.y;
-        this.to_x = this.paper_shape.segments[1].point.x;
-        this.to_y = this.paper_shape.segments[1].point.y;
+    this.updateShapePosition = function(delta_x, delta_y) {
+        this.from_x += delta_x;
+        this.from_y += delta_y;
+        this.to_x += delta_x;
+        this.to_y += delta_y;
     };
 
-    this.toJSON = function(x_offset, y_offset) {
+    this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'from_x': this.from_x + x_offset,
-                'from_y': this.from_y + y_offset,
-                'to_x': this.to_x + x_offset,
-                'to_y': this.to_y + y_offset,
+                'from_x': this.from_x,
+                'from_y': this.from_y,
+                'to_x': this.to_x,
+                'to_y': this.to_y,
                 'type': 'line'
             });
         return shape_json;

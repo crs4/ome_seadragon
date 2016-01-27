@@ -71,7 +71,7 @@ function AnnotationsEventsController(annotations_controller) {
                     var img_y = event.point.y + this.y_offset;
                     var shape_id = this._getShapeId('marker');
                     this.drawCircle(shape_id, img_x, img_y, event.marker_radius,
-                        this.markers_config, true);
+                        undefined, this.markers_config, true);
                     this.markers_id.push(shape_id);
                     $("#" + this.canvas_id).trigger('marker_created', [shape_id]);
                 }
