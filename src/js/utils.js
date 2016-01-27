@@ -47,3 +47,47 @@ ColorsAdapter.paperColorToHex = function(paper_color) {
         'alpha': paper_color.getAlpha()
     }
 };
+
+
+function TransformMatrixHelper() {}
+
+TransformMatrixHelper.getPaperMatrix = function(a, c, b, d, tx, ty) {
+    return new paper.Matrix(a, c, b, d, tx, ty);
+};
+
+TransformMatrixHelper.getTranslationMatrix = function(tx, ty) {
+    return TransformMatrixHelper.getPaperMatrix(1, 0, 0, 1, tx, ty);
+};
+
+TransformMatrixHelper.fromOMEMatrix = function(ome_matrix_elements) {
+    return TransformMatrixHelper.getPaperMatrix(
+        Number(ome_matrix_elements[0]), Number(ome_matrix_elements[1]),
+        Number(ome_matrix_elements[2]), Number(ome_matrix_elements[3]),
+        Number(ome_matrix_elements[4]), Number(ome_matrix_elements[5])
+    )
+};
+
+TransformMatrixHelper.fromOMETranslate = function(ome_translate_elements) {
+    return TransformMatrixHelper.getTranslationMatrix(
+        Number(ome_translate_elements[0]), Number(ome_translate_elements[1])
+    )
+};
+
+TransformMatrixHelper.fromOMETransform = function(ome_transform) {
+    if (ome_transform === 'none')
+        return undefined;
+    var transform_type = ome_transform.substr(0, ome_transform.search('\\('));
+    var transform_data = ome_transform.substr(
+        ome_transform.search('\\(') + 1,
+        ome_transform.search('\\)') - ome_transform.search('\\(') - 1
+    ).split(' ');
+    switch (transform_type){
+        case 'matrix':
+            return TransformMatrixHelper.fromOMEMatrix(transform_data);
+        case 'translate':
+            return TransformMatrixHelper.fromOMETranslate(transform_data);
+        default:
+            console.warn('Unknown transform type: ' + transform_type);
+            return undefined;
+    }
+};
