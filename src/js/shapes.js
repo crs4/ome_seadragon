@@ -1,5 +1,6 @@
-function Shape(id) {
+function Shape(id, transform_matrix) {
     this.id = id;
+    this.original_transform_matrix = transform_matrix;
     this.paper_shape = undefined;
 
     this.fill_color = undefined;
@@ -11,6 +12,8 @@ function Shape(id) {
         var stroke_color_json = ColorsAdapter.paperColorToHex(this.stroke_color);
         return {
             'shape_id': this.id,
+            'transform': (typeof this.original_transform_matrix !== 'undefined') ?
+                this.original_transform_matrix.toJSON() : undefined,
             'fill_color': fill_color_json.hex_color,
             'fill_alpha': fill_color_json.alpha,
             'stroke_color': stroke_color_json.hex_color,
@@ -27,6 +30,14 @@ function Shape(id) {
 
     this.updateShapeDetails = function() {
         console.log('Using default updateShapeDetails method');
+    };
+
+    this.transformShape = function(transform_matrix) {
+        if (typeof this.paper_shape !== 'undefined') {
+            this.paper_shape.transform(transform_matrix);
+        } else {
+            console.info('Shape not initialized');
+        }
     };
 
     this.getCenter = function() {
@@ -58,7 +69,7 @@ function Shape(id) {
         if (typeof this.paper_shape !== 'undefined')
             return this.paper_shape.contains(point_obj);
         else
-            console.warn('Paper.js shape not initialized');
+            console.info('Shape not initialized');
     };
 
     this.configure = function(shape_config) {
@@ -177,8 +188,8 @@ Shape.prototype.default_events = [
 ];
 
 
-function Rectangle(id, origin_x, origin_y, width, height) {
-    Shape.call(this, id);
+function Rectangle(id, origin_x, origin_y, width, height, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
 
     this.origin_x = origin_x;
     this.origin_y = origin_y;
@@ -191,6 +202,8 @@ function Rectangle(id, origin_x, origin_y, width, height) {
             size: [this.width, this.height]
         });
         this.paper_shape = rect;
+        if (typeof this.original_transform_matrix !== 'undefined')
+            this.transformShape(this.original_transform_matrix);
         this._bindWrapper();
         this.initializeEvents(activate_events);
     };
@@ -220,8 +233,8 @@ function Rectangle(id, origin_x, origin_y, width, height) {
 Rectangle.prototype = new Shape();
 
 
-function Ellipse(id, center_x, center_y, radius_x, radius_y) {
-    Shape.call(this, id);
+function Ellipse(id, center_x, center_y, radius_x, radius_y, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
 
     this.center_x = center_x;
     this.center_y = center_y;
@@ -234,6 +247,8 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y) {
             radius: [this.radius_x, this.radius_y]
         });
         this.paper_shape = ellipse;
+        if (typeof this.original_transform_matrix !== 'undefined')
+            this.transformShape(this.original_transform_matrix);
         this._bindWrapper();
         this.initializeEvents(activate_events);
     };
@@ -263,8 +278,8 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y) {
 Ellipse.prototype = new Shape();
 
 
-function Circle(id, center_x, center_y, radius) {
-    Shape.call(this, id);
+function Circle(id, center_x, center_y, radius, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
 
     this.center_x = center_x;
     this.center_y = center_y;
@@ -276,6 +291,8 @@ function Circle(id, center_x, center_y, radius) {
             radius: this.radius
         });
         this.paper_shape = circle;
+        if (typeof this.original_transform_matrix !== 'undefined')
+            this.transformShape(this.original_transform_matrix);
         this._bindWrapper();
         this.initializeEvents(activate_events);
     };
@@ -303,8 +320,8 @@ function Circle(id, center_x, center_y, radius) {
 Circle.prototype = new Shape();
 
 
-function Line(id, from_x, from_y, to_x, to_y) {
-    Shape.call(this, id);
+function Line(id, from_x, from_y, to_x, to_y, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
 
     this.from_x = from_x;
     this.from_y = from_y;
@@ -317,6 +334,8 @@ function Line(id, from_x, from_y, to_x, to_y) {
             to: [this.to_x, this.to_y]
         });
         this.paper_shape = line;
+        if (typeof this.original_transform_matrix !== 'undefined')
+            this.transformShape(this.original_transform_matrix);
         this._bindWrapper();
         this.initializeEvents(activate_events);
     };
