@@ -28,10 +28,6 @@ function Shape(id, transform_matrix) {
         }
     };
 
-    this.updateShapeDetails = function() {
-        console.log('Using default updateShapeDetails method');
-    };
-
     this.transformShape = function(transform_matrix) {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.transform(transform_matrix);
@@ -124,10 +120,10 @@ function Shape(id, transform_matrix) {
                         this.position.x + event.delta.x,
                         this.position.y + event.delta.y
                     );
+                    this.shape_wrapper.updateShapePosition(event.delta.x, event.delta.y);
                 }
             },
             mouseup:  function(event) {
-                this.shape_wrapper.updateShapeDetails();
                 document.body.style.cursor = 'auto';
             }
         });
@@ -208,20 +204,18 @@ function Rectangle(id, origin_x, origin_y, width, height, transform_matrix) {
         this.initializeEvents(activate_events);
     };
 
-    this.updateShapeDetails = function() {
-        this.origin_x = this.paper_shape.point.x;
-        this.origin_y = this.paper_shape.point.y;
-        this.width = this.paper_shape.size.width;
-        this.height = this.paper_shape.size.height;
+    this.updateShapePosition = function(delta_x, delta_y) {
+        this.origin_x += delta_x;
+        this.origin_y += delta_y;
     };
 
-    this.toJSON = function(x_offset, y_offset) {
+    this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'origin_x': this.origin_x + x_offset,
-                'origin_y': this.origin_y + y_offset,
+                'origin_x': this.origin_x,
+                'origin_y': this.origin_y,
                 'width': this.width,
                 'height': this.height,
                 'type': 'rectangle'
@@ -253,20 +247,18 @@ function Ellipse(id, center_x, center_y, radius_x, radius_y, transform_matrix) {
         this.initializeEvents(activate_events);
     };
 
-    this.updateShapeDetails = function() {
-        this.center_x = this.paper_shape.position.x;
-        this.center_y = this.paper_shape.position.y;
-        this.radius_x = this.paper_shape.radius.width;
-        this.radius_y = this.paper_shape.radius.height;
+    this.updateShapePosition = function(delta_x, delta_y) {
+        this.center_x += delta_x;
+        this.center_y += delta_y;
     };
 
-    this.toJSON = function(x_offset, y_offset) {
+    this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'center_x': this.center_x + x_offset,
-                'center_y': this.center_y + y_offset,
+                'center_x': this.center_x,
+                'center_y': this.center_y,
                 'radius_x': this.radius_x,
                 'radius_y': this.radius_y,
                 'type': 'ellipse'
@@ -297,19 +289,18 @@ function Circle(id, center_x, center_y, radius, transform_matrix) {
         this.initializeEvents(activate_events);
     };
 
-    this.updateShapeDetails = function() {
-        this.center_x = this.paper_shape.position.x;
-        this.center_y = this.paper_shape.position.y;
-        this.radius = this.paper_shape.radius;
+    this.updateShapePosition = function(delta_x, delta_y) {
+        this.center_x += delta_x;
+        this.center_y += delta_y;
     };
 
-    this.toJSON = function(x_offset, y_offset) {
+    this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'center_x': this.center_x + x_offset,
-                'center_y': this.center_y + y_offset,
+                'center_x': this.center_x,
+                'center_y': this.center_y,
                 'radius': this.radius,
                 'type': 'circle'
             });
@@ -340,22 +331,22 @@ function Line(id, from_x, from_y, to_x, to_y, transform_matrix) {
         this.initializeEvents(activate_events);
     };
 
-    this.updateShapeDetails = function() {
-        this.from_x = this.paper_shape.segments[0].point.x;
-        this.from_y = this.paper_shape.segments[0].point.y;
-        this.to_x = this.paper_shape.segments[1].point.x;
-        this.to_y = this.paper_shape.segments[1].point.y;
+    this.updateShapePosition = function(delta_x, delta_y) {
+        this.from_x += delta_x;
+        this.from_y += delta_y;
+        this.to_x += delta_x;
+        this.to_y += delta_y;
     };
 
-    this.toJSON = function(x_offset, y_offset) {
+    this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'from_x': this.from_x + x_offset,
-                'from_y': this.from_y + y_offset,
-                'to_x': this.to_x + x_offset,
-                'to_y': this.to_y + y_offset,
+                'from_x': this.from_x,
+                'from_y': this.from_y,
+                'to_x': this.to_x,
+                'to_y': this.to_y,
                 'type': 'line'
             });
         return shape_json;

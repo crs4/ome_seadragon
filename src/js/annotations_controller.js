@@ -144,7 +144,7 @@ function AnnotationsController(canvas_id, default_config) {
             }
         } else {
             for (var sh in this.shapes_cache) {
-                shapes_json.push(this.shapes_cache[sh].toJSON(this.x_offset, this.y_offset));
+                shapes_json.push(this.shapes_cache[sh].toJSON());
             }
         }
         return shapes_json;
@@ -353,7 +353,6 @@ function AnnotationsController(canvas_id, default_config) {
         shape.transformShape(
             TransformMatrixHelper.getTranslationMatrix(-this.x_offset, -this.y_offset)
         );
-        shape.updateShapeDetails();
         refresh(this, refresh_view);
     };
 
