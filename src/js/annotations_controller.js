@@ -349,35 +349,41 @@ function AnnotationsController(canvas_id, default_config) {
         var conf = this.normalizeShapeConfig(shape_conf);
         shape.toPaperShape();
         shape.configure(conf);
+        // apply offset as a translation on the shape
+        shape.transformShape(
+            TransformMatrixHelper.getTranslationMatrix(-this.x_offset, -this.y_offset)
+        );
+        shape.updateShapeDetails();
         refresh(this, refresh_view);
     };
 
-    this.drawRectangle = function(shape_id, top_left_x, top_left_y, width, height, shape_conf, refresh_view) {
-        var rect = new Rectangle(shape_id, top_left_x - this.x_offset, top_left_y - this.y_offset,
-            width, height);
+    this.drawRectangle = function(shape_id, top_left_x, top_left_y, width, height, transform,
+                                  shape_conf, refresh_view) {
+        var rect = new Rectangle(shape_id, top_left_x, top_left_y, width, height, transform);
         if (this.addShapeToCache(rect)) {
             this.drawShape(rect, shape_conf, refresh_view);
         }
     };
 
-    this.drawEllipse = function(shape_id, center_x, center_y, radius_x, radius_y, shape_conf, refresh_view) {
-        var ellipse = new Ellipse(shape_id, center_x - this.x_offset, center_y - this.y_offset,
-            radius_x, radius_y);
+    this.drawEllipse = function(shape_id, center_x, center_y, radius_x, radius_y, transform,
+                                shape_conf, refresh_view) {
+        var ellipse = new Ellipse(shape_id, center_x, center_y, radius_x, radius_y, transform);
         if (this.addShapeToCache(ellipse)) {
             this.drawShape(ellipse, shape_conf, refresh_view);
         }
     };
 
-    this.drawCircle = function(shape_id, center_x, center_y, radius, shape_conf, refresh_view) {
-        var circle = new Circle(shape_id, center_x - this.x_offset, center_y - this.y_offset, radius);
+    this.drawCircle = function(shape_id, center_x, center_y, radius, transform,
+                               shape_conf, refresh_view) {
+        var circle = new Circle(shape_id, center_x, center_y, radius, transform);
         if (this.addShapeToCache(circle)) {
             this.drawShape(circle, shape_conf, refresh_view);
         }
     };
 
-    this.drawLine = function(shape_id, from_x, from_y, to_x, to_y, shape_conf, refresh_view) {
-        var line = new Line(shape_id, from_x - this.x_offset, from_y - this.y_offset,
-            to_x - this.x_offset, to_y - this.y_offset);
+    this.drawLine = function(shape_id, from_x, from_y, to_x, to_y, transform,
+                             shape_conf, refresh_view) {
+        var line = new Line(shape_id, from_x, from_y, to_x, to_y, transform);
         if (this.addShapeToCache(line)) {
             this.drawShape(line, shape_conf, refresh_view);
         }
