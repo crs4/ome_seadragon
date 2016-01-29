@@ -1,6 +1,7 @@
 import omero
 from omero.gateway import TagAnnotationWrapper
 
+from projects_datasets import _image_to_json
 from utils import switch_to_default_search_group
 
 
@@ -31,15 +32,6 @@ def _tagset_to_json(tagset_object, tags_map=None):
         'value': tagset_object.getValue(),
         'description': tagset_object.getDescription(),
         'tags': tags_map
-    }
-
-
-def _image_to_json(image_object):
-    return {
-        'id': image_object.getId(),
-        'type': 'image',
-        'fileset_id': image_object.getFileset().getId(),
-        'name': image_object.getName()
     }
 
 
