@@ -1,4 +1,4 @@
-from ome_seadragon.ome_data import tags_data
+from ome_seadragon.ome_data import tags_data, projects_datasets
 from ome_seadragon import settings
 from ome_seadragon import slides_manager
 
@@ -55,6 +55,50 @@ def get_example_custom_handlers(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
     return render(request, 'ome_seadragon/test/test_events.html',
                   {'image_id': image_id, 'host_name': base_url})
+
+
+@login_required()
+def get_projects(request, conn=None, **kwargs):
+    try:
+        fetch_datasets = strtobool(request.GET.get('datasets'))
+    except (ValueError, AttributeError):
+        fetch_datasets = False
+    projects = projects_datasets.get_projects(conn, fetch_datasets)
+    return HttpResponse(json.dumps(projects), content_type='application/json')
+
+
+@login_required()
+def get_project(request, project_id, conn=None, **kwargs):
+    try:
+        fetch_datasets = strtobool(request.GET.get('datasets'))
+    except (ValueError, AttributeError):
+        fetch_datasets = False
+    try:
+        fetch_images = strtobool(request.GET.get('images'))
+    except (ValueError, AttributeError):
+        fetch_images = False
+    project = projects_datasets.get_project(conn, project_id, fetch_datasets, fetch_images)
+    return HttpResponse(json.dumps(project), content_type='application/json')
+
+
+@login_required()
+def get_dataset(request, dataset_id, conn=None, **kwargs):
+    try:
+        fetch_images = strtobool(request.GET.get('images'))
+    except (ValueError, AttributeError):
+        fetch_images = False
+    dataset = projects_datasets.get_dataset(conn, dataset_id, fetch_images)
+    return HttpResponse(json.dumps(dataset), content_type='application/json')
+
+
+@login_required()
+def get_image(request, image_id, conn=None, **kwargs):
+    try:
+        fetch_rois = strtobool(request.GET.get('rois'))
+    except (ValueError, AttributeError):
+        fetch_rois = False
+    image = projects_datasets.get_image(conn, image_id, fetch_rois)
+    return HttpResponse(json.dumps(image), content_type='application/json')
 
 
 @login_required()
