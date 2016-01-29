@@ -17,6 +17,14 @@ urlpatterns = patterns(
         name='ome_seadragon_test_ome_rois'),
     url(r'^examples/custom_handlers/(?P<image_id>[0-9]+)/$', views.get_example_custom_handlers,
         name='ome_seadragon_test_custom_handlers'),
+    # OMERO PROJECTS, DATASETS AND IMAGES
+    url(r'^get/projects/$', views.get_projects, name='ome_seadragon_get_projects'),
+    url(r'^get/project/(?P<project_id>[0-9]+)/$', views.get_project,
+        name='ome_seadragon_get_project'),
+    url(r'^get/dataset/(?P<dataset_id>[0-9]+)/$', views.get_dataset,
+        name='ome_seadragon_get_dataset'),
+    url(r'^get/image/(?P<image_id>[0-9]+)/$', views.get_image,
+        name='ome_seadragon_get_image'),
     # OMERO TAGS
     url(r'^get/annotations/$', views.get_annotations,
         name='ome_seadragon_get_annotations'),
