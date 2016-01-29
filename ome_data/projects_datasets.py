@@ -32,7 +32,7 @@ def _dataset_to_json(dataset_object, image_objects=None):
         'type': dataset_object.OMERO_CLASS,
         'name': dataset_object.getName(),
         'description': dataset_object.getDescription(),
-        'child_count': dataset_object.countChildren(),
+        'childCount': dataset_object.countChildren(),
         'images': []
     }
     if image_objects is not None:
@@ -48,20 +48,20 @@ def _image_to_json(image_object, full_info=False, roi_objects=None):
         'description': image_object.getDescription(),
         'name': image_object.getName(),
         'author': image_object.getAuthor(),
-        'creation_time': _date_to_timestamp(image_object.getDate()),
-        'import_time': _date_to_timestamp(image_object.creationEventDate()),
-        'last_update': _date_to_timestamp(image_object.updateEventDate()),
+        'creationTime': _date_to_timestamp(image_object.getDate()),
+        'importTime': _date_to_timestamp(image_object.creationEventDate()),
+        'lastUpdate': _date_to_timestamp(image_object.updateEventDate()),
         'rois': []
     }
     if full_info:
         img_obj.update({
-            'fileset_id': image_object.getFileset().getId(),
-            'project_id': image_object.getProject().getId(),
-            'project_name': image_object.getProject().getName(),
-            'project_description': image_object.getProject().getDescription(),
-            'dataset_id': image_object.getParent().getId(),
-            'dataset_name': image_object.getParent().getName(),
-            'dataset_description': image_object.getParent().getDescription()
+            'filesetId': image_object.getFileset().getId(),
+            'projectId': image_object.getProject().getId(),
+            'projectName': image_object.getProject().getName(),
+            'projectDescription': image_object.getProject().getDescription(),
+            'datasetId': image_object.getParent().getId(),
+            'datasetName': image_object.getParent().getName(),
+            'datasetDescription': image_object.getParent().getDescription()
         })
     if roi_objects is not None:
         for roi in roi_objects:
