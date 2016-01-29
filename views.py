@@ -77,7 +77,12 @@ def get_project(request, project_id, conn=None, **kwargs):
         fetch_images = strtobool(request.GET.get('images'))
     except (ValueError, AttributeError):
         fetch_images = False
-    project = projects_datasets.get_project(conn, project_id, fetch_datasets, fetch_images)
+    try:
+        expand_series = strtobool(request.GET.get('full_series'))
+    except (ValueError, AttributeError):
+        expand_series = False
+    project = projects_datasets.get_project(conn, project_id, fetch_datasets, fetch_images,
+                                            expand_series)
     return HttpResponse(json.dumps(project), content_type='application/json')
 
 
@@ -87,7 +92,12 @@ def get_dataset(request, dataset_id, conn=None, **kwargs):
         fetch_images = strtobool(request.GET.get('images'))
     except (ValueError, AttributeError):
         fetch_images = False
-    dataset = projects_datasets.get_dataset(conn, dataset_id, fetch_images)
+    try:
+        expand_series = strtobool(request.GET.get('full_series'))
+    except (ValueError, AttributeError):
+        expand_series = False
+    dataset = projects_datasets.get_dataset(conn, dataset_id, fetch_images,
+                                            expand_series)
     return HttpResponse(json.dumps(dataset), content_type='application/json')
 
 

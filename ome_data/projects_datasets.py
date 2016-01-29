@@ -146,7 +146,8 @@ def get_projects(connection, fetch_datasets=False):
     return projects_json
 
 
-def get_project(connection, project_id, fetch_datasets=False, fetch_images=False):
+def get_project(connection, project_id, fetch_datasets=False, fetch_images=False,
+                expand_img_series=False):
     switch_to_default_search_group(connection)
     project = connection.getObject('Project', project_id)
     if project is not None:
@@ -155,7 +156,7 @@ def get_project(connection, project_id, fetch_datasets=False, fetch_images=False
             datasets = list(project.listChildren())
             for ds in datasets:
                 if fetch_images:
-                    images = _get_images_for_dataset(ds)
+                    images = _get_images_for_dataset(ds, not expand_img_series)
                 else:
                     images = []
                 datasets_map.append((ds, images))
@@ -163,12 +164,12 @@ def get_project(connection, project_id, fetch_datasets=False, fetch_images=False
     return None
 
 
-def get_dataset(connection, dataset_id, fetch_images=False):
+def get_dataset(connection, dataset_id, fetch_images=False, expand_img_series=False):
     switch_to_default_search_group(connection)
     dataset = connection.getObject('Dataset', dataset_id)
     if dataset is not None:
         if fetch_images:
-            images = _get_images_for_dataset(dataset)
+            images = _get_images_for_dataset(dataset, not expand_img_series)
         else:
             images = []
         return _dataset_to_json(dataset, images)
