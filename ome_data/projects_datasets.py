@@ -1,8 +1,6 @@
 from time import mktime
 
-import omero
-import omero.model
-from omeroweb.webgateway.marshal import rgb_int2css
+from omeroweb.webgateway.marshal import shapeMarshal
 
 from utils import switch_to_default_search_group
 
@@ -74,49 +72,8 @@ def _image_to_json(image_object, full_info=False, roi_objects=None):
 def _roi_to_json(roi_object):
     return {
         'id': roi_object.getId().getValue(),
-        'shapes': [_shape_to_json(s) for s in roi_object.copyShapes()]
+        'shapes': [shapeMarshal(s) for s in roi_object.copyShapes()]
     }
-
-
-def _shape_to_json(shape_object):
-    sh_obj = {
-        'id': shape_object.getId().getValue(),
-        'the_t': shape_object.getTheT().getValue(),
-        'the_z': shape_object.getTheZ().getValue(),
-        'stroke_width': int(shape_object.getStrokeWidth().getValue()),
-        'stroke_color': rgb_int2css(shape_object.getStrokeColor().getValue())[0],
-        'stroke_alpha': rgb_int2css(shape_object.getStrokeColor().getValue())[1],
-        'fill_color': rgb_int2css(shape_object.getFillColor().getValue())[0],
-        'fill_alpha': rgb_int2css(shape_object.getFillColor().getValue())[1],
-        'transform': shape_object.getTransform().getValue()
-    }
-    if shape_object.getTextValue():
-        sh_obj['text_value'] = shape_object.getTextValue().getValue()
-    if type(shape_object) == omero.model.RectangleI:
-        sh_obj['type'] = 'Rectangle'
-        sh_obj['x'] = shape_object.getX().getValue()
-        sh_obj['y'] = shape_object.getY().getValue()
-        sh_obj['width'] = shape_object.getWidth().getValue()
-        sh_obj['height'] = shape_object.getHeight().getValue()
-    elif type(shape_object) == omero.model.EllipseI:
-        sh_obj['type'] = 'Ellipse'
-        sh_obj['cx'] = shape_object.getCx().getValue()
-        sh_obj['cy'] = shape_object.getCy().getValue()
-        sh_obj['rx'] = shape_object.getRx().getValue()
-        sh_obj['ry'] = shape_object.getRy().getValue()
-    elif type(shape_object) == omero.model.PointI:
-        sh_obj['type'] = 'Point'
-        sh_obj['cx'] = shape_object.getCx().getValue()
-        sh_obj['cy'] = shape_object.getCy().getValue()
-    elif type(shape_object) == omero.model.LineI:
-        sh_obj['type'] = 'Line'
-        sh_obj['x1'] = shape_object.getX1().getValue()
-        sh_obj['y1'] = shape_object.getY1().getValue()
-        sh_obj['x2'] = shape_object.getX2().getValue()
-        sh_obj['y2'] = shape_object.getY2().getValue()
-    else:
-        sh_obj['type'] = 'UNKNOWN'
-    return sh_obj
 
 
 def _get_images_for_dataset(dataset_object, reduce_series=True):
