@@ -74,7 +74,7 @@ TransformMatrixHelper.fromOMETranslate = function(ome_translate_elements) {
 };
 
 TransformMatrixHelper.fromOMETransform = function(ome_transform) {
-    if (ome_transform === 'none')
+    if (ome_transform === 'none' || typeof(ome_transform) === 'undefined')
         return undefined;
     var transform_type = ome_transform.substr(0, ome_transform.search('\\('));
     var transform_data = ome_transform.substr(
