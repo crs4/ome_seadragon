@@ -35,6 +35,19 @@ def _tagset_to_json(tagset_object, tags_map=None):
     }
 
 
+def _get_tags_list(connection, tagset_obj, fetch_images=False, append_raw_object=False):
+    tags = list()
+    for t in tagset_obj.listTagsInTagset():
+        images = list()
+        if fetch_images:
+            images = _get_images_by_tag(t.getId(), connection)
+        tag_json = _tag_to_json(t, images)
+        if append_raw_object:
+            tag_json['obj'] = t
+        tags.append(tag_json)
+    return tags
+
+
 def _get_images_by_tag(tag_id, connection):
     switch_to_default_search_group(connection)
     imgs_generator = connection.getObjectsByAnnotations('Image', [tag_id])
@@ -55,7 +68,7 @@ def get_annotations_list(connection, fetch_images=False):
             tags.append(t)
     annotations = list()
     for ts in tag_sets:
-        tags_map = get_tags_list(ts.getId(), connection, fetch_images, append_raw_object=True)
+        tags_map = _get_tags_list(connection, ts, fetch_images, append_raw_object=True)
         for tmi in tags_map:
             tobj = tmi.pop('obj')
             try:
@@ -72,25 +85,28 @@ def get_annotations_list(connection, fetch_images=False):
     return annotations
 
 
-def get_tags_list(tagset_id, connection, fetch_images=False, append_raw_object=False):
+def get_tagset(connection, tagset_id, fetch_tags=False, fetch_images=False):
     switch_to_default_search_group(connection)
-    tags = list()
     tagset = connection.getObject('TagAnnotation', tagset_id)
-    if tagset is None:
+    if tagset is not None and _is_tagset(tagset):
+        tags_map = list()
+        if fetch_tags:
+            tags_map = _get_tags_list(connection, tagset, fetch_images)
+        return _tagset_to_json(tagset, tags_map)
+    else:
         return None
-    for t in tagset.listTagsInTagset():
-        imgs_list = list()
+
+
+def get_tag(connection, tag_id, fetch_images=False):
+    switch_to_default_search_group(connection)
+    tag = connection.getObject('TagAnnotation', tag_id)
+    if tag is not None and not _is_tagset(tag):
+        images = list()
         if fetch_images:
-            imgs_list = _get_images_by_tag(t.getId(), connection)
-        tag_json = _tag_to_json(t, imgs_list)
-        if append_raw_object:
-            tag_json['obj'] = t
-        tags.append(tag_json)
-    return tags
-
-
-def get_images(tag_id, connection):
-    return _get_images_by_tag(tag_id, connection)
+            images = _get_images_by_tag(tag_id, connection)
+        return _tag_to_json(tag, images)
+    else:
+        return None
 
 
 def find_annotations(search_pattern, connection, fetch_images=False):

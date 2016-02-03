@@ -122,16 +122,27 @@ def get_annotations(request, conn=None, **kwargs):
 
 
 @login_required()
-def get_tags_by_tagset(request, tagset_id, conn=None, **kwargs):
+def get_tagset(request, tagset_id, conn=None, **kwargs):
     try:
-        fetch_images = strtobool(request.GET.get('fetch_imgs'))
+        fetch_tags = strtobool(request.GET.get('tags'))
+    except (ValueError, AttributeError):
+        fetch_tags = False
+    try:
+        fetch_images = strtobool(request.GET.get('images'))
     except (ValueError, AttributeError):
         fetch_images = False
-    logger.debug('"fetch_imgs" value %r', fetch_images)
-    tags = tags_data.get_tags_list(tagset_id, conn, fetch_images)
-    if tags is None:
-        return HttpResponseNotFound("There is no TagSet with ID %s" % tagset_id)
-    return HttpResponse(json.dumps(tags), content_type='application/json')
+    tagset = tags_data.get_tagset(conn, tagset_id, fetch_tags, fetch_images)
+    return HttpResponse(json.dumps(tagset), content_type='application/json')
+
+
+@login_required()
+def get_tag(request, tag_id, conn=None, **kwargs):
+    try:
+        fetch_images = strtobool(request.GET.get('images'))
+    except (ValueError, AttributeError):
+        fetch_images = False
+    tag = tags_data.get_tag(conn, tag_id, fetch_images)
+    return HttpResponse(json.dumps(tag), content_type='application/json')
 
 
 @login_required()
@@ -144,12 +155,6 @@ def find_annotations(request, conn=None, **kwargs):
     logger.debug('"fetch_imgs" value %r', fetch_images)
     annotations = tags_data.find_annotations(search_pattern, conn, fetch_images)
     return HttpResponse(json.dumps(annotations), content_type='application/json')
-
-
-@login_required()
-def find_images_by_tag(request, tag_id, conn=None, **kwargs):
-    images = tags_data.get_images(tag_id, conn)
-    return HttpResponse(json.dumps(images), content_type='application/json')
 
 
 @login_required()
