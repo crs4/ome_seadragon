@@ -28,12 +28,12 @@ urlpatterns = patterns(
     # OMERO TAGS
     url(r'^get/annotations/$', views.get_annotations,
         name='ome_seadragon_get_annotations'),
-    url(r'^get/tags/(?P<tagset_id>[0-9]+)/$', views.get_tags_by_tagset,
-        name='ome_seadragon_get_tags_by_tagset'),
+    url(r'^get/tagset/(?P<tagset_id>[0-9]+)/$', views.get_tagset,
+        name='ome_seadragon_get_tagset'),
+    url(r'^get/tag/(?P<tag_id>[0-9]+)/$', views.get_tag,
+        name='ome_seadragon_get_tag'),
     url(r'^find/annotations/$', views.find_annotations,
         name='ome_seadragon_find_tags'),
-    url(r'^get/imgs_by_tag/(?P<tag_id>[0-9]+)/$', views.find_images_by_tag,
-        name='ome_seadragon_find_images_by_tag'),
     # DEEPZOOM
     url(r'^deepzoom/get/(?P<image_id>[0-9]+).dzi$', views.get_image_dzi,
         name='ome_seadragon_image_dzi_metadata'),
