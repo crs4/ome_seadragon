@@ -48,6 +48,8 @@ def _image_to_json(image_object, full_info=False, roi_objects=None):
         'description': image_object.getDescription(),
         'name': image_object.getName(),
         'author': image_object.getAuthor(),
+        'width': image_object.getSizeX(),
+        'height': image_object.getSizeY(),
         'creationTime': _date_to_timestamp(image_object.getDate()),
         'importTime': _date_to_timestamp(image_object.creationEventDate()),
         'lastUpdate': _date_to_timestamp(image_object.updateEventDate()),
