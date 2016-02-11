@@ -80,7 +80,8 @@ class OmeEngine(RenderingEngineInterface):
                           ome_tile_size_x, ome_tile_size_y, ome_level)
         try:
             tile_buffer = StringIO(ome_img.renderJpegRegion(0, 0, ome_x, ome_y, ome_tile_size_x,
-                                                            ome_tile_size_y, level=ome_level))
+                                                            ome_tile_size_y, level=ome_level,
+                                                            compression=settings.DEEPZOOM_JPEG_QUALITY/100.0))
             ome_tile = Image.open(tile_buffer)
             tile_w, tile_h = ome_tile.size
             return ome_tile.resize((int(round(tile_w / scale_factor)),
