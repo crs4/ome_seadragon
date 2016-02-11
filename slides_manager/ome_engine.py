@@ -84,9 +84,14 @@ class OmeEngine(RenderingEngineInterface):
                                                             compression=settings.DEEPZOOM_JPEG_QUALITY/100.0))
             ome_tile = Image.open(tile_buffer)
             tile_w, tile_h = ome_tile.size
-            return ome_tile.resize((int(round(tile_w / scale_factor)),
-                                    int(round(tile_h / scale_factor))),
-                                   Image.LINEAR)
+            if scale_factor != 1:
+                self.logger.debug('Scale factor is %s resize tile', scale_factor)
+                tile = ome_tile.resize((int(round(tile_w / scale_factor)),
+                                        int(round(tile_h / scale_factor))),
+                                       Image.ANTIALIAS)
+            else:
+                tile = ome_tile
+            return tile
         except TypeError:
             # return a white tile
             return Image.new('RGB', (settings.DEEPZOOM_TILE_SIZE, settings.DEEPZOOM_TILE_SIZE), 'white')
