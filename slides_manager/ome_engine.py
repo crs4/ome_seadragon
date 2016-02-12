@@ -96,7 +96,7 @@ class OmeEngine(RenderingEngineInterface):
             # return a white tile
             return Image.new('RGB', (settings.DEEPZOOM_TILE_SIZE, settings.DEEPZOOM_TILE_SIZE), 'white')
 
-    def get_openseadragon_config(self):
+    def _get_image_mpp(self):
         img = self._get_image_object()
         if img:
             try:
@@ -105,8 +105,11 @@ class OmeEngine(RenderingEngineInterface):
                 mpp = 0
         else:
             mpp = 0
+        return mpp
+
+    def get_openseadragon_config(self):
         return {
-            'mpp': mpp
+            'mpp': self._get_image_mpp()
         }
 
     def get_dzi_description(self):
