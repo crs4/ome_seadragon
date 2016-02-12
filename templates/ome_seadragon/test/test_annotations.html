@@ -62,7 +62,7 @@
                     viewer.addAnnotationsController(annotations_canvas, true);
                     // top left corner of the image
                     window.r1 = annotations_canvas.drawRectangle(
-                            'rect_1', 0, 0, 1500, 1500,
+                            'rect_1', 0, 0, 1500, 1500, undefined,
                             {'fill_color': '#ff0000', 'fill_alpha': 0.8}, false
                     );
                     // center of the image
@@ -70,7 +70,7 @@
                             'rect_2',
                             (viewer.getImageDimensions().width / 2) - (1500 / 2),
                             (viewer.getImageDimensions().height / 2) - (1500 / 2),
-                            1500, 1500,
+                            1500, 1500, undefined,
                             {'fill_color': '#00ff00', 'fill_alpha': 0.8}, false
                     );
                     // bottom right corner of the image
@@ -78,7 +78,7 @@
                             'rect_3',
                             viewer.getImageDimensions().width - 1500,
                             viewer.getImageDimensions().height - 1500,
-                            1500, 1500,
+                            1500, 1500, undefined,
                             {'fill_color': '#0000ff', 'fill_alpha': 0.8}, false
                     );
                     annotations_canvas.refreshView();

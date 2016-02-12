@@ -63,12 +63,13 @@
                     viewer.addAnnotationsController(annotations_canvas, true);
                     // get ROIs from OMERO and draw them
                     var request = $.ajax({
-                        url: "{{ host_name }}/webgateway/get_rois_json/{{ image_id }}/",
+                        url: "{{ host_name }}/ome_seadragon/get/image/{{ image_id }}/",
+                        data: {'rois': true},
                         dataType: "json"
                     });
                     request.success(function (data) {
-                        for (var roi in data) {
-                            var shapes = data[roi].shapes;
+                        for (var roi in data.rois) {
+                            var shapes = data.rois[roi].shapes;
                             for (var shape in shapes) {
                                 var shape_type = shapes[shape].type;
                                 var shape_config = {

@@ -1,4 +1,4 @@
-from ome_seadragon.ome_data import tags_data
+from ome_seadragon.ome_data import tags_data, projects_datasets
 from ome_seadragon import settings
 from ome_seadragon import slides_manager
 
@@ -58,6 +58,60 @@ def get_example_custom_handlers(request, image_id):
 
 
 @login_required()
+def get_projects(request, conn=None, **kwargs):
+    try:
+        fetch_datasets = strtobool(request.GET.get('datasets'))
+    except (ValueError, AttributeError):
+        fetch_datasets = False
+    projects = projects_datasets.get_projects(conn, fetch_datasets)
+    return HttpResponse(json.dumps(projects), content_type='application/json')
+
+
+@login_required()
+def get_project(request, project_id, conn=None, **kwargs):
+    try:
+        fetch_datasets = strtobool(request.GET.get('datasets'))
+    except (ValueError, AttributeError):
+        fetch_datasets = False
+    try:
+        fetch_images = strtobool(request.GET.get('images'))
+    except (ValueError, AttributeError):
+        fetch_images = False
+    try:
+        expand_series = strtobool(request.GET.get('full_series'))
+    except (ValueError, AttributeError):
+        expand_series = False
+    project = projects_datasets.get_project(conn, project_id, fetch_datasets, fetch_images,
+                                            expand_series)
+    return HttpResponse(json.dumps(project), content_type='application/json')
+
+
+@login_required()
+def get_dataset(request, dataset_id, conn=None, **kwargs):
+    try:
+        fetch_images = strtobool(request.GET.get('images'))
+    except (ValueError, AttributeError):
+        fetch_images = False
+    try:
+        expand_series = strtobool(request.GET.get('full_series'))
+    except (ValueError, AttributeError):
+        expand_series = False
+    dataset = projects_datasets.get_dataset(conn, dataset_id, fetch_images,
+                                            expand_series)
+    return HttpResponse(json.dumps(dataset), content_type='application/json')
+
+
+@login_required()
+def get_image(request, image_id, conn=None, **kwargs):
+    try:
+        fetch_rois = strtobool(request.GET.get('rois'))
+    except (ValueError, AttributeError):
+        fetch_rois = False
+    image = projects_datasets.get_image(conn, image_id, fetch_rois)
+    return HttpResponse(json.dumps(image), content_type='application/json')
+
+
+@login_required()
 def get_annotations(request, conn=None, **kwargs):
     try:
         fetch_images = strtobool(request.GET.get('fetch_imgs'))
@@ -68,16 +122,27 @@ def get_annotations(request, conn=None, **kwargs):
 
 
 @login_required()
-def get_tags_by_tagset(request, tagset_id, conn=None, **kwargs):
+def get_tagset(request, tagset_id, conn=None, **kwargs):
     try:
-        fetch_images = strtobool(request.GET.get('fetch_imgs'))
+        fetch_tags = strtobool(request.GET.get('tags'))
+    except (ValueError, AttributeError):
+        fetch_tags = False
+    try:
+        fetch_images = strtobool(request.GET.get('images'))
     except (ValueError, AttributeError):
         fetch_images = False
-    logger.debug('"fetch_imgs" value %r', fetch_images)
-    tags = tags_data.get_tags_list(tagset_id, conn, fetch_images)
-    if tags is None:
-        return HttpResponseNotFound("There is no TagSet with ID %s" % tagset_id)
-    return HttpResponse(json.dumps(tags), content_type='application/json')
+    tagset = tags_data.get_tagset(conn, tagset_id, fetch_tags, fetch_images)
+    return HttpResponse(json.dumps(tagset), content_type='application/json')
+
+
+@login_required()
+def get_tag(request, tag_id, conn=None, **kwargs):
+    try:
+        fetch_images = strtobool(request.GET.get('images'))
+    except (ValueError, AttributeError):
+        fetch_images = False
+    tag = tags_data.get_tag(conn, tag_id, fetch_images)
+    return HttpResponse(json.dumps(tag), content_type='application/json')
 
 
 @login_required()
@@ -90,12 +155,6 @@ def find_annotations(request, conn=None, **kwargs):
     logger.debug('"fetch_imgs" value %r', fetch_images)
     annotations = tags_data.find_annotations(search_pattern, conn, fetch_images)
     return HttpResponse(json.dumps(annotations), content_type='application/json')
-
-
-@login_required()
-def find_images_by_tag(request, tag_id, conn=None, **kwargs):
-    images = tags_data.get_images(tag_id, conn)
-    return HttpResponse(json.dumps(images), content_type='application/json')
 
 
 @login_required()
