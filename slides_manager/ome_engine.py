@@ -96,10 +96,17 @@ class OmeEngine(RenderingEngineInterface):
             # return a white tile
             return Image.new('RGB', (settings.DEEPZOOM_TILE_SIZE, settings.DEEPZOOM_TILE_SIZE), 'white')
 
-    # TODO: IMPLEMENT THIS!!!!
     def get_openseadragon_config(self):
+        img = self._get_image_object()
+        if img:
+            try:
+                mpp = (img.getPixelSizeX() + img.getPixelSizeY()) / 2.0
+            except TypeError:
+                mpp = 0
+        else:
+            mpp = 0
         return {
-            'mpp': 0
+            'mpp': mpp
         }
 
     def get_dzi_description(self):
