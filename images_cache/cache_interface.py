@@ -17,10 +17,10 @@ class CacheInterface(object):
                                                                  settings.IMAGES_RENDERING_ENGINE)
 
     @abstractmethod
-    def _get_thumbnail_key(self, image_id, image_width, image_height, image_format):
-        return 'THUMB::IMG_%s|W_%spx-H_%spx|F_%s|E_%s' % (image_id, image_width, image_height,
-                                                          image_format.upper(),
-                                                          settings.IMAGES_RENDERING_ENGINE)
+    def _get_thumbnail_key(self, image_id, thumbnail_size, image_format):
+        return 'THUMB::IMG_%s|S_%spx|F_%s|E_%s' % (image_id, thumbnail_size,
+                                                   image_format.upper(),
+                                                   settings.IMAGES_RENDERING_ENGINE)
 
     @abstractmethod
     def tile_to_cache(self, image_id, image_obj, level, column, row, tile_size, image_format,
@@ -33,9 +33,9 @@ class CacheInterface(object):
         pass
 
     @abstractmethod
-    def thumbnail_to_cache(self, image_id, image_obj, image_width, image_height, image_format):
+    def thumbnail_to_cache(self, image_id, image_obj, thumbnail_size, image_format):
         pass
 
     @abstractmethod
-    def thumbnail_from_cache(self, image_id, image_width, image_height, image_format):
+    def thumbnail_from_cache(self, image_id, thumbnail_size, image_format):
         pass

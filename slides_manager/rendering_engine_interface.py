@@ -37,7 +37,7 @@ class RenderingEngineInterface(object):
         pass
 
     @abstractmethod
-    def get_thumbnail(self, width, height):
+    def get_thumbnail(self, size):
         pass
 
     @abstractmethod

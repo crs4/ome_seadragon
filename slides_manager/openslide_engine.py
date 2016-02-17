@@ -59,19 +59,19 @@ class OpenSlideEngine(RenderingEngineInterface):
         else:
             return None
 
-    def get_thumbnail(self, width, height):
+    def get_thumbnail(self, size):
         cache = CacheDriverFactory().get_cache()
         # get thumbnail from cache
-        thumb = cache.thumbnail_from_cache(self.image_id, width, height,
+        thumb = cache.thumbnail_from_cache(self.image_id, size,
                                            settings.DEEPZOOM_FORMAT)
         # if thumbnail is not in cache build it ....
         if thumb is None:
             self.logger.info('No thumbnail loaded from cache, building it')
             slide = self._get_openslide_wrapper()
             if slide:
-                thumb = slide.get_thumbnail((width, height))
+                thumb = slide.get_thumbnail((size, size))
                 # ... and store it into the cache
-                cache.thumbnail_to_cache(self.image_id, thumb, width, height,
+                cache.thumbnail_to_cache(self.image_id, thumb, size,
                                          settings.DEEPZOOM_FORMAT)
         else:
             self.logger.info('Thumbnail loaded from cache')

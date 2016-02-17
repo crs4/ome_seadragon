@@ -130,17 +130,17 @@ class OmeEngine(RenderingEngineInterface):
         else:
             return None
 
-    def get_thumbnail(self, width, height):
+    def get_thumbnail(self, size):
         cache = CacheDriverFactory().get_cache()
-        thumbnail = cache.thumbnail_from_cache(self.image_id, width, height,
+        thumbnail = cache.thumbnail_from_cache(self.image_id, size,
                                                settings.DEEPZOOM_FORMAT)
         if thumbnail is None:
             self.logger.info('No thumbnail loaded from cache, building it')
             ome_img = self._get_image_object()
             if ome_img:
-                thumbnail_buffer = StringIO(ome_img.getThumbnail(size=(width, height)))
+                thumbnail_buffer = StringIO(ome_img.getThumbnail(size=(size, size)))
                 thumbnail = Image.open(thumbnail_buffer)
-                cache.thumbnail_to_cache(self.image_id, thumbnail, width, height,
+                cache.thumbnail_to_cache(self.image_id, thumbnail, size,
                                          settings.DEEPZOOM_FORMAT)
         else:
             self.logger.info('Thumbnail loaded from cache')

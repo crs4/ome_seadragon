@@ -19,9 +19,8 @@ class RedisCache(CacheInterface):
                                                      tile_size, image_format,
                                                      image_quality)
 
-    def _get_thumbnail_key(self, image_id, image_width, image_height, image_format):
-        return super(RedisCache, self)._get_thumbnail_key(image_id, image_width,
-                                                          image_height, image_format)
+    def _get_thumbnail_key(self, image_id, thumbnail_size, image_format):
+        return super(RedisCache, self)._get_thumbnail_key(image_id, thumbnail_size, image_format)
 
     def tile_to_cache(self, image_id, image_obj, level, column, row, tile_size, image_format,
                       image_quality=None):
@@ -49,16 +48,15 @@ class RedisCache(CacheInterface):
             self.logger.info('No tile')
             return None
 
-    def thumbnail_to_cache(self, image_id, image_obj, image_width, image_height, image_format):
+    def thumbnail_to_cache(self, image_id, image_obj, thumbnail_size, image_format):
         out_buffer = StringIO()
         image_obj.save(out_buffer, image_format)
-        th_key = self._get_thumbnail_key(image_id, image_width,
-                                         image_height, image_format)
+        th_key = self._get_thumbnail_key(image_id, thumbnail_size, image_format)
         self.client.set(th_key, out_buffer.getvalue())
         self._set_expire_time(th_key)
 
-    def thumbnail_from_cache(self, image_id, image_width, image_height, image_format):
-        th_key = self._get_thumbnail_key(image_id, image_width, image_height, image_format)
+    def thumbnail_from_cache(self, image_id, thumbnail_size, image_format):
+        th_key = self._get_thumbnail_key(image_id, thumbnail_size, image_format)
         self.logger.info('Thumbnail from cache: %s' % th_key)
         img_str = self.client.get(th_key)
         if img_str:

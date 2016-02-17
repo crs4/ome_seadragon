@@ -170,8 +170,7 @@ def get_image_dzi(request, image_id, conn=None, **kwargs):
 @login_required()
 def get_image_thumbnail(request, image_id, conn=None, **kwargs):
     rendering_engine = RenderingEngineFactory().get_rendering_engine(image_id, conn)
-    thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('width')),
-                                                             int(request.GET.get('height')))
+    thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')))
     if thumbnail:
         response = HttpResponse(content_type="image/%s" % image_format)
         thumbnail.save(response, image_format)
