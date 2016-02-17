@@ -159,7 +159,7 @@ def find_annotations(request, conn=None, **kwargs):
 
 @login_required()
 def get_image_dzi(request, image_id, conn=None, **kwargs):
-    rendering_engine = RenderingEngineFactory().get_rendering_engine(image_id, conn)
+    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
     dzi_metadata = rendering_engine.get_dzi_description()
     if dzi_metadata:
         return HttpResponse(dzi_metadata, content_type='application/xml')
@@ -169,7 +169,7 @@ def get_image_dzi(request, image_id, conn=None, **kwargs):
 
 @login_required()
 def get_image_thumbnail(request, image_id, conn=None, **kwargs):
-    rendering_engine = RenderingEngineFactory().get_rendering_engine(image_id, conn)
+    rendering_engine = RenderingEngineFactory().get_thumbnails_rendering_engine(image_id, conn)
     thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')))
     if thumbnail:
         response = HttpResponse(content_type="image/%s" % image_format)
@@ -183,7 +183,7 @@ def get_image_thumbnail(request, image_id, conn=None, **kwargs):
 def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kwargs):
     if tile_format != settings.DEEPZOOM_FORMAT:
         return HttpResponseServerError("Format %s not supported by the server" % tile_format)
-    rendering_engine = RenderingEngineFactory().get_rendering_engine(image_id, conn)
+    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
     tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row))
     if tile:
         response = HttpResponse(content_type='image/%s' % image_format)
@@ -195,6 +195,6 @@ def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kw
 
 @login_required()
 def get_image_mpp(request, image_id, conn=None, **kwargs):
-    rendering_engine = RenderingEngineFactory().get_rendering_engine(image_id, conn)
+    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
     image_mpp = rendering_engine.get_openseadragon_config()['mpp']
     return HttpResponse(json.dumps({'image_mpp': image_mpp}), content_type='application_json')

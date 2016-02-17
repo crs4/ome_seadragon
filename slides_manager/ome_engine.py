@@ -138,7 +138,7 @@ class OmeEngine(RenderingEngineInterface):
             self.logger.info('No thumbnail loaded from cache, building it')
             ome_img = self._get_image_object()
             if ome_img:
-                if (ome_img.getSizeX() >= ome_img.getSizeY()):
+                if ome_img.getSizeX() >= ome_img.getSizeY():
                     th_size = (size, )
                 else:
                     th_w = size * (ome_img.getSizeX() / ome_img.getSizeY())
