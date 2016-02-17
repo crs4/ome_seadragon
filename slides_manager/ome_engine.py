@@ -138,7 +138,12 @@ class OmeEngine(RenderingEngineInterface):
             self.logger.info('No thumbnail loaded from cache, building it')
             ome_img = self._get_image_object()
             if ome_img:
-                thumbnail_buffer = StringIO(ome_img.getThumbnail(size=(size, size)))
+                if (ome_img.getSizeX() >= ome_img.getSizeY()):
+                    th_size = (size, )
+                else:
+                    th_w = size * (ome_img.getSizeX() / ome_img.getSizeY())
+                    th_size = (th_w, size)
+                thumbnail_buffer = StringIO(ome_img.getThumbnail(size=th_size))
                 thumbnail = Image.open(thumbnail_buffer)
                 cache.thumbnail_to_cache(self.image_id, thumbnail, size,
                                          settings.DEEPZOOM_FORMAT)
