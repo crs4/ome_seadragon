@@ -141,7 +141,7 @@ class OmeEngine(RenderingEngineInterface):
                 if ome_img.getSizeX() >= ome_img.getSizeY():
                     th_size = (size, )
                 else:
-                    th_w = size * (ome_img.getSizeX() / ome_img.getSizeY())
+                    th_w = size * (float(ome_img.getSizeX()) / ome_img.getSizeY())
                     th_size = (th_w, size)
                 thumbnail_buffer = StringIO(ome_img.getThumbnail(size=th_size))
                 thumbnail = Image.open(thumbnail_buffer)
