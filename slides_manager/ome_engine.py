@@ -13,6 +13,25 @@ class OmeEngine(RenderingEngineInterface):
     def __init__(self, image_id, connection):
         super(OmeEngine, self).__init__(image_id, connection)
 
+    # if get_biggest_in_filest is True, return the image with the highest resolution in the fileset
+    # of the image with ID image_id, if False simply return image with ID image_id
+    def _get_image_object(self, get_biggest_in_fileset=True):
+        img = self.connection.getObject('Image', self.image_id)
+        if img is None:
+            return None
+        if get_biggest_in_fileset:
+            fs = self.connection.getObject('Fileset', img.getFileset().getId())
+            big_image = None
+            for tmp_img in fs.copyImages():
+                if big_image is None:
+                    big_image = tmp_img
+                else:
+                    if (tmp_img.getSizeX() * tmp_img.getSizeY()) > (big_image.getSizeX() * big_image.getSizeY()):
+                        big_image = tmp_img
+            return big_image
+        else:
+            return img
+
     def _get_dzi_max_level(self, img=None):
         if img is None:
             img = self._get_image_object()
@@ -136,7 +155,8 @@ class OmeEngine(RenderingEngineInterface):
                                                settings.DEEPZOOM_FORMAT)
         if thumbnail is None:
             self.logger.info('No thumbnail loaded from cache, building it')
-            ome_img = self._get_image_object()
+            # we want the thumbnail of the image, not the one of the highest resolution image in fileset
+            ome_img = self._get_image_object(get_biggest_in_fileset=False)
             if ome_img:
                 if ome_img.getSizeX() >= ome_img.getSizeY():
                     th_size = (size, )
