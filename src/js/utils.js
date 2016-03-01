@@ -91,3 +91,15 @@ TransformMatrixHelper.fromOMETransform = function(ome_transform) {
             return undefined;
     }
 };
+
+TransformMatrixHelper.fromMatrixJSON = function(matrix_json) {
+    if (matrix_json && matrix_json[0] === 'Matrix') {
+        return this.getPaperMatrix(
+            matrix_json[1], matrix_json[2], matrix_json[3],
+            matrix_json[4], matrix_json[5], matrix_json[6]
+        );
+    } else {
+        console.warn('Not a valid Matrix JSON');
+        return undefined;
+    }
+};
