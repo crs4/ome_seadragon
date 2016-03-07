@@ -42,5 +42,11 @@ urlpatterns = patterns(
     url(r'^deepzoom/get/(?P<image_id>[0-9]+)_files/(?P<level>[0-9]+)/(?P<column>[0-9]+)_(?P<row>[0-9]+).(?P<tile_format>[\w]+)$',
         views.get_tile, name='ome_seadragon_get_tile'),
     url(r'^deepzoom/image_mpp/(?P<image_id>[0-9]+).dzi$', views.get_image_mpp,
-        name='ome_seadragon_get_image_mpp')
+        name='ome_seadragon_get_image_mpp'),
+    # 3DHISTECH FILES HANDLING --- DATA MANAGEMENT
+    url(r'^mrxs/register_file/$', views.register_original_file, name='ome_seadragon_mrxs_save'),
+    url(r'^mrxs/delete_file/(?P<file_name>[\w\-.]+)/$', views.delete_original_file,
+        name='ome_seadragon_mrxs_delete_file'),
+    url(r'^mrxs/delete_files/(?P<file_name>[\w\-.]+)/$', views.delete_original_files,
+        name='ome_seadragon_mrxs_delete_files')
 )

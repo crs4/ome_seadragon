@@ -1,8 +1,10 @@
-from ome_seadragon.ome_data import tags_data, projects_datasets
+from ome_seadragon.ome_data import tags_data, projects_datasets, original_files
+from ome_seadragon.ome_data.original_files import DuplicatedEntryError
 from ome_seadragon import settings
 from ome_seadragon.slides_manager import RenderingEngineFactory
 
 import logging
+import re
 from distutils.util import strtobool
 try:
     import simplejson as json
@@ -197,4 +199,39 @@ def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kw
 def get_image_mpp(request, image_id, conn=None, **kwargs):
     rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
     image_mpp = rendering_engine.get_openseadragon_config()['mpp']
-    return HttpResponse(json.dumps({'image_mpp': image_mpp}), content_type='application_json')
+    return HttpResponse(json.dumps({'image_mpp': image_mpp}), content_type='application/json')
+
+
+@login_required()
+def register_original_file(request, conn=None, **kwargs):
+    try:
+        fname = request.GET.get('name')
+        if not re.match(r'^[\w\-.]+$', fname):
+            return HttpResponseServerError('Invalid file name received: %s' % fname)
+        fpath = request.GET.get('path')
+        fmtype = request.GET.get('mimetype')
+        if not all([fname, fpath, fmtype]):
+            return HttpResponseServerError('Mandatory field missing')
+        file_id = original_files.save_original_file(conn, fname, fpath, fmtype,
+                                                    int(request.GET.get('size', default=-1)),
+                                                    request.GET.get('sha1', default='UNKNOWN'))
+        return HttpResponse(json.dumps({'file_ome_id': file_id}), content_type='application/json')
+    except DuplicatedEntryError, dee:
+        return HttpResponseServerError(dee.message)
+
+
+@login_required()
+def delete_original_file(request, file_name, conn=None, **kwargs):
+    fmtype = request.GET.get('mimetype')
+    if fmtype is None:
+        return HttpResponseServerError('Missing mandatory mimetype value to complete the request')
+    status, count = original_files.delete_original_files(conn, file_name, fmtype)
+    return HttpResponse(json.dumps({'success': status, 'deleted_count': count}),
+                        content_type='application/json')
+
+
+@login_required()
+def delete_original_files(request, file_name, conn=None, **kwargs):
+    status, count = original_files.delete_original_files(conn, file_name)
+    return HttpResponse(json.dumps({'success': status, 'deleted_count': count}),
+                        content_type='application/json')
