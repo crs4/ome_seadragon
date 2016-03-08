@@ -17,8 +17,7 @@ class RenderingEngineInterface(object):
     def _get_image_object(self):
         return self.connection.getObject('Image', self.image_id)
 
-    def _get_image_path(self):
-        img = self._get_image_object()
+    def _get_image_path(self, original_file_source=False, file_mimetype=None):
         if img is None:
             return None
         else:
@@ -29,17 +28,17 @@ class RenderingEngineInterface(object):
             )
 
     @abstractmethod
-    def get_openseadragon_config(self):
+    def get_openseadragon_config(self, original_file_source=False, file_mimetype=None):
         pass
 
     @abstractmethod
-    def get_dzi_description(self):
+    def get_dzi_description(self, original_file_source=False, file_mimetype=None):
         pass
 
     @abstractmethod
-    def get_thumbnail(self, size):
+    def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
         pass
 
     @abstractmethod
-    def get_tile(self, level, column, row):
+    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
         pass

@@ -1,4 +1,3 @@
-# import omero
 import omero.model as om
 import omero.rtypes as ot
 from omero.model.enums import ChecksumAlgorithmSHA1160

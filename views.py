@@ -160,9 +160,10 @@ def find_annotations(request, conn=None, **kwargs):
 
 
 @login_required()
-def get_image_dzi(request, image_id, conn=None, **kwargs):
+def get_image_dzi(request, image_id, fetch_original_file=False,
+                  file_mimetype=None, conn=None, **kwargs):
     rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
-    dzi_metadata = rendering_engine.get_dzi_description()
+    dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype)
     if dzi_metadata:
         return HttpResponse(dzi_metadata, content_type='application/xml')
     else:
@@ -170,9 +171,11 @@ def get_image_dzi(request, image_id, conn=None, **kwargs):
 
 
 @login_required()
-def get_image_thumbnail(request, image_id, conn=None, **kwargs):
+def get_image_thumbnail(request, image_id, fetch_original_file=False,
+                        file_mimetype=None, conn=None, **kwargs):
     rendering_engine = RenderingEngineFactory().get_thumbnails_rendering_engine(image_id, conn)
-    thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')))
+    thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')),
+                                                             fetch_original_file, file_mimetype)
     if thumbnail:
         response = HttpResponse(content_type="image/%s" % image_format)
         thumbnail.save(response, image_format)
@@ -182,11 +185,13 @@ def get_image_thumbnail(request, image_id, conn=None, **kwargs):
 
 
 @login_required()
-def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kwargs):
+def get_tile(request, image_id, level, column, row, tile_format,
+             fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
     if tile_format != settings.DEEPZOOM_FORMAT:
         return HttpResponseServerError("Format %s not supported by the server" % tile_format)
     rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
-    tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row))
+    tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
+                                                   fetch_original_file, file_mimetype)
     if tile:
         response = HttpResponse(content_type='image/%s' % image_format)
         tile.save(response, image_format)
@@ -196,9 +201,10 @@ def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kw
 
 
 @login_required()
-def get_image_mpp(request, image_id, conn=None, **kwargs):
+def get_image_mpp(request, image_id, fetch_original_file=False,
+                  file_mimetype=None, conn=None, **kwargs):
     rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
-    image_mpp = rendering_engine.get_openseadragon_config()['mpp']
+    image_mpp = rendering_engine.get_openseadragon_config(fetch_original_file, file_mimetype)['mpp']
     return HttpResponse(json.dumps({'image_mpp': image_mpp}), content_type='application/json')
 
 

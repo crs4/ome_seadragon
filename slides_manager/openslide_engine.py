@@ -47,19 +47,19 @@ class OpenSlideEngine(RenderingEngineInterface):
         else:
             return 0
 
-    def get_openseadragon_config(self):
+    def get_openseadragon_config(self, original_file_source=False, file_mimetype=None):
         return {
             'mpp': self._get_image_mpp()
         }
 
-    def get_dzi_description(self):
+    def get_dzi_description(self, original_file_source=False, file_mimetype=None):
         dzi_slide = self._get_deepzoom_wrapper()
         if dzi_slide:
             return dzi_slide.get_dzi(settings.DEEPZOOM_FORMAT)
         else:
             return None
 
-    def get_thumbnail(self, size):
+    def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
         cache = CacheDriverFactory().get_cache()
         # get thumbnail from cache
         thumb = cache.thumbnail_from_cache(self.image_id, size,
@@ -77,7 +77,7 @@ class OpenSlideEngine(RenderingEngineInterface):
             self.logger.info('Thumbnail loaded from cache')
         return thumb, settings.DEEPZOOM_FORMAT
 
-    def get_tile(self, level, column, row):
+    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
         cache = CacheDriverFactory().get_cache()
         cache_params = {
             'image_id': self.image_id,

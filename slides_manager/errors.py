@@ -1,0 +1,2 @@
+class UnsupportedSource(Exception):
+    pass
