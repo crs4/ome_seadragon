@@ -45,23 +45,23 @@ urlpatterns = patterns(
     url(r'^deepzoom/image_mpp/(?P<image_id>[0-9]+).dzi$', views.get_image_mpp,
         name='ome_seadragon_get_image_mpp'),
     # 3DHISTECH FILES HANDLING --- DATA MANAGEMENT
-    url(r'^mrxs/register_file/$', views.register_original_file, name='ome_seadragon_mrxs_save'),
-    url(r'^mrxs/delete_file/(?P<file_name>[\w\-.]+)/$', views.delete_original_file,
+    url(r'^mirax/register_file/$', views.register_original_file, name='ome_seadragon_mrxs_save'),
+    url(r'^mirax/delete_file/(?P<file_name>[\w\-.]+)/$', views.delete_original_file,
         name='ome_seadragon_mrxs_delete_file'),
-    url(r'^mrxs/delete_files/(?P<file_name>[\w\-.]+)/$', views.delete_original_files,
+    url(r'^mirax/delete_files/(?P<file_name>[\w\-.]+)/$', views.delete_original_files,
         name='ome_seadragon_mrxs_delete_files'),
     # 3DHISTECH FILES HANDLING --- DEEPZOOM
-    url(r'^mrxs/deepzoom/get/(?P<image_id>[\w\-.]+).dzi$', views.get_image_dzi,
+    url(r'^mirax/deepzoom/get/(?P<image_id>[\w\-.]+).dzi$', views.get_image_dzi,
         name='ome_seadragon_image_dzi_metadata_mrxs',
         kwargs={'fetch_original_file': True, 'file_mimetype': '3dhistech/index'}),
-    url(r'^mrxs/deepzoom/get/thumbnail/(?P<image_id>[\w\-.]+).dzi$', views.get_image_thumbnail,
+    url(r'^mirax/deepzoom/get/thumbnail/(?P<image_id>[\w\-.]+).dzi$', views.get_image_thumbnail,
         name='ome_seadragon_image_thumbnail_mrxs',
         kwargs={'fetch_original_file': True, 'file_mimetype': '3dhistech/index'}),
-    url(r'^mrxs/deepzoom/get/(?P<image_id>[\w\-.]+)_files/(?P<level>[0-9]+)/'
+    url(r'^mirax/deepzoom/get/(?P<image_id>[\w\-.]+)_files/(?P<level>[0-9]+)/'
         r'(?P<column>[0-9]+)_(?P<row>[0-9]+).(?P<tile_format>[\w]+)$',
         views.get_tile, name='ome_seadragon_get_tile_mrxs',
-        kwargs={'fetch_:original_file': True, 'file_mimetype': '3dhistech/index'}),
-    url(r'^mrxs/deepzoom/image_mpp/(?P<image_id>[\w\-.]+).dzi$', views.get_image_mpp,
+        kwargs={'fetch_:original_file': True, 'file_mimetype': 'mirax/index'}),
+    url(r'^mirax/deepzoom/image_mpp/(?P<image_id>[\w\-.]+).dzi$', views.get_image_mpp,
         name='ome_seadragon_get_image_mpp_mrxs',
-        kwargs={'fetch_original_file': True, 'file_mimetype': '3dhistech/index'}),
+        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
 )
