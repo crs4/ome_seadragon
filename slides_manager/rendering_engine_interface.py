@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 import os
 import logging
 
+from ome_seadragon.ome_data.original_files import get_original_file
 from ome_seadragon import settings
 
 
@@ -17,7 +18,8 @@ class RenderingEngineInterface(object):
     def _get_image_object(self):
         return self.connection.getObject('Image', self.image_id)
 
-    def _get_image_path(self, original_file_source=False, file_mimetype=None):
+    def _get_path_from_image_obj(self):
+        img = self._get_image_object()
         if img is None:
             return None
         else:
@@ -26,6 +28,19 @@ class RenderingEngineInterface(object):
                 settings.IMGS_FOLDER,
                 img.getImportedImageFilePaths()['server_paths'][0]
             )
+
+    def _get_path_from_original_file_obj(self, file_mimetype):
+        ofile = get_original_file(self.connection, self.image_id, file_mimetype)
+        if ofile is None:
+            return None
+        else:
+            return ofile.getPath()
+
+    def _get_image_path(self, original_file_source=False, file_mimetype=None):
+        if original_file_source:
+            self._get_path_from_original_file_obj(file_mimetype)
+        else:
+            self._get_path_from_image_obj()
 
     @abstractmethod
     def get_openseadragon_config(self, original_file_source=False, file_mimetype=None):
