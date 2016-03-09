@@ -3,6 +3,7 @@ from lxml import etree
 from PIL import Image
 from cStringIO import StringIO
 
+from ome_seadragon.ome_data.projects_datasets import get_fileset_highest_resolution
 from rendering_engine_interface import RenderingEngineInterface
 from ome_seadragon import settings
 from ome_seadragon.images_cache import CacheDriverFactory
@@ -20,15 +21,7 @@ class OmeEngine(RenderingEngineInterface):
         if img is None:
             return None
         if get_biggest_in_fileset:
-            fs = self.connection.getObject('Fileset', img.getFileset().getId())
-            big_image = None
-            for tmp_img in fs.copyImages():
-                if big_image is None:
-                    big_image = tmp_img
-                else:
-                    if (tmp_img.getSizeX() * tmp_img.getSizeY()) > (big_image.getSizeX() * big_image.getSizeY()):
-                        big_image = tmp_img
-            return big_image
+            return get_fileset_highest_resolution(img, self.connection)
         else:
             return img
 
