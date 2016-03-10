@@ -69,6 +69,14 @@ function AnnotationsEventsController(annotations_controller) {
             this.annotation_controller.clearMarkers = function() {
                 this.deleteShapes(this.markers_id);
             };
+
+            this.annotation_controller._createMarker = function(x, y, radius, shape_id) {
+                if (typeof(shape_id) === 'undefined') {
+                    shape_id = this._getShapeId('marker');
+                }
+                this.drawCircle(shape_id, x, y, radius, undefined, this.markers_config, true);
+                this.markers_id.push(shape_id);
+                $("#" + this.canvas_id).trigger('marker_created', [shape_id]);
             };
 
             this.annotation_controller.addMarker = function(event) {
@@ -77,11 +85,28 @@ function AnnotationsEventsController(annotations_controller) {
                     console.log('Adding marker');
                     var img_x = event.point.x + this.x_offset;
                     var img_y = event.point.y + this.y_offset;
-                    var shape_id = this._getShapeId('marker');
-                    this.drawCircle(shape_id, img_x, img_y, event.marker_radius,
-                        undefined, this.markers_config, true);
-                    this.markers_id.push(shape_id);
-                    $("#" + this.canvas_id).trigger('marker_created', [shape_id]);
+                    this._createMarker(img_x, img_y, event.marker_radius);
+                }
+            };
+
+            this.annotation_controller.shapeToMarker = function(shape_id) {
+                try {
+                    var shape_json = this.getShape(shape_id).toJSON();
+                    // if shape is not already a marker as ONLY if it's a Circle
+                    if ($.inArray(shape_id, this.markers_id) === -1 && shape_json.type === 'circle') {
+                        // delete the shape
+                        this.deleteShape(shape_id);
+                        // use the _createMaker function to create the shape again as a marker
+                        this._createMarker(shape_json.center_x, shape_json.center_y,
+                            shape_json.radius, shape_id);
+                    } else {
+                        console.warn('Shape ' + shape_id + ' of type ' + shape_json.type +
+                            ' can\'t be converted to maker');
+                    }
+                } catch (e) {
+                    if (e instanceof TypeError) {
+                        console.warn('There is no shape with ID: ' + shape_id);
+                    }
                 }
             };
 
