@@ -48,19 +48,27 @@ function AnnotationsEventsController(annotations_controller) {
                 return true;
             };
 
+            // extending behaviour for delete shape when markers tool is enabled
+            var oldDeleteShape = this.annotation_controller.deleteShape;
+            this.annotation_controller.deleteShape = function(shape_id, refresh_view) {
+                var delete_status = oldDeleteShape.apply(this, [shape_id, refresh_view]);
+                if (delete_status == true && ($.inArray(shape_id, this.markers_id) !== -1)) {
+                    this.markers_id.splice(this.markers_id.indexOf(shape_id), 1);
+                    $("#" + this.canvas_id).trigger('marker_deleted', [shape_id]);
+                }
+            };
+
             this.annotation_controller.removeMarker = function(marker_id) {
-                var deleted = this.deleteShape(marker_id);
-                if (deleted === true) {
-                    this.markers_id.splice(this.markers_id.indexOf(marker_id), 1);
-                    $("#" + this.canvas_id).trigger('marker_deleted', [marker_id]);
+                if ($.inArray(marker_id, this.markers_id) != -1) {
+                    this.deleteShape(marker_id);
+                } else {
+                    console.warn(marker_id + ' is not the ID of a marker');
                 }
             };
 
             this.annotation_controller.clearMarkers = function() {
                 this.deleteShapes(this.markers_id);
-                for (var i=0; i<this.markers_id.length; i++)
-                    $("#" + this.canvas_id).trigger('marker_deleted', this.markers_id[i]);
-                this.markers_id = [];
+            };
             };
 
             this.annotation_controller.addMarker = function(event) {
