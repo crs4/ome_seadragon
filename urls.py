@@ -9,13 +9,13 @@ urlpatterns = patterns(
     url(r'test/repository/(?P<image_id>[0-9]+)/$', views.check_image_path,
         name='ome_seadragon_test_image_path'),
     # EXAMPLES
-    url(r'^examples/viewer/(?P<image_id>[0-9]+)/$', views.get_example_viewer,
+    url(r'^examples/viewer/(?P<image_id>[\w\-.]+)/$', views.get_example_viewer,
         name='ome_seadragon_test_viewer'),
-    url(r'^examples/annotations/(?P<image_id>[0-9]+)/$', views.get_example_annotations,
+    url(r'^examples/annotations/(?P<image_id>[\w\-.]+)/$', views.get_example_annotations,
         name='ome_seadragon_test_annotations'),
     url(r'^examples/ome_rois/(?P<image_id>[0-9]+)/$', views.get_example_ome_rois,
         name='ome_seadragon_test_ome_rois'),
-    url(r'^examples/custom_handlers/(?P<image_id>[0-9]+)/$', views.get_example_custom_handlers,
+    url(r'^examples/custom_handlers/(?P<image_id>[\w\-.]+)/$', views.get_example_custom_handlers,
         name='ome_seadragon_test_custom_handlers'),
     # OMERO PROJECTS, DATASETS AND IMAGES
     url(r'^get/projects/$', views.get_projects, name='ome_seadragon_get_projects'),

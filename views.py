@@ -37,14 +37,16 @@ def check_image_path(request, image_id, conn=None, **kwargs):
 
 def get_example_viewer(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = strtobool(request.GET.get('mirax_image', default='false'))
     return render(request, 'ome_seadragon/test/test_viewer.html',
-                  {'image_id': image_id, 'host_name': base_url})
+                  {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
 def get_example_annotations(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = strtobool(request.GET.get('mirax_image', default='false'))
     return render(request, 'ome_seadragon/test/test_annotations.html',
-                  {'image_id': image_id, 'host_name': base_url})
+                  {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
 def get_example_ome_rois(request, image_id):
@@ -55,8 +57,9 @@ def get_example_ome_rois(request, image_id):
 
 def get_example_custom_handlers(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = strtobool(request.GET.get('mirax_image', default='false'))
     return render(request, 'ome_seadragon/test/test_events.html',
-                  {'image_id': image_id, 'host_name': base_url})
+                  {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
 @login_required()
