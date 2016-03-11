@@ -48,6 +48,10 @@ function AnnotationsEventsController(annotations_controller) {
                 return true;
             };
 
+            this.annotation_controller.getMarkersID = function() {
+                return this.markers_id.slice();
+            };
+
             // extending behaviour for delete shape when markers tool is enabled
             var oldDeleteShape = this.annotation_controller.deleteShape;
             this.annotation_controller.deleteShape = function(shape_id, refresh_view) {
