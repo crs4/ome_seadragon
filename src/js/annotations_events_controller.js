@@ -48,19 +48,39 @@ function AnnotationsEventsController(annotations_controller) {
                 return true;
             };
 
+            this.annotation_controller.getMarkersID = function() {
+                return this.markers_id.slice();
+            };
+
+            // extending behaviour for delete shape when markers tool is enabled
+            var oldDeleteShape = this.annotation_controller.deleteShape;
+            this.annotation_controller.deleteShape = function(shape_id, refresh_view) {
+                var delete_status = oldDeleteShape.apply(this, [shape_id, refresh_view]);
+                if (delete_status == true && ($.inArray(shape_id, this.markers_id) !== -1)) {
+                    this.markers_id.splice(this.markers_id.indexOf(shape_id), 1);
+                    $("#" + this.canvas_id).trigger('marker_deleted', [shape_id]);
+                }
+            };
+
             this.annotation_controller.removeMarker = function(marker_id) {
-                var deleted = this.deleteShape(marker_id);
-                if (deleted === true) {
-                    this.markers_id.splice(this.markers_id.indexOf(marker_id), 1);
-                    $("#" + this.canvas_id).trigger('marker_deleted', [marker_id]);
+                if ($.inArray(marker_id, this.markers_id) != -1) {
+                    this.deleteShape(marker_id);
+                } else {
+                    console.warn(marker_id + ' is not the ID of a marker');
                 }
             };
 
             this.annotation_controller.clearMarkers = function() {
                 this.deleteShapes(this.markers_id);
-                for (var i=0; i<this.markers_id.length; i++)
-                    $("#" + this.canvas_id).trigger('marker_deleted', this.markers_id[i]);
-                this.markers_id = [];
+            };
+
+            this.annotation_controller._createMarker = function(x, y, radius, shape_id) {
+                if (typeof(shape_id) === 'undefined') {
+                    shape_id = this._getShapeId('marker');
+                }
+                this.drawCircle(shape_id, x, y, radius, undefined, this.markers_config, true);
+                this.markers_id.push(shape_id);
+                $("#" + this.canvas_id).trigger('marker_created', [shape_id]);
             };
 
             this.annotation_controller.addMarker = function(event) {
@@ -69,12 +89,36 @@ function AnnotationsEventsController(annotations_controller) {
                     console.log('Adding marker');
                     var img_x = event.point.x + this.x_offset;
                     var img_y = event.point.y + this.y_offset;
-                    var shape_id = this._getShapeId('marker');
-                    this.drawCircle(shape_id, img_x, img_y, event.marker_radius,
-                        undefined, this.markers_config, true);
-                    this.markers_id.push(shape_id);
-                    $("#" + this.canvas_id).trigger('marker_created', [shape_id]);
+                    this._createMarker(img_x, img_y, event.marker_radius);
                 }
+            };
+
+            this.annotation_controller.shapeToMarker = function(shape_id) {
+                try {
+                    var shape_json = this.getShape(shape_id).toJSON();
+                    // if shape is not already a marker as ONLY if it's a Circle
+                    if ($.inArray(shape_id, this.markers_id) === -1 && shape_json.type === 'circle') {
+                        // delete the shape
+                        this.deleteShape(shape_id);
+                        // use the _createMaker function to create the shape again as a marker
+                        this._createMarker(shape_json.center_x, shape_json.center_y,
+                            shape_json.radius, shape_id);
+                    } else {
+                        console.warn('Shape ' + shape_id + ' of type ' + shape_json.type +
+                            ' can\'t be converted to maker');
+                    }
+                } catch (e) {
+                    if (e instanceof TypeError) {
+                        console.warn('There is no shape with ID: ' + shape_id);
+                    }
+                }
+            };
+
+            this.annotation_controller.shapesToMarkers = function(shape_ids) {
+                var controller = this;
+                shape_ids.filter( function(shape_id) {
+                    controller.shapeToMarker(shape_id);
+                })
             };
 
             var marking_tool = new paper.Tool();

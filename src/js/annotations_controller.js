@@ -28,9 +28,9 @@ function AnnotationsController(canvas_id, default_config) {
                 // create a canvas that will be used by paper.js
                 var canvas_size = viewport_controller.getCanvasSize();
                 $("body").append("<canvas id='" + this.canvas_id + "'></canvas>");
-                $("#" + this.canvas_id).attr("width", canvas_size.width)
-                    .attr("height", canvas_size.height);
-                this.canvas = $("#" + this.canvas_id)[0];
+                canvas.attr("width", canvas_size.width)
+                      .attr("height", canvas_size.height);
+                this.canvas = canvas[0];
             } else {
                 console.log('Using an existing canvas');
                 this.canvas = canvas[0];
@@ -386,5 +386,47 @@ function AnnotationsController(canvas_id, default_config) {
         if (this.addShapeToCache(line)) {
             this.drawShape(line, shape_conf, refresh_view);
         }
+    };
+
+    this.drawShapesFromJSON = function(shapes_json, refresh_view) {
+        var ac = this;
+        $.each(shapes_json, function(index, shape) {
+            var shape_conf = {
+                'fill_color': shape.fill_color,
+                'fill_alpha': shape.fill_alpha,
+                'stroke_color': shape.stroke_color,
+                'stroke_alpha': shape.stroke_alpha,
+                'stroke_width': shape.stroke_width
+            };
+            switch (shape.type) {
+                case 'rectangle':
+                    ac.drawRectangle(
+                        shape.shape_id, shape.origin_x, shape.origin_y, shape.width, shape.height,
+                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
+                    );
+                    break;
+                case 'ellipse':
+                    ac.drawEllipse(
+                        shape.shape_id, shape.center_x, shape.center_y, shape.radius_x, shape.radius_y,
+                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
+                    );
+                    break;
+                case 'circle':
+                    ac.drawCircle(
+                        shape.shape_id, shape.center_x, shape.center_y, shape.radius,
+                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
+                    );
+                    break;
+                case 'line':
+                    ac.drawLine(
+                        shape.shape_id, shape.from_x, shape.from_y, shape.to_x, shape.to_y,
+                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
+                    );
+                    break;
+                default:
+                    console.warn('Item ' + shape + ' is not a JSON shape representation');
+            }
+        });
+        refresh(this, refresh_view);
     };
 }
