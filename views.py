@@ -221,7 +221,7 @@ def register_original_file(request, conn=None, **kwargs):
         file_id = original_files.save_original_file(conn, fname, fpath, fmtype,
                                                     int(request.GET.get('size', default=-1)),
                                                     request.GET.get('sha1', default='UNKNOWN'))
-        return HttpResponse(json.dumps({'file_ome_id': file_id}), content_type='application/json')
+        return HttpResponse(json.dumps({'omero_id': file_id}), content_type='application/json')
     except DuplicatedEntryError, dee:
         return HttpResponseServerError(dee.message)
 
