@@ -38,9 +38,9 @@ class RenderingEngineInterface(object):
 
     def _get_image_path(self, original_file_source=False, file_mimetype=None):
         if original_file_source:
-            self._get_path_from_original_file_obj(file_mimetype)
+            return self._get_path_from_original_file_obj(file_mimetype)
         else:
-            self._get_path_from_image_obj()
+            return self._get_path_from_image_obj()
 
     @abstractmethod
     def get_openseadragon_config(self, original_file_source=False, file_mimetype=None):
