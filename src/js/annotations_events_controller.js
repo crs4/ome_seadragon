@@ -114,6 +114,13 @@ function AnnotationsEventsController(annotations_controller) {
                 }
             };
 
+            this.annotation_controller.shapesToMarkers = function(shape_ids) {
+                var controller = this;
+                shape_ids.filter( function(shape_id) {
+                    controller.shapeToMarker(shape_id);
+                })
+            };
+
             var marking_tool = new paper.Tool();
 
             marking_tool.annotations_controller = this.annotation_controller;
