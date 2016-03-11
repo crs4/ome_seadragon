@@ -53,14 +53,14 @@ urlpatterns = patterns(
     # 3DHISTECH FILES HANDLING --- DEEPZOOM
     url(r'^mirax/deepzoom/get/(?P<image_id>[\w\-.]+).dzi$', views.get_image_dzi,
         name='ome_seadragon_image_dzi_metadata_mrxs',
-        kwargs={'fetch_original_file': True, 'file_mimetype': '3dhistech/index'}),
+        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
     url(r'^mirax/deepzoom/get/thumbnail/(?P<image_id>[\w\-.]+).dzi$', views.get_image_thumbnail,
         name='ome_seadragon_image_thumbnail_mrxs',
-        kwargs={'fetch_original_file': True, 'file_mimetype': '3dhistech/index'}),
+        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
     url(r'^mirax/deepzoom/get/(?P<image_id>[\w\-.]+)_files/(?P<level>[0-9]+)/'
         r'(?P<column>[0-9]+)_(?P<row>[0-9]+).(?P<tile_format>[\w]+)$',
         views.get_tile, name='ome_seadragon_get_tile_mrxs',
-        kwargs={'fetch_:original_file': True, 'file_mimetype': 'mirax/index'}),
+        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
     url(r'^mirax/deepzoom/image_mpp/(?P<image_id>[\w\-.]+).dzi$', views.get_image_mpp,
         name='ome_seadragon_get_image_mpp_mrxs',
         kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
