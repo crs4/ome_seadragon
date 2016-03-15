@@ -4,15 +4,40 @@ from os import path, listdir
 from hashlib import sha1
 import sys
 from urlparse import urljoin
+import logging
 
 
 class MiraxImporter(object):
 
-    def __init__(self, source_folder, ome_base_url):
+    def __init__(self, source_folder, ome_base_url, chunk_size, log_level='INFO', log_file=None):
         self.source_folder = source_folder
-        self.ome_url = urljoin(ome_base_url, 'mirax/register_file/')
+        self.ome_save_url = urljoin(ome_base_url, 'mirax/register_file/')
+        self.ome_delete_url = urljoin(ome_base_url, 'mirax/delete_files/')
         self.INDEX_FILE_MT = 'mirax/index'
         self.DATA_FOLDER_MT = 'mirax/datafolder'
+        self.big_files_chunk_size = chunk_size * 1024 * 1024
+        self.logger = self.get_logger(log_level, log_file)
+
+    def get_logger(self, log_level='INFO', log_file=None, mode='a'):
+        LOG_FORMAT = '%(asctime)s|%(levelname)-8s|%(message)s'
+        LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
+
+        logger = logging.getLogger('mirax_importer')
+        if not isinstance(log_level, int):
+            try:
+                log_level = getattr(logging, log_level)
+            except AttributeError:
+                raise ValueError('Unsupported literal log level: %s' % log_level)
+        logger.setLevel(log_level)
+        logger.handlers = []
+        if log_file:
+            handler = logging.FileHandler(log_file, mode=mode)
+        else:
+            handler = logging.StreamHandler()
+        formatter = logging.Formatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
 
     def _get_sha1(self, file_name):
         hasher = sha1()
@@ -22,8 +47,8 @@ class MiraxImporter(object):
         elif path.isdir(file_name):
             for f in listdir(file_name):
                 with open(path.join(file_name, f), 'rb') as fp:
-                    for chunk in iter(lambda: fp.read(500*1024*1024), ''):
-                        hasher.update(sha1(chunk).hexdigest())
+                    for chunk in iter(lambda: fp.read(self.big_files_chunk_size), ''):
+                        hasher.update(chunk)
         return hasher.hexdigest()
 
     def _get_file_details(self, file_name):
@@ -50,6 +75,7 @@ class MiraxImporter(object):
                 'size': sum([path.getsize(path.join(file_name, f))
                              for f in listdir(file_name)]),
                 })
+        self.logger.debug('Details for file %s: %r', file_name, details)
         return label, details
 
     def _get_files_map(self):
@@ -58,8 +84,9 @@ class MiraxImporter(object):
             # exclude hidden files and folders
             files = [f for f in files if not f.startswith('.')]
             files_map = {}
+            self.logger.info('Found %d files, building files map', len(files))
             for f in files:
-                print 'Getting details for file %s' % f
+                self.logger.debug('Getting details for file %s', f)
                 label, details = self._get_file_details(path.join(self.source_folder, f))
                 if label:
                     files_map.setdefault(label, []).append(details)
@@ -68,22 +95,37 @@ class MiraxImporter(object):
             raise ValueError('Path %s does not exist' % self.source_folder)
 
     def _save(self, file_details):
-        response = requests.get(self.ome_url, params=file_details)
+        self.logger.debug('Saving data for file %s', file_details['name'])
+        response = requests.get(self.ome_save_url, params=file_details)
         if response.status_code == requests.codes.ok:
-            print 'File saved, assigned ID: %s' % response.json()['omero_id']
+            self.logger.debug('File saved, assigned ID: %s', response.json()['omero_id'])
             return True
         else:
-            print 'Status code: ' % response.status_code
+            self.logger.debug('Status code: %d', response.status_code)
             return False
 
-    def run(self):
+    def _clear(self, labels_list):
+        for l in labels_list:
+            self.logger.debug('Deleting files for label %s', l)
+            response = requests.get(urljoin(self.ome_delete_url, l))
+            self.logger.debug('Deleted %d elements (deletion successful: %s)',
+                              response.json()['deleted_count'], response.json()['success'])
+
+    def run(self, clear_existing=False):
+        self.logger.info('Starting import job')
+        self.logger.info('Collecting data')
         files_map = self._get_files_map()
-        print 'SAVING DATA'
+        if clear_existing:
+            self.logger.info('Cleaning existing data')
+            self._clear(files_map.keys())
+            self.logger.info('Cleanup completed')
+        self.logger.info('Saving data')
         for flabel, files in files_map.iteritems():
             if len(files) == 2 and flabel is not None:
                 r0 = self._save(files[0])
                 if r0:
                     self._save(files[1])
+        self.logger.info('Import job completed')
 
 
 def get_parser():
@@ -92,14 +134,23 @@ def get_parser():
                         help='the folder containing MIRAX files and folders that will be imported')
     parser.add_argument('--ome-base-url', type=str, required=True,
                         help='the base URL of the OMERO.web server')
+    parser.add_argument('--clear', action='store_true',
+                        help='clear existing files with same name before saving')
+    parser.add_argument('--chunk-size', type=int, default=50,
+                        help='size in MB of chunks that will be read to calculate the SHA1 for big files (default 50MB)')
+    parser.add_argument('--log-level', type=str, default='INFO',
+                        help='log level (default=INFO)')
+    parser.add_argument('--log-file', type=str, default=None,
+                        help='log file (default=stderr)')
     return parser
 
 
 def main(argv):
     parser = get_parser()
     args = parser.parse_args(argv)
-    importer = MiraxImporter(args.source_folder, args.ome_base_url)
-    importer.run()
+    importer = MiraxImporter(args.source_folder, args.ome_base_url, args.chunk_size,
+                             args.log_level, args.log_file)
+    importer.run(args.clear)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
