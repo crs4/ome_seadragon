@@ -354,3 +354,60 @@ function Line(id, from_x, from_y, to_x, to_y, transform_matrix) {
 }
 
 Line.prototype = new Shape();
+
+function Polygon(id, points, closed, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
+    
+    this.points = (typeof points === 'undefined') ? [] : points;
+    this.closed = (typeof closed === 'undefined') ? true : closed;
+    
+    this._points_to_segments = function() {
+        var segments = [];
+        for (var i=0; i<this.points.length; i++) {
+            segments.push([this.points[i].x, this.points[i].y]);
+        }
+        return segments;
+    };
+    
+    this.toPaperShape = function(activate_events) {
+        var path = new paper.Path({
+            segments: this._points_to_segments(),
+            closed: this.closed
+        });
+        this.paper_shape = path;
+        this.initializeEvents(activate_events);
+    };
+    
+    this.addPoint = function(point_x, point_y) {
+        this.points.push({'x': point_x, 'y': point_y});
+        // if paper shape already exists, update it as well
+        if (typeof this.paper_shape !== 'undefined')
+            this.paper_shape.add(new paper.Point(point_x, point_y));
+    };
+    
+    this._get_points_json = function(x_offset, y_offset) {
+        var points = [];
+        for (var i=0; i<this.points.length; i++) {
+            points.push({
+                'x': this.points[i].x + x_offset,
+                'y': this.points[i].y + y_offset
+            });
+        }
+        return points;
+    };
+    
+    this.toJSON = function(x_offset, y_offset) {
+        var shape_json = this._configJSON();
+        $.extend(
+            shape_json,
+            {
+                'points': this._get_points_json(x_offset, y_offset),
+                'closed': this.closed,
+                'type': 'polygon'
+            }
+        );
+        return shape_json;
+    };
+}
+
+Polygon.prototype = new Shape();
