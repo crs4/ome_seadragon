@@ -132,19 +132,27 @@ function AnnotationsController(canvas_id, default_config) {
         return shapes;
     };
 
+    this.getShapeJSON = function(shape_id) {
+        if (shape_id in this.shapes_cache) {
+            return this.shapes_cache[shape_id].toJSON();
+        } else {
+            return undefined;
+        }
+    };
+
     this.getShapesJSON = function(shapes_id) {
         var shapes_json = [];
         if (typeof shapes_id !== 'undefined') {
             for (var index in shapes_id) {
                 if (shapes_id[index] in this.shapes_cache) {
-                    shapes_json.push(this.shapes_cache[shapes_id[index]].toJSON(this.x_offset, this.y_offset));
+                    shapes_json.push(this.getShapeJSON(shapes_id[index]));
                 } else {
                     console.warn('There is no shape with ID ' + shapes_id[index]);
                 }
             }
         } else {
             for (var sh in this.shapes_cache) {
-                shapes_json.push(this.shapes_cache[sh].toJSON());
+                shapes_json.push(this.getShapeJSON(sh));
             }
         }
         return shapes_json;
