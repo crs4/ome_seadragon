@@ -396,6 +396,14 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    this.drawPolygon = function(shape_id, points, closed, transform, shape_conf,
+                                refresh_view) {
+        var polygon = new Polygon(shape_id, points, closed, transform);
+        if (this.addShapeToCache(polygon)) {
+            this.drawShape(polygon, shape_conf, refresh_view);
+        }
+    };
+
     this.drawShapesFromJSON = function(shapes_json, refresh_view) {
         var ac = this;
         $.each(shapes_json, function(index, shape) {
@@ -428,6 +436,12 @@ function AnnotationsController(canvas_id, default_config) {
                 case 'line':
                     ac.drawLine(
                         shape.shape_id, shape.from_x, shape.from_y, shape.to_x, shape.to_y,
+                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
+                    );
+                    break;
+                case 'polygon':
+                    ac.drawPolygon(
+                        shape.shape_id, shape.points, shape.closed,
                         TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
                     );
                     break;
