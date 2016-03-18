@@ -2,6 +2,7 @@ function AnnotationsEventsController(annotations_controller) {
 
     this.DUMMY_TOOL = 'dummy_tool';
     this.IMAGE_MARKING_TOOL = 'image_marker';
+    this.POLYGON_DRAWING_TOOL = 'polygon_drawer';
 
     this.annotation_controller = annotations_controller;
     this.initialized_tools = {};
@@ -138,6 +139,64 @@ function AnnotationsEventsController(annotations_controller) {
             }
         } else {
             console.warn('Tool "' + this.IMAGE_MARKING_TOOL + '" already initialized');
+        }
+    };
+    
+    this.initializePolygoneDrawingTool = function(switch_on_id, switch_off_id) {
+        // by default, initialize dummy tool
+        this.initializeDummyTool();
+        
+        if (! (this.POLYGON_DRAWING_TOOL in this.initialized_tools)) {
+            
+            this.annotation_controller.tmp_polygon = undefined;
+            this.annotation_controller.tmp_polygon_id = 'tmp_polygon';
+
+            this.annotation_controller._pointToPolygon = function(x, y) {
+                if (this.tmp_polygon) {
+                    this.tmp_polygon.addPoint(x, y);
+                } else {
+                    this.drawPolygon(this.tmp_polygon_id);
+                    this.tmp_polygon = this.getShape(this.tmp_polygon_id);
+                    this.tmp_polygon.addPoint(x, y);
+                }
+                this.refreshView();
+            };
+
+            this.annotation_controller.addPointToPolygon = function(event) {
+                this._pointToPolygon(event.point.x, event.point.y);
+            };
+
+            this.annotation_controller.saveTemporaryPolygon = function() {
+                var tmp_polygon_json = this.getShapeJSON(this.tmp_polygon_id);
+                this.deleteShape(this.tmp_polygon_id, false);
+                tmp_polygon_json.shape_id = this._getShapeId('polygon');
+                // apply translation
+                var ac = this;
+                tmp_polygon_json.points = $.map(tmp_polygon_json.points, function(point) {
+                    return {
+                        'x': point.x + ac.x_offset,
+                        'y': point.y + ac.y_offset
+                    }
+                });
+                this.drawShapesFromJSON([tmp_polygon_json], true);
+                this.tmp_polygon = undefined;
+            };
+
+            var marking_tool = new paper.Tool();
+
+            marking_tool.annotations_controller = this.annotation_controller;
+
+            marking_tool.onMouseDown = function(event) {
+                this.annotations_controller.addPointToPolygon(event);
+            };
+
+            this.initialized_tools[this.POLYGON_DRAWING_TOOL] = marking_tool;
+
+            if (typeof switch_on_id !== 'undefined') {
+                this._bind_switch(switch_on_id, this.POLYGON_DRAWING_TOOL);
+            }
+        } else {
+            console.warn('Tool"' + this.POLYGON_DRAWING_TOOL + '" already initialized');
         }
     };
 
