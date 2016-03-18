@@ -385,23 +385,23 @@ function Polygon(id, points, closed, transform_matrix) {
             this.paper_shape.add(new paper.Point(point_x, point_y));
     };
     
-    this._get_points_json = function(x_offset, y_offset) {
+    this._get_points_json = function() {
         var points = [];
         for (var i=0; i<this.points.length; i++) {
             points.push({
-                'x': this.points[i].x + x_offset,
-                'y': this.points[i].y + y_offset
+                'x': this.points[i].x,
+                'y': this.points[i].y
             });
         }
         return points;
     };
     
-    this.toJSON = function(x_offset, y_offset) {
+    this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'points': this._get_points_json(x_offset, y_offset),
+                'points': this._get_points_json(),
                 'closed': this.closed,
                 'type': 'polygon'
             }
