@@ -152,14 +152,18 @@ function AnnotationsEventsController(annotations_controller) {
             this.annotation_controller.tmp_polygon_id = 'tmp_polygon';
 
             this.annotation_controller._pointToPolygon = function(x, y) {
+                var trigger_label = undefined;
                 if (this.tmp_polygon) {
                     this.tmp_polygon.addPoint(x, y);
+                    trigger_label = 'polygon_add_point';
                 } else {
                     this.drawPolygon(this.tmp_polygon_id);
                     this.tmp_polygon = this.getShape(this.tmp_polygon_id);
                     this.tmp_polygon.addPoint(x, y);
+                    trigger_label = 'polygon_created';
                 }
                 this.refreshView();
+                $("#" + this.canvas_id).trigger(trigger_label, [{'x': x, 'y': y}]);
             };
 
             this.annotation_controller.addPointToPolygon = function(event) {
@@ -180,6 +184,7 @@ function AnnotationsEventsController(annotations_controller) {
                 });
                 this.drawShapeFromJSON(tmp_polygon_json, true);
                 this.tmp_polygon = undefined;
+                $("#" + this.canvas_id).trigger('polygon_saved', [tmp_polygon_json.shape_id]);
             };
 
             var marking_tool = new paper.Tool();
