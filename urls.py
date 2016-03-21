@@ -15,8 +15,8 @@ urlpatterns = patterns(
         name='ome_seadragon_test_annotations'),
     url(r'^examples/ome_rois/(?P<image_id>[0-9]+)/$', views.get_example_ome_rois,
         name='ome_seadragon_test_ome_rois'),
-    url(r'^examples/custom_handlers/(?P<image_id>[\w\-.]+)/$', views.get_example_custom_handlers,
-        name='ome_seadragon_test_custom_handlers'),
+    url(r'^examples/custom_handlers/markers/(?P<image_id>[\w\-.]+)/$', views.get_example_interactive_markers,
+        name='ome_seadragon_test_interactive_markers'),
     # OMERO PROJECTS, DATASETS AND IMAGES
     url(r'^get/projects/$', views.get_projects, name='ome_seadragon_get_projects'),
     url(r'^get/project/(?P<project_id>[0-9]+)/$', views.get_project,
