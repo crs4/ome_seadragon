@@ -200,6 +200,18 @@ function AnnotationsEventsController(annotations_controller) {
             if (typeof switch_on_id !== 'undefined') {
                 this._bind_switch(switch_on_id, this.POLYGON_DRAWING_TOOL);
             }
+
+            // if a "switch off" element is provided, bind it to the save polygon action
+            if (typeof switch_off_id !== 'undefined') {
+                $("#" + switch_off_id).bind(
+                    'click',
+                    {'annotation_controller': this.annotation_controller},
+                    function(event) {
+                        console.log(event.data);
+                        event.data.annotation_controller.saveTemporaryPolygon();
+                    }
+                );
+            }
         } else {
             console.warn('Tool"' + this.POLYGON_DRAWING_TOOL + '" already initialized');
         }
