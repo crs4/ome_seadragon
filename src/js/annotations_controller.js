@@ -404,50 +404,55 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    this.drawShapeFromJSON = function(shape_json, refresh_view) {
+        var shape_conf = {
+            'fill_color': shape_json.fill_color,
+            'fill_alpha': shape_json.fill_alpha,
+            'stroke_color': shape_json.stroke_color,
+            'stroke_alpha': shape_json.stroke_alpha,
+            'stroke_width': shape_json.stroke_width
+        };
+        switch (shape_json.type) {
+            case 'rectangle':
+                this.drawRectangle(
+                    shape_json.shape_id, shape_json.origin_x, shape_json.origin_y, shape_json.width, shape_json.height,
+                    TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
+                );
+                break;
+            case 'ellipse':
+                this.drawEllipse(
+                    shape_json.shape_id, shape_json.center_x, shape_json.center_y, shape_json.radius_x, shape_json.radius_y,
+                    TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
+                );
+                break;
+            case 'circle':
+                this.drawCircle(
+                    shape_json.shape_id, shape_json.center_x, shape_json.center_y, shape_json.radius,
+                    TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
+                );
+                break;
+            case 'line':
+                this.drawLine(
+                    shape_json.shape_id, shape_json.from_x, shape_json.from_y, shape_json.to_x, shape_json.to_y,
+                    TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
+                );
+                break;
+            case 'polygon':
+                this.drawPolygon(
+                    shape_json.shape_id, shape_json.points, shape_json.closed,
+                    TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
+                );
+                break;
+            default:
+                console.warn('Item ' + shape_json + ' is not a JSON shape representation');
+        }
+        refresh(this, refresh_view);
+    };
+
     this.drawShapesFromJSON = function(shapes_json, refresh_view) {
         var ac = this;
         $.each(shapes_json, function(index, shape) {
-            var shape_conf = {
-                'fill_color': shape.fill_color,
-                'fill_alpha': shape.fill_alpha,
-                'stroke_color': shape.stroke_color,
-                'stroke_alpha': shape.stroke_alpha,
-                'stroke_width': shape.stroke_width
-            };
-            switch (shape.type) {
-                case 'rectangle':
-                    ac.drawRectangle(
-                        shape.shape_id, shape.origin_x, shape.origin_y, shape.width, shape.height,
-                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
-                    );
-                    break;
-                case 'ellipse':
-                    ac.drawEllipse(
-                        shape.shape_id, shape.center_x, shape.center_y, shape.radius_x, shape.radius_y,
-                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
-                    );
-                    break;
-                case 'circle':
-                    ac.drawCircle(
-                        shape.shape_id, shape.center_x, shape.center_y, shape.radius,
-                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
-                    );
-                    break;
-                case 'line':
-                    ac.drawLine(
-                        shape.shape_id, shape.from_x, shape.from_y, shape.to_x, shape.to_y,
-                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
-                    );
-                    break;
-                case 'polygon':
-                    ac.drawPolygon(
-                        shape.shape_id, shape.points, shape.closed,
-                        TransformMatrixHelper.fromMatrixJSON(shape.transform), shape_conf, false
-                    );
-                    break;
-                default:
-                    console.warn('Item ' + shape + ' is not a JSON shape representation');
-            }
+            ac.drawShapeFromJSON(shape, false);
         });
         refresh(this, refresh_view);
     };

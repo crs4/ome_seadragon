@@ -178,7 +178,7 @@ function AnnotationsEventsController(annotations_controller) {
                         'y': point.y + ac.y_offset
                     }
                 });
-                this.drawShapesFromJSON([tmp_polygon_json], true);
+                this.drawShapeFromJSON(tmp_polygon_json, true);
                 this.tmp_polygon = undefined;
             };
 
