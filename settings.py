@@ -21,6 +21,10 @@ CUSTOM_SETTINGS_MAPPINGS = {
     # <ome_home>/bin/omero config set omero.web.ome_seadragon.repository $(<ome_home>/bin/omero config get omero.data.dir)
     'omero.web.ome_seadragon.repository': ['IMGS_REPOSITORY', None, identity, None],
     'omero.web.ome_seadragon.images_folder': ['IMGS_FOLDER', 'ManagedRepository', identity, None],
+    # default rendering engine
+    'omero.web.ome_seadragon.tiles.rendering_engine': ['TILES_RENDERING_ENGINE', 'openslide', identity, None],
+    'omero.web.ome_seadragon.thumbnails.rendering_engine': ['THUMBNAILS_RENDERING_ENGINE', 'omero',
+                                                            identity, None],
     # deepzoom properties
     'omero.web.ome_seadragon.deepzoom.overlap': ['DEEPZOOM_OVERLAP', 1, identity, None],
     'omero.web.ome_seadragon.deepzoom.format': ['DEEPZOOM_FORMAT', 'jpeg', identity, None],

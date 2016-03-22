@@ -1,6 +1,6 @@
 from ome_seadragon.ome_data import tags_data, projects_datasets
 from ome_seadragon import settings
-from ome_seadragon import slides_manager
+from ome_seadragon.slides_manager import RenderingEngineFactory
 
 import logging
 from distutils.util import strtobool
@@ -159,19 +159,18 @@ def find_annotations(request, conn=None, **kwargs):
 
 @login_required()
 def get_image_dzi(request, image_id, conn=None, **kwargs):
-    slide_obj, slides_format = slides_manager.get_deepzoom_metadata(image_id, conn)
-    if slide_obj:
-        return HttpResponse(slide_obj.get_dzi(slides_format), content_type='application/xml')
+    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
+    dzi_metadata = rendering_engine.get_dzi_description()
+    if dzi_metadata:
+        return HttpResponse(dzi_metadata, content_type='application/xml')
     else:
-        return HttpResponseNotFound("No image with ID " + image_id)
+        return HttpResponseNotFound('No image with ID ' + image_id)
 
 
 @login_required()
 def get_image_thumbnail(request, image_id, conn=None, **kwargs):
-    thumbnail, image_format = slides_manager.get_thumbnail(image_id,
-                                                           int(request.GET.get('width')),
-                                                           int(request.GET.get('height')),
-                                                           conn)
+    rendering_engine = RenderingEngineFactory().get_thumbnails_rendering_engine(image_id, conn)
+    thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')))
     if thumbnail:
         response = HttpResponse(content_type="image/%s" % image_format)
         thumbnail.save(response, image_format)
@@ -184,17 +183,18 @@ def get_image_thumbnail(request, image_id, conn=None, **kwargs):
 def get_tile(request, image_id, level, column, row, tile_format, conn=None, **kwargs):
     if tile_format != settings.DEEPZOOM_FORMAT:
         return HttpResponseServerError("Format %s not supported by the server" % tile_format)
-    image, image_format = slides_manager.get_tile(image_id, int(level),
-                                                  int(column), int(row), conn)
-    if image:
+    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
+    tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row))
+    if tile:
         response = HttpResponse(content_type='image/%s' % image_format)
-        image.save(response, image_format)
+        tile.save(response, image_format)
         return response
     else:
-        return HttpResponseNotFound("No tile can be found")
+        return HttpResponseNotFound('No tile can be found')
 
 
 @login_required()
 def get_image_mpp(request, image_id, conn=None, **kwargs):
-    image_mpp = slides_manager.get_image_mpp(image_id, conn)
+    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
+    image_mpp = rendering_engine.get_openseadragon_config()['mpp']
     return HttpResponse(json.dumps({'image_mpp': image_mpp}), content_type='application_json')

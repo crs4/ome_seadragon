@@ -53,7 +53,7 @@ def _get_images_by_tag(tag_id, connection):
     imgs_generator = connection.getObjectsByAnnotations('Image', [tag_id])
     images = list()
     for img in imgs_generator:
-        images.append(_image_to_json(img))
+        images.append(_image_to_json(img, connection))
     return images
 
 
