@@ -13,7 +13,19 @@ def _get_image_resolution(image_object):
     return image_object.getSizeX() * image_object.getSizeY()
 
 
-def _project_to_json(project_object, datasets_map=None):
+def get_fileset_highest_resolution(image_object, connection):
+    fs = connection.getObject('Fileset', image_object.getFileset().getId())
+    big_image = None
+    for tmp_img in fs.copyImages():
+        if big_image is None:
+            big_image = tmp_img
+        else:
+            if (tmp_img.getSizeX() * tmp_img.getSizeY()) > (big_image.getSizeX() * big_image.getSizeY()):
+                big_image = tmp_img
+    return big_image
+
+
+def _project_to_json(project_object, connection, datasets_map=None):
     prj_json = {
         'id': project_object.getId(),
         'name': project_object.getName(),
@@ -22,11 +34,11 @@ def _project_to_json(project_object, datasets_map=None):
     }
     if datasets_map is not None:
         for dset, imgs in datasets_map:
-            prj_json['datasets'].append(_dataset_to_json(dset, imgs))
+            prj_json['datasets'].append(_dataset_to_json(dset, connection, imgs))
     return prj_json
 
 
-def _dataset_to_json(dataset_object, image_objects=None):
+def _dataset_to_json(dataset_object, connection, image_objects=None):
     dset_obj = {
         'id': dataset_object.getId(),
         'type': dataset_object.OMERO_CLASS,
@@ -37,11 +49,11 @@ def _dataset_to_json(dataset_object, image_objects=None):
     }
     if image_objects is not None:
         for img_obj in image_objects:
-            dset_obj['images'].append(_image_to_json(img_obj))
+            dset_obj['images'].append(_image_to_json(img_obj, connection))
     return dset_obj
 
 
-def _image_to_json(image_object, full_info=False, roi_objects=None):
+def _image_to_json(image_object, connection, full_info=False, roi_objects=None):
     img_obj = {
         'id': image_object.getId(),
         'type': 'image',
@@ -53,7 +65,8 @@ def _image_to_json(image_object, full_info=False, roi_objects=None):
         'creationTime': _date_to_timestamp(image_object.getDate()),
         'importTime': _date_to_timestamp(image_object.creationEventDate()),
         'lastUpdate': _date_to_timestamp(image_object.updateEventDate()),
-        'rois': []
+        'rois': [],
+        'high_resolution_image': get_fileset_highest_resolution(image_object, connection).getId()
     }
     if full_info:
         img_obj.update({
@@ -101,7 +114,8 @@ def get_projects(connection, fetch_datasets=False):
             datasets = list(proj.listChildren())
         else:
             datasets = []
-        projects_json.append(_project_to_json(proj, ((d, []) for d in datasets)))
+        projects_json.append(_project_to_json(proj, connection=connection,
+                                              datasets_map=((d, []) for d in datasets)))
     return projects_json
 
 
@@ -119,7 +133,8 @@ def get_project(connection, project_id, fetch_datasets=False, fetch_images=False
                 else:
                     images = []
                 datasets_map.append((ds, images))
-        return _project_to_json(project, datasets_map)
+        return _project_to_json(project, datasets_map=datasets_map,
+                                connection=connection)
     return None
 
 
@@ -131,7 +146,7 @@ def get_dataset(connection, dataset_id, fetch_images=False, expand_img_series=Fa
             images = _get_images_for_dataset(dataset, not expand_img_series)
         else:
             images = []
-        return _dataset_to_json(dataset, images)
+        return _dataset_to_json(dataset, connection=connection, image_objects=images)
     return None
 
 
@@ -145,5 +160,5 @@ def get_image(connection, image_id, fetch_rois=False):
             rois = list(results.rois)
         else:
             rois = []
-        return _image_to_json(img, True, rois)
+        return _image_to_json(img, connection, True, rois)
     return None
