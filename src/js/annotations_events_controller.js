@@ -146,7 +146,7 @@ function AnnotationsEventsController(annotations_controller) {
         }
     };
     
-    this.initializePolygoneDrawingTool = function(switch_on_id, switch_off_id) {
+    this.initializePolygoneDrawingTool = function(polygon_config, switch_on_id, switch_off_id) {
         // by default, initialize dummy tool
         this.initializeDummyTool();
         
@@ -154,6 +154,11 @@ function AnnotationsEventsController(annotations_controller) {
             
             this.annotation_controller.tmp_polygon = undefined;
             this.annotation_controller.tmp_polygon_id = 'tmp_polygon';
+            this.annotation_controller.polygon_config = polygon_config;
+            
+            this.annotation_controller.updatePolygonConfig = function(polygon_config) {
+                this.polygon_config = polygon_config;
+            };
 
             this.annotation_controller._pointToPolygon = function(x, y) {
                 var trigger_label = undefined;
@@ -161,7 +166,8 @@ function AnnotationsEventsController(annotations_controller) {
                     this.tmp_polygon.addPoint(x, y);
                     trigger_label = 'polygon_add_point';
                 } else {
-                    this.drawPolygon(this.tmp_polygon_id);
+                    this.drawPolygon(this.tmp_polygon_id, [], true, undefined,
+                        this.polygon_config, false);
                     this.tmp_polygon = this.getShape(this.tmp_polygon_id);
                     this.tmp_polygon.addPoint(x, y);
                     trigger_label = 'polygon_created';

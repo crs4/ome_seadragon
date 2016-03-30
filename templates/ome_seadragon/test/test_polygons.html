@@ -106,14 +106,23 @@
                 viewer.viewer.addHandler('open', function () {
                     viewer.setMinDZILevel(8);
 
-                    var annotations_canvas_config = {
-                        'fill_alpha': 0.1,
-                        'stroke_color': '#0000ff',
+                    var polygon_colors = [
+                            '#FF0000',
+                            '#00FF00',
+                            '#0000FF',
+                            '#F7409C',
+                            '#63FF26',
+                            '#FFB800',
+                            '#00DEFF'
+                    ];
+
+                    var polygon_config = {
+                        'fill_alpha': 0.2,
+                        'stroke_color': polygon_colors[Math.floor(Math.random()*polygon_colors.length)],
                         'stroke_width': 20
                     };
 
-                    window.annotations_canvas = new AnnotationsController('annotations_canvas',
-                            annotations_canvas_config);
+                    window.annotations_canvas = new AnnotationsController('annotations_canvas');
                     annotations_canvas.buildAnnotationsCanvas(viewer);
                     viewer.addAnnotationsController(annotations_canvas, true);
                     $("#stop_drawing").hide();
@@ -136,10 +145,13 @@
                         $("#stop_drawing").hide();
                         $("#disable_events").show()
                                 .click();
+                        polygon_config.stroke_color = polygon_colors[Math.floor(Math.random()*polygon_colors.length)];
+                        annotations_canvas.updatePolygonConfig(polygon_config);
                     });
                     window.events_controller = new AnnotationsEventsController(annotations_canvas);
 
-                    events_controller.initializePolygoneDrawingTool('start_drawing', 'stop_drawing');
+                    events_controller.initializePolygoneDrawingTool(polygon_config,
+                            'start_drawing', 'stop_drawing');
 
                     var $acanvas = $("#annotations_canvas");
                     // when a new marker is created, add a button to delete it
