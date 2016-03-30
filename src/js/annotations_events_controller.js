@@ -170,6 +170,11 @@ function AnnotationsEventsController(annotations_controller) {
                 this._pointToPolygon(event.point.x, event.point.y);
             };
 
+            this.annotation_controller.replaceLastPoint = function(event) {
+                this.tmp_polygon.removePoint();
+                this.addPointToPolygon(event);
+            };
+
             this.annotation_controller.saveTemporaryPolygon = function() {
                 var tmp_polygon_json = this.getShapeJSON(this.tmp_polygon_id);
                 this.deleteShape(this.tmp_polygon_id, false);
@@ -193,6 +198,10 @@ function AnnotationsEventsController(annotations_controller) {
 
             marking_tool.onMouseDown = function(event) {
                 this.annotations_controller.addPointToPolygon(event);
+            };
+
+            marking_tool.onMouseDrag = function(event) {
+                this.annotations_controller.replaceLastPoint(event);
             };
 
             this.initialized_tools[this.POLYGON_DRAWING_TOOL] = marking_tool;

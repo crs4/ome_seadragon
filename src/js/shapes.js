@@ -384,6 +384,13 @@ function Polygon(id, points, closed, transform_matrix) {
         if (typeof this.paper_shape !== 'undefined')
             this.paper_shape.add(new paper.Point(point_x, point_y));
     };
+
+    this.removePoint = function(index) {
+        // by default, remove the last point
+        var pt_index = (typeof index === 'undefined') ? (this.points.length - 1) : index;
+        this.paper_shape.removeSegment(pt_index);
+        this.points.splice(pt_index, 1);
+    };
     
     this._get_points_json = function() {
         var points = [];
