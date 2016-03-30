@@ -42,6 +42,10 @@ function AnnotationsEventsController(annotations_controller) {
             } else {
                 this.annotation_controller.max_markers_count = 0;
             }
+            
+            this.annotation_controller.updateMarkersConfig = function(markers_config) {
+                this.markers_config = markers_config;
+            };
 
             this.annotation_controller._check_markers_limit = function() {
                 if (this.markers_id.length > 0 && (this.markers_id.length >= this.max_markers_count))
