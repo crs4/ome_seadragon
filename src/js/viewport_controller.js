@@ -1,9 +1,10 @@
-function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
+function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image_mpp) {
     this.viewer = undefined;
     this.div_id = div_id;
     this.prefix_url = prefix_url;
     this.tile_sources = tile_sources;
     this.config = viewer_config;
+    this.image_mpp = image_mpp;
 
     this.buildViewer = function() {
         if (this.viewer === undefined) {
@@ -26,8 +27,11 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
     };
 
     this.enableScalebar = function(image_mpp, scalebar_config) {
-        if (typeof this.viewer !== "undefined" && image_mpp > 0) {
-            var pixels_per_meter = (1e6 / image_mpp);
+        if (typeof image_mpp !== 'undefined') {
+            this.image_mpp = image_mpp;
+        }
+        if (typeof this.viewer !== "undefined" && this.image_mpp > 0) {
+            var pixels_per_meter = (1e6 / this.image_mpp);
             var sc_conf = {'pixelsPerMeter': pixels_per_meter};
             if (typeof scalebar_config !== "undefined") {
                 $.extend(sc_conf, scalebar_config);
@@ -53,6 +57,10 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config) {
             console.warn("Viewer not initialized!");
             return undefined;
         }
+    };
+
+    this.getImageMicronsPerPixel = function() {
+        return this.image_mpp;
     };
 
     this._get_box_ratio = function(width, height) {

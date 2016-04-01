@@ -32,9 +32,7 @@ function AnnotationsEventsController(annotations_controller) {
         if(! (this.IMAGE_MARKING_TOOL in this.initialized_tools)) {
             
             this.annotation_controller._activate_paper_scope();
-
             this.annotation_controller.markers_id = [];
-
             this.annotation_controller.markers_config = markers_config;
 
             if ((typeof markers_limit !== 'undefined') || (markers_limit > 0)) {
