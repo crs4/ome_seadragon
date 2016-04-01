@@ -48,6 +48,30 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this.getArea = function(pixel_size) {
+        if (typeof this.paper_shape !== 'undefined') {
+            try {
+                return Math.abs(this.paper_shape.toPath().area * pixel_size);
+            } catch(err) {
+                return Math.abs(this.paper_shape.area * pixel_size);
+            }
+        } else {
+            console.log('Shape not initialized');
+        }
+    };
+
+    this.getPerimeter = function(pixel_size) {
+        if (typeof this.paper_shape !== 'undefined') {
+            try {
+                return this.paper_shape.toPath().length * pixel_size;
+            } catch(err) {
+                return this.paper_shape.length * pixel_size;
+            }
+        } else {
+            console.log('Shape not initialized');
+        }
+    };
+
     this.getBoundingBoxDimensions = function() {
         if (typeof this.paper_shape !== 'undefined') {
             var bbox = this.paper_shape.bounds;
@@ -350,6 +374,11 @@ function Line(id, from_x, from_y, to_x, to_y, transform_matrix) {
                 'type': 'line'
             });
         return shape_json;
+    };
+
+    this.getArea = function(pixel_size) {
+        // lines have no area
+        return undefined;
     };
 }
 
