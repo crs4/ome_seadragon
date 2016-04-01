@@ -21,6 +21,7 @@ function AnnotationsController(canvas_id, default_config) {
         if (this.canvas === undefined) {
             this.x_offset = viewport_controller.getImageDimensions().width / 2;
             this.y_offset = viewport_controller.getImageDimensions().height / 2;
+            this.image_mpp = viewport_controller.getImageMicronsPerPixel();
 
             var canvas = $("#" + this.canvas_id);
             if (canvas.length === 0) {
@@ -156,6 +157,35 @@ function AnnotationsController(canvas_id, default_config) {
             }
         }
         return shapes_json;
+    };
+
+    this.getShapeDimensions = function(shape_id) {
+        if (shape_id in this.shapes_cache) {
+            return {
+                'area': this.shapes_cache[shape_id].getArea(this.image_mpp),
+                'perimeter': this.shapes_cache[shape_id].getPerimeter(this.image_mpp)
+            }
+        } else {
+            return undefined;
+        }
+    };
+
+    this.getShapesDimensions = function(shapes_id) {
+        var dimensions = {};
+        if (typeof shapes_id !== 'undefined') {
+            for (var index in shapes_id) {
+                if (shapes_id[index] in this.shapes_cache) {
+                    dimensions[shapes_id[index]] = this.getShapeDimensions(shapes_id[index]);
+                } else {
+                    console.warn('There is no shape with ID ' + shapes_id[index]);
+                }
+            }
+        } else {
+            for (var sh in this.shapes_cache) {
+                dimensions[sh] = this.getShapeDimensions(sh);
+            }
+        }
+        return dimensions;
     };
 
     this.getShapeCenter = function(shape_id, apply_offset) {
