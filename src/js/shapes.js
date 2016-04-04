@@ -386,10 +386,14 @@ function Polygon(id, points, closed, transform_matrix) {
     };
 
     this.removePoint = function(index) {
-        // by default, remove the last point
-        var pt_index = (typeof index === 'undefined') ? (this.points.length - 1) : index;
-        this.paper_shape.removeSegment(pt_index);
-        this.points.splice(pt_index, 1);
+        if (this.points.length > 0) {
+            // by default, remove the last point
+            var pt_index = (typeof index === 'undefined') ? (this.points.length - 1) : index;
+            this.paper_shape.removeSegment(pt_index);
+            this.points.splice(pt_index, 1);
+        } else {
+            throw new Error('The polygon has no points');
+        }
     };
     
     this._get_points_json = function() {
