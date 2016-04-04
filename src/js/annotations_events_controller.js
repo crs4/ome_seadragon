@@ -186,6 +186,23 @@ function AnnotationsEventsController(annotations_controller) {
                 this.addPointToPolygon(event);
             };
 
+            this.annotation_controller.removeLastPoint = function() {
+                try {
+                    this.tmp_polygon.removePoint();
+                    this.refreshView();
+                } catch(err) {
+                    this.clearTemporaryPolygon();
+                }
+            };
+
+            this.annotation_controller.clearTemporaryPolygon = function() {
+                if (typeof this.tmp_polygon !== 'undefined') {
+                    this.deleteShape(this.tmp_polygon_id);
+                    this.tmp_polygon = undefined;
+                    $('#' + this.canvas_id).trigger('polygon_cleared');
+                }
+            };
+
             this.annotation_controller.saveTemporaryPolygon = function() {
                 var tmp_polygon_json = this.getShapeJSON(this.tmp_polygon_id);
                 this.deleteShape(this.tmp_polygon_id, false);
