@@ -168,6 +168,7 @@ function AnnotationsEventsController(annotations_controller) {
                 } else {
                     this.drawPolygon(this.tmp_polygon_id, [], true, undefined,
                         this.polygon_config, false);
+                    this.selectShape(this.tmp_polygon_id);
                     this.tmp_polygon = this.getShape(this.tmp_polygon_id);
                     this.tmp_polygon.addPoint(x, y);
                     trigger_label = 'polygon_created';
