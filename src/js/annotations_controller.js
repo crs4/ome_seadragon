@@ -426,9 +426,8 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
-    this.drawPolygon = function(shape_id, points, closed, transform, shape_conf,
-                                refresh_view) {
-        var polygon = new Polygon(shape_id, points, closed, transform);
+    this.drawPolygon = function(shape_id, points, transform, shape_conf, refresh_view) {
+        var polygon = new Polygon(shape_id, points, transform);
         if (this.addShapeToCache(polygon)) {
             this.drawShape(polygon, shape_conf, refresh_view);
         }
@@ -469,7 +468,7 @@ function AnnotationsController(canvas_id, default_config) {
                 break;
             case 'polygon':
                 this.drawPolygon(
-                    shape_json.shape_id, shape_json.points, shape_json.closed,
+                    shape_json.shape_id, shape_json.points,
                     TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
                 );
                 break;

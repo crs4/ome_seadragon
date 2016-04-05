@@ -384,11 +384,11 @@ function Line(id, from_x, from_y, to_x, to_y, transform_matrix) {
 
 Line.prototype = new Shape();
 
-function Polygon(id, points, closed, transform_matrix) {
+function Polygon(id, points, transform_matrix) {
     Shape.call(this, id, transform_matrix);
     
     this.points = (typeof points === 'undefined') ? [] : points;
-    this.closed = (typeof closed === 'undefined') ? true : closed;
+    this.closed = true;
     
     this._points_to_segments = function() {
         var segments = [];
@@ -442,7 +442,6 @@ function Polygon(id, points, closed, transform_matrix) {
             shape_json,
             {
                 'points': this._get_points_json(),
-                'closed': this.closed,
                 'type': 'polygon'
             }
         );
