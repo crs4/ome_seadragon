@@ -146,7 +146,7 @@ function AnnotationsEventsController(annotations_controller) {
         }
     };
     
-    this.initializePolygoneDrawingTool = function(polygon_config, switch_on_id, switch_off_id) {
+    this.initializePolygonDrawingTool = function(polygon_config, switch_on_id, save_figure_id) {
         // by default, initialize dummy tool
         this.initializeDummyTool();
         
@@ -239,8 +239,8 @@ function AnnotationsEventsController(annotations_controller) {
             }
 
             // if a "switch off" element is provided, bind it to the save polygon action
-            if (typeof switch_off_id !== 'undefined') {
-                $("#" + switch_off_id).bind(
+            if (typeof save_figure_id !== 'undefined') {
+                $("#" + save_figure_id).bind(
                     'click',
                     {'annotation_controller': this.annotation_controller},
                     function(event) {
