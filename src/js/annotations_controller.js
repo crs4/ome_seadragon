@@ -418,11 +418,20 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    // keeping for backward compatibility
     this.drawLine = function(shape_id, from_x, from_y, to_x, to_y, transform,
                              shape_conf, refresh_view) {
-        var line = new Line(shape_id, from_x, from_y, to_x, to_y, transform);
-        if (this.addShapeToCache(line)) {
-            this.drawShape(line, shape_conf, refresh_view);
+        var points = [
+            {'x': from_x, 'y': from_y},
+            {'x': to_x, 'y': to_y}
+        ];
+        this.drawPolyline(shape_id, points, transform, shape_conf, refresh_view);
+    };
+
+    this.drawPolyline = function(shape_id, points, transform, shape_conf, refresh_view) {
+        var polyline = new Polyline(shape_id, points, transform);
+        if (this.addShapeToCache(polyline)) {
+            this.drawShape(polyline, shape_conf, refresh_view);
         }
     };
 
@@ -460,9 +469,16 @@ function AnnotationsController(canvas_id, default_config) {
                     TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
                 );
                 break;
+            // keeping for backward compatibility
             case 'line':
                 this.drawLine(
                     shape_json.shape_id, shape_json.from_x, shape_json.from_y, shape_json.to_x, shape_json.to_y,
+                    TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
+                );
+                break;
+            case 'polyline':
+                this.drawPolyline(
+                    shape_json.shape_id, shape_json.points,
                     TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
                 );
                 break;
