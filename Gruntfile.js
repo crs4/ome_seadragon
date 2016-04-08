@@ -9,6 +9,7 @@ module.exports = function(grunt) {
         "src/js/annotation_tools_manager.js",
         "src/js/image_marking_tool.js",
         "src/js/polygons_drawing_tool.js",
+        "src/js/measuring_tool.js",
         "src/js/utils.js"
     ];
 
