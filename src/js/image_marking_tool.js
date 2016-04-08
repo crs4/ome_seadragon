@@ -5,7 +5,7 @@ AnnotationsEventsController.prototype.initializeImageMarkingTool = function (mar
     // by default, initialize dummy tool
     this.initializeDummyTool();
 
-    if (!(this.IMAGE_MARKING_TOOL in this.initialized_tools)) {
+    if (!(AnnotationsEventsController.IMAGE_MARKING_TOOL in this.initialized_tools)) {
 
         this.annotation_controller._activate_paper_scope();
         this.annotation_controller.markers_id = [];
@@ -110,12 +110,12 @@ AnnotationsEventsController.prototype.initializeImageMarkingTool = function (mar
             this.annotations_controller.addMarker(event);
         };
 
-        this.initialized_tools[this.IMAGE_MARKING_TOOL] = marking_tool;
+        this.initialized_tools[AnnotationsEventsController.IMAGE_MARKING_TOOL] = marking_tool;
 
         if (typeof switch_id !== 'undefined') {
-            this._bind_switch(switch_id, this.IMAGE_MARKING_TOOL);
+            this._bind_switch(switch_id, AnnotationsEventsController.IMAGE_MARKING_TOOL);
         }
     } else {
-        console.warn('Tool "' + this.IMAGE_MARKING_TOOL + '" already initialized');
+        console.warn('Tool "' + AnnotationsEventsController.IMAGE_MARKING_TOOL + '" already initialized');
     }
 };

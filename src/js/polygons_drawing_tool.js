@@ -5,7 +5,7 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
     // by default, initialize dummy tool
     this.initializeDummyTool();
 
-    if (!(this.POLYGON_DRAWING_TOOL in this.initialized_tools)) {
+    if (!(AnnotationsEventsController.POLYGON_DRAWING_TOOL in this.initialized_tools)) {
 
         this.annotation_controller.tmp_polygon = undefined;
         this.annotation_controller.tmp_polygon_id = 'tmp_polygon';
@@ -87,10 +87,10 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
             this.annotations_controller.replaceLastPolygonPoint(event);
         };
 
-        this.initialized_tools[this.POLYGON_DRAWING_TOOL] = marking_tool;
+        this.initialized_tools[AnnotationsEventsController.POLYGON_DRAWING_TOOL] = marking_tool;
 
         if (typeof switch_on_id !== 'undefined') {
-            this._bind_switch(switch_on_id, this.POLYGON_DRAWING_TOOL);
+            this._bind_switch(switch_on_id, AnnotationsEventsController.POLYGON_DRAWING_TOOL);
         }
 
         // if a "switch off" element is provided, bind it to the save polygon action
@@ -99,12 +99,11 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
                 'click',
                 {'annotation_controller': this.annotation_controller},
                 function (event) {
-                    console.log(event.data);
                     event.data.annotation_controller.saveTemporaryPolygon();
                 }
             );
         }
     } else {
-        console.warn('Tool"' + this.POLYGON_DRAWING_TOOL + '" already initialized');
+        console.warn('Tool"' + AnnotationsEventsController.POLYGON_DRAWING_TOOL + '" already initialized');
     }
 };

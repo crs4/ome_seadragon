@@ -1,8 +1,9 @@
 function AnnotationsEventsController(annotations_controller) {
-    this.DUMMY_TOOL = 'dummy_tool';
     this.annotation_controller = annotations_controller;
     this.initialized_tools = {};
 }
+
+AnnotationsEventsController.DUMMY_TOOL = 'dummy_tool';
 
 AnnotationsEventsController.prototype._bind_switch = function (switch_id, tool_label) {
     $("#" + switch_id).bind(
@@ -17,8 +18,8 @@ AnnotationsEventsController.prototype._bind_switch = function (switch_id, tool_l
 // Create a tool that simply ignores mouse events, this will be used, for example, to avoid
 // events propagation when capturing events on Shapes
 AnnotationsEventsController.prototype.initializeDummyTool = function () {
-    if (!(this.DUMMY_TOOL in this.initialized_tools)) {
-        this.initialized_tools[this.DUMMY_TOOL] = new paper.Tool();
+    if (!(AnnotationsEventsController.DUMMY_TOOL in this.initialized_tools)) {
+        this.initialized_tools[AnnotationsEventsController.DUMMY_TOOL] = new paper.Tool();
     }
 };
 
