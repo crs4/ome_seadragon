@@ -64,6 +64,13 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
         this.annotation_controller.serializeRuler = function() {
             var $ruler_out = $("#" + this.ruler_out_id);
             var ruler_json = this.getShapeJSON(this.ruler_id);
+            var ac = this;
+            ruler_json.points = $.map(ruler_json.points, function(point) {
+                return {
+                    'x': point.x + ac.x_offset,
+                    'y': point.y + ac.y_offset
+                }
+            });
             ruler_json.shape_id = this._getShapeId('ruler');
             $ruler_out.data('ruler_json', ruler_json);
         };
