@@ -69,6 +69,13 @@ def get_example_interactive_polygons(request, image_id):
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
+def get_example_interactive_rulers(request, image_id):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    return render(request, 'ome_seadragon/test/test_rulers.html',
+                  {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
+
+
 @login_required()
 def get_projects(request, conn=None, **kwargs):
     try:

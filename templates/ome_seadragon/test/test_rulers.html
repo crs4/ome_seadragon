@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>OPENSEADRAGON TEST VIEWER WITH INTERACTIVE POLYGONS DRAWING TOOL</title>
+
+    <link href="{{ host_name }}/static/ome_seadragon/css/bootstrap.min.css" rel="stylesheet">
+
+    <style type="text/css">
+        #main_frame {
+            margin-top: 10px;
+            display: table;
+        }
+        
+        #main_frame_row {
+            display: table-row;
+        }
+
+        .graphic_element {
+            position: absolute;
+            height: 600px;
+            width: 800px;
+        }
+
+        .img_navigator {
+            height: 150px;
+            width: 200px;
+        }
+
+        #toolbar {
+            width: 200px;
+            display: table-cell;
+            text-align: center;
+        }
+
+        .toolbar_panel {
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .del_buttons_panel {
+            margin-top: 15px;
+        }
+
+        .ruler_buttons {
+            margin-top: 5px;
+        }
+
+        #viewer {
+            width: 850px;
+            display: table-cell;
+            padding: 10px;
+        }
+
+        #navigator{
+            width: 200px;
+            text-align: center;
+            display: table-cell;
+            padding: 2px;
+        }
+    </style>
+
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/paper-full.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/bootstrap.min.js"></script>
+
+    <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            {% if mirax %}
+                var mpp_path = "{{ host_name }}/ome_seadragon/mirax/deepzoom/image_mpp/{{ image_id }}.dzi";
+                var dzi_path = "{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}.dzi";
+            {% else %}
+                var mpp_path = "{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi";
+                var dzi_path = "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi";
+            {% endif %}
+            $.get(mpp_path).done(function(data) {
+
+                var viewer_config = {
+                    'showNavigator': true,
+                    'showFullPageControl': false,
+                    'animationTime': 0.01,
+                    'navigatorId': "image_navigator"
+                };
+
+                window.viewer = new ViewerController(
+                        "openseadragon_viewer",
+                        "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                        dzi_path,
+                        viewer_config
+                );
+                viewer.buildViewer();
+
+                // Scalebar setup
+                var image_mpp = data.image_mpp ? data.image_mpp : 0;
+                var scalebar_config = {
+                    "xOffset": 10,
+                    "yOffset": 10,
+                    "barThickness": 5,
+                    "color": "#777777",
+                    "fontColor": "#000000",
+                    "backgroundColor": 'rgba(255, 255, 255, 0.5)'
+                };
+                viewer.enableScalebar(image_mpp, scalebar_config);
+
+                $("#ruler_1_active_controls").hide();
+                $("#ruler_1_saved_controls").hide();
+
+                viewer.viewer.addHandler('open', function () {
+                    viewer.setMinDZILevel(8);
+
+                    window.annotations_canvas = new AnnotationsController('annotations_canvas');
+                    annotations_canvas.buildAnnotationsCanvas(viewer);
+                    viewer.addAnnotationsController(annotations_canvas, true);
+
+                    window.events_controller = new AnnotationsEventsController(annotations_canvas);
+
+                    events_controller.initializeMeasuringTool(
+                            {'stroke_color': '#444444', 'stroke_alpha': 0.8, 'stroke_width': 20}
+                    );
+                    annotations_canvas.bindToRuler('ruler_1_activate', 'ruler_1_save', 'ruler_1_out');
+
+                    $("#navigation_mode").click(function() {
+                        window.annotations_canvas.disableMouseEvents();
+                    });
+
+                    $("#ruler_1_activate").click(function() {
+                        $("#ruler_1_active_controls").show();
+                        $("#ruler_1_activate").hide();
+                    });
+
+                    var $ruler1 = $("#ruler_1_out");
+                    $ruler1.on('ruler_cleared', function (event) {
+                        $("#navigation_mode").click();
+                        $("#ruler_1_active_controls").hide();
+                        $("#ruler_1_saved_controls").show();
+                        $("#ruler_1_view").mouseenter(function (event) {
+                                    annotations_canvas.drawShapeFromJSON(
+                                            $ruler1.data('ruler_json')
+                                    );
+                                })
+                                .mouseleave(function (event) {
+                                    annotations_canvas.deleteShape(
+                                            $ruler1.data('ruler_json').shape_id
+                                    )
+                                });
+                    });
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="main_frame">
+        <div id="main_frame_row">
+            <div id="toolbar">
+                <div class="row toolbar_panel">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li id="navigation_mode" class="active"><a href="#">Navigation Mode</a></li>
+                    </ul>
+                </div>
+                <div class="row toolbar_panel del_buttons_panel">
+                    <ul id="del_button_group" class="nav nav-pills nav-stacked"></ul>
+                </div>
+            </div>
+            <div id="viewer">
+                <div id="openseadragon_viewer" class="graphic_element"></div>
+                <canvas id="annotations_canvas" class="graphic_element"></canvas>
+            </div>
+            <div id="navigator">
+                <div class="row">
+                    <div id="image_navigator" class="img_navigator"></div>
+                </div>
+                <div class="row">
+                    <p>Ruler 1</p>
+                    <input type="text" class="form-control" id="ruler_1_out" />
+                    <div class="ruler_buttons">
+                        <button id="ruler_1_activate" class="btn btn-default">Activate</button>
+                        <div class="row" id="ruler_1_active_controls">
+                            <button id="ruler_1_save" class="btn btn-success">Save</button>
+                            <button id="ruler_1_abort" class="btn btn-danger">Abort</button>
+                        </div>
+                        <div class="row" id="ruler_1_saved_controls">
+                            <button id="ruler_1_view" class="btn btn-info">View</button>
+                            <button id="ruler_1_delete" class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
