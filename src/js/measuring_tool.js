@@ -84,11 +84,11 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
             }
         };
 
-        var aec_bts = this._bind_switch;
-        var aec_tool = this.MEASURING_TOOL;
+        var aec = this;
         this.annotation_controller.bindToRuler = function(switch_on_id, switch_off_id, output_field_id) {
             // first of all, bind tool activation
-            aec_bts(switch_on_id, aec_tool);
+            console.log(aec);
+            aec._bind_switch(switch_on_id, AnnotationsEventsController.MEASURING_TOOL);
             // then bind extra behaviour for click
             $('#' + switch_on_id).bind(
                 'click',
@@ -96,7 +96,7 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
                 function(event) {
                     console.log('sending binding event trigger');
                     event.data.annotation_controller.ruler_out_id = output_field_id;
-                    $('#' + event.data.annotations_controller.canvas_id).trigger('start_new_ruler',
+                    $('#' + event.data.annotation_controller.canvas_id).trigger('start_new_ruler',
                         [switch_on_id, switch_off_id, output_field_id]);
                 }
             );
