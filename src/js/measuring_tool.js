@@ -51,7 +51,7 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
             if (typeof this.ruler !== 'undefined') {
                 this.deleteShape(this.ruler_id);
                 this.ruler = undefined;
-                $('#' + this.canvas_id).trigger('ruler_cleared');
+                $('#' + this.ruler_out_id).trigger('ruler_cleared');
             }
         };
 
@@ -94,17 +94,14 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
         var aec = this;
         this.annotation_controller.bindToRuler = function(switch_on_id, switch_off_id, output_field_id) {
             // first of all, bind tool activation
-            console.log(aec);
             aec._bind_switch(switch_on_id, AnnotationsEventsController.MEASURING_TOOL);
             // then bind extra behaviour for click
             $('#' + switch_on_id).bind(
                 'click',
                 {'annotation_controller': this},
                 function(event) {
-                    console.log('sending binding event trigger');
                     event.data.annotation_controller.ruler_out_id = output_field_id;
-                    $('#' + event.data.annotation_controller.canvas_id).trigger('start_new_ruler',
-                        [switch_on_id, switch_off_id, output_field_id]);
+                    $('#' + output_field_id).trigger('start_new_ruler');
                 }
             );
             $('#' + switch_off_id).bind(
