@@ -47,12 +47,12 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
             }
         };
 
-        this.annotation_controller.clearRuler = function() {
+        this.annotation_controller.clearRuler = function(ruler_saved) {
             if (typeof this.ruler !== 'undefined') {
                 this.deleteShape(this.ruler_id);
                 this.ruler = undefined;
-                $('#' + this.ruler_out_id).trigger('ruler_cleared');
             }
+            $('#' + this.ruler_out_id).trigger('ruler_cleared', [ruler_saved]);
         };
 
         this.annotation_controller.getRulerMeasure = function() {
@@ -111,7 +111,7 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
                     var ac = event.data.annotation_controller;
                     console.log('clicked on the SWITCH OFF button');
                     ac.serializeRuler();
-                    ac.clearRuler();
+                    ac.clearRuler(true);
                 }
             );
         };
