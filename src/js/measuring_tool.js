@@ -24,7 +24,7 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
                 this.selectShape(this.ruler_id);
                 this.ruler = this.getShape(this.ruler_id);
                 this.ruler.addPoint(x,y);
-                $("#" + this.canvas_id).trigger('ruler_created');
+                $("#" + this.ruler_out_id).trigger('ruler_created');
             }
             this.refreshView();
         };
