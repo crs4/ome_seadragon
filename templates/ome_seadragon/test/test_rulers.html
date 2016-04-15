@@ -119,7 +119,7 @@
                     window.events_controller = new AnnotationsEventsController(annotations_canvas);
 
                     events_controller.initializeMeasuringTool(
-                            {'stroke_color': '#444444', 'stroke_alpha': 0.8, 'stroke_width': 20}
+                            {'stroke_color': '#0000aa', 'stroke_alpha': 0.8, 'stroke_width': 20}
                     );
                     annotations_canvas.bindToRuler('ruler_1_activate', 'ruler_1_save', 'ruler_1_out');
 
@@ -171,6 +171,10 @@
                             })
                             .on('ruler_created', function() {
                                 $("#ruler_1_save").prop('disabled', false);
+                            })
+                            .on('ruler_updated', function() {
+                                console.log('ruler updated fired!');
+                                $ruler1.val($ruler1.data('measure'));
                             });
                 });
             });
