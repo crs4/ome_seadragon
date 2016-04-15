@@ -55,9 +55,9 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
             $('#' + this.ruler_out_id).trigger('ruler_cleared', [ruler_saved]);
         };
 
-        this.annotation_controller.getRulerMeasure = function() {
+        this.annotation_controller.getRulerMeasure = function(decimal_digits) {
             if (typeof this.ruler !== 'undefined') {
-                return this.ruler.getPerimeter(this.image_mpp);
+                return this.ruler.getPerimeter(this.image_mpp, decimal_digits);
             }
         };
 
