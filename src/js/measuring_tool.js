@@ -92,7 +92,10 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
         };
 
         var aec = this;
-        this.annotation_controller.bindToRuler = function(switch_on_id, switch_off_id, output_field_id) {
+        this.annotation_controller.bindToRuler = function(switch_on_id, switch_off_id, output_id) {
+            if (typeof output_id === 'undefined') {
+                throw new Error('Missing mandatory output element');
+            }
             // first of all, bind tool activation
             aec._bind_switch(switch_on_id, AnnotationsEventsController.MEASURING_TOOL);
             // then bind extra behaviour for click
@@ -100,8 +103,8 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
                 'click',
                 {'annotation_controller': this},
                 function(event) {
-                    event.data.annotation_controller.ruler_out_id = output_field_id;
-                    $('#' + output_field_id).trigger('start_new_ruler');
+                    event.data.annotation_controller.ruler_out_id = output_id;
+                    $('#' + output_id).trigger('start_new_ruler');
                 }
             );
             $('#' + switch_off_id).bind(
@@ -109,7 +112,6 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
                 {'annotation_controller': this},
                 function(event) {
                     var ac = event.data.annotation_controller;
-                    console.log('clicked on the SWITCH OFF button');
                     ac.serializeRuler();
                     ac.clearRuler(true);
                 }
@@ -128,7 +130,7 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
             this.annotations_controller.replaceLastRulerPoint(event);
         };
 
-        ruler_tool.onMouseUp = function(event) {
+        ruler_tool.onMouseUp = function() {
             this.annotations_controller.updateOutputField();
         };
 
