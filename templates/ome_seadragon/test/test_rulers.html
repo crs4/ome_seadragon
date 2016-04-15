@@ -132,22 +132,46 @@
                         $("#ruler_1_activate").hide();
                     });
 
-                    var $ruler1 = $("#ruler_1_out");
-                    $ruler1.on('ruler_cleared', function (event) {
-                        $("#navigation_mode").click();
-                        $("#ruler_1_active_controls").hide();
-                        $("#ruler_1_saved_controls").show();
-                        $("#ruler_1_view").mouseenter(function (event) {
-                                    annotations_canvas.drawShapeFromJSON(
-                                            $ruler1.data('ruler_json')
-                                    );
-                                })
-                                .mouseleave(function (event) {
-                                    annotations_canvas.deleteShape(
-                                            $ruler1.data('ruler_json').shape_id
-                                    )
-                                });
+                    $("#ruler_1_abort").click(function() {
+                        $("#ruler_1_out").val("");
+                        annotations_canvas.clearRuler(false);
                     });
+
+                    var $ruler1 = $("#ruler_1_out");
+                    $ruler1.on('ruler_cleared', function (event, ruler_saved) {
+                                if (ruler_saved) {
+                                    $("#navigation_mode").click();
+                                    $("#ruler_1_active_controls").hide();
+                                    $("#ruler_1_saved_controls").show();
+                                    $("#ruler_1_view")
+                                            .mouseenter(function () {
+                                                console.log('Entering ruler 1 view');
+                                                annotations_canvas.drawShapeFromJSON(
+                                                        $ruler1.data('ruler_json')
+                                                );
+                                            })
+                                            .mouseleave(function () {
+                                                annotations_canvas.deleteShape(
+                                                        $ruler1.data('ruler_json').shape_id
+                                                );
+                                            });
+                                    $("#ruler_1_delete").click(function () {
+                                        $ruler1.removeData('ruler_json');
+                                        $ruler1.val('');
+                                        $('#ruler_1_saved_controls').hide();
+                                        $('#ruler_1_activate').show();
+                                        $('#ruler_1_view').unbind();
+                                        $('#ruler_1_save').prop('disabled', 'disabled');
+                                    });
+                                } else {
+                                    $("#navigation_mode").click();
+                                    $("#ruler_1_active_controls").hide();
+                                    $("#ruler_1_activate").show();
+                                }
+                            })
+                            .on('ruler_created', function() {
+                                $("#ruler_1_save").prop('disabled', false);
+                            });
                 });
             });
         });
@@ -176,12 +200,14 @@
                 </div>
                 <div class="row">
                     <p>Ruler 1</p>
-                    <input type="text" class="form-control" id="ruler_1_out" />
+                    <input type="text" readonly="true" class="form-control" id="ruler_1_out" />
                     <div class="ruler_buttons">
                         <button id="ruler_1_activate" class="btn btn-default">Activate</button>
                         <div class="row" id="ruler_1_active_controls">
-                            <button id="ruler_1_save" class="btn btn-success">Save</button>
-                            <button id="ruler_1_abort" class="btn btn-danger">Abort</button>
+                            <button id="ruler_1_save" disabled="disabled"
+                                    class="btn btn-success">Save</button>
+                            <button id="ruler_1_abort"
+                                    class="btn btn-danger">Abort</button>
                         </div>
                         <div class="row" id="ruler_1_saved_controls">
                             <button id="ruler_1_view" class="btn btn-info">View</button>
