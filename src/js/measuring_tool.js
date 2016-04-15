@@ -77,18 +77,9 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
 
         this.annotation_controller.updateOutputField = function() {
             var measure = this.getRulerMeasure();
-            if (typeof this.ruler_out_id === 'undefined') {
-                console.log('Current ruler measure is: ' + measure + ' microns');
-            } else {
-                var $ruler_out = $("#" + this.ruler_out_id);
-                if ($ruler_out.is('input')) {
-                    $ruler_out.val(measure);
-                } else if ($ruler_out.is('div') || $ruler_out.is('p')){
-                    $ruler_out.text(measure);
-                } else {
-                    console.warn('output field with ID ' + this.ruler_out_id + ' is not handled');
-                }
-            }
+            var $ruler_out = $("#" + this.ruler_out_id);
+            $ruler_out.data('measure', measure);
+            $ruler_out.trigger('ruler_updated');
         };
 
         var aec = this;
