@@ -48,25 +48,31 @@ function Shape(id, transform_matrix) {
         }
     };
 
-    this.getArea = function(pixel_size) {
+    this.getArea = function(pixel_size, decimal_digits) {
+        var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
+            var area = undefined;
             try {
-                return Math.abs(this.paper_shape.toPath().area * pixel_size);
+                area = Math.abs(this.paper_shape.toPath().area * pixel_size);
             } catch(err) {
-                return Math.abs(this.paper_shape.area * pixel_size);
+                area = Math.abs(this.paper_shape.area * pixel_size);
             }
+            return Number(area.toFixed(decimals));
         } else {
             console.log('Shape not initialized');
         }
     };
 
-    this.getPerimeter = function(pixel_size) {
+    this.getPerimeter = function(pixel_size, decimal_digits) {
+        var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
+            var perimeter = undefined;
             try {
-                return this.paper_shape.toPath().length * pixel_size;
+                perimeter = this.paper_shape.toPath().length * pixel_size;
             } catch(err) {
-                return this.paper_shape.length * pixel_size;
+                perimeter = this.paper_shape.length * pixel_size;
             }
+            return Number(perimeter.toFixed(decimals));
         } else {
             console.log('Shape not initialized');
         }
