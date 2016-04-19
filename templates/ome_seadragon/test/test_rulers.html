@@ -77,6 +77,75 @@
                 var mpp_path = "{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi";
                 var dzi_path = "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi";
             {% endif %}
+            var setup_ruler = function(ruler_id) {
+                annotations_canvas.bindToRuler(
+                        'ruler_' + ruler_id + '_activate',
+                        'ruler_' + ruler_id + '_save',
+                        'ruler_' + ruler_id + '_out'
+                );
+
+                var $ruler_active_controls = $("#ruler_" + ruler_id + "_active_controls");
+                var $ruler_saved_controls = $("#ruler_" + ruler_id + "_saved_controls");
+                var $ruler_activate_btn = $("#ruler_" + ruler_id + "_activate");
+                var $ruler_save_btn = $("#ruler_" + ruler_id + "_save");
+                var $ruler_abort_btn = $("#ruler_" + ruler_id + "_abort");
+                var $ruler_view_btn = $("#ruler_" + ruler_id + "_view");
+                var $ruler_delete_btn = $("#ruler_" + ruler_id + "_delete");
+                var $ruler_output = $("#ruler_" + ruler_id + "_out");
+
+                $ruler_active_controls.hide();
+                $ruler_saved_controls.hide();
+
+                $ruler_activate_btn.click(function() {
+                    $(".ruler_on_btn").prop("disabled", "disabled");
+                    $ruler_active_controls.show();
+                    $ruler_activate_btn.hide();
+                });
+
+                $ruler_abort_btn.click(function() {
+                    $ruler_output.val('');
+                    annotations_canvas.clearRuler(false);
+                });
+
+                $ruler_output.on('ruler_created', function () {
+                            $ruler_save_btn.prop('disabled', false);
+                        })
+                        .on('ruler_updated', function () {
+                            $ruler_output.val($ruler_output.data('measure'));
+                        })
+                        .on('ruler_cleared', function (event, ruler_saved) {
+                            $(".ruler_on_btn").prop("disabled", false);
+                            if (ruler_saved) {
+                                $("#navigation_mode").click();
+                                $ruler_active_controls.hide();
+                                $ruler_saved_controls.show();
+                                $ruler_view_btn.mouseenter(function () {
+                                            annotations_canvas.drawShapeFromJSON(
+                                                    $ruler_output.data('ruler_json')
+                                            );
+                                        })
+                                        .mouseleave(function () {
+                                            annotations_canvas.deleteShape(
+                                                    $ruler_output.data('ruler_json').shape_id
+                                            );
+                                        });
+                                $ruler_delete_btn.click(function () {
+                                    $ruler_output.removeData('ruler_json')
+                                            .removeData('measure')
+                                            .val('');
+                                    $ruler_saved_controls.hide();
+                                    $ruler_activate_btn.show();
+                                    $ruler_view_btn.unbind();
+                                    $ruler_save_btn.prop('disabled', 'disabled');
+                                })
+                            } else {
+                                $("#navigation_mode").click();
+                                $ruler_active_controls.hide();
+                                $ruler_activate_btn.show();
+                            }
+                        });
+            };
+
             $.get(mpp_path).done(function(data) {
 
                 var viewer_config = {
@@ -106,9 +175,6 @@
                 };
                 viewer.enableScalebar(image_mpp, scalebar_config);
 
-                $("#ruler_1_active_controls").hide();
-                $("#ruler_1_saved_controls").hide();
-
                 viewer.viewer.addHandler('open', function () {
                     viewer.setMinDZILevel(8);
 
@@ -121,61 +187,14 @@
                     events_controller.initializeMeasuringTool(
                             {'stroke_color': '#0000aa', 'stroke_alpha': 0.8, 'stroke_width': 20}
                     );
-                    annotations_canvas.bindToRuler('ruler_1_activate', 'ruler_1_save', 'ruler_1_out');
 
                     $("#navigation_mode").click(function() {
                         window.annotations_canvas.disableMouseEvents();
                     });
 
-                    $("#ruler_1_activate").click(function() {
-                        $("#ruler_1_active_controls").show();
-                        $("#ruler_1_activate").hide();
-                    });
-
-                    $("#ruler_1_abort").click(function() {
-                        $("#ruler_1_out").val("");
-                        annotations_canvas.clearRuler(false);
-                    });
-
-                    var $ruler1 = $("#ruler_1_out");
-                    $ruler1.on('ruler_cleared', function (event, ruler_saved) {
-                                if (ruler_saved) {
-                                    $("#navigation_mode").click();
-                                    $("#ruler_1_active_controls").hide();
-                                    $("#ruler_1_saved_controls").show();
-                                    $("#ruler_1_view")
-                                            .mouseenter(function () {
-                                                console.log('Entering ruler 1 view');
-                                                annotations_canvas.drawShapeFromJSON(
-                                                        $ruler1.data('ruler_json')
-                                                );
-                                            })
-                                            .mouseleave(function () {
-                                                annotations_canvas.deleteShape(
-                                                        $ruler1.data('ruler_json').shape_id
-                                                );
-                                            });
-                                    $("#ruler_1_delete").click(function () {
-                                        $ruler1.removeData('ruler_json');
-                                        $ruler1.val('');
-                                        $('#ruler_1_saved_controls').hide();
-                                        $('#ruler_1_activate').show();
-                                        $('#ruler_1_view').unbind();
-                                        $('#ruler_1_save').prop('disabled', 'disabled');
-                                    });
-                                } else {
-                                    $("#navigation_mode").click();
-                                    $("#ruler_1_active_controls").hide();
-                                    $("#ruler_1_activate").show();
-                                }
-                            })
-                            .on('ruler_created', function() {
-                                $("#ruler_1_save").prop('disabled', false);
-                            })
-                            .on('ruler_updated', function() {
-                                console.log('ruler updated fired!');
-                                $ruler1.val($ruler1.data('measure'));
-                            });
+                    setup_ruler(1);
+                    setup_ruler(2);
+                    setup_ruler(3);
                 });
             });
         });
@@ -206,7 +225,7 @@
                     <p>Ruler 1</p>
                     <input type="text" readonly="true" class="form-control" id="ruler_1_out" />
                     <div class="ruler_buttons">
-                        <button id="ruler_1_activate" class="btn btn-default">Activate</button>
+                        <button id="ruler_1_activate" class="btn btn-default ruler_on_btn">Activate</button>
                         <div class="row" id="ruler_1_active_controls">
                             <button id="ruler_1_save" disabled="disabled"
                                     class="btn btn-success">Save</button>
@@ -216,6 +235,40 @@
                         <div class="row" id="ruler_1_saved_controls">
                             <button id="ruler_1_view" class="btn btn-info">View</button>
                             <button id="ruler_1_delete" class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <p>Ruler 2</p>
+                    <input type="text" readonly="true" class="form-control" id="ruler_2_out" />
+                    <div class="ruler_buttons">
+                        <button id="ruler_2_activate" class="btn btn-default ruler_on_btn">Activate</button>
+                        <div class="row" id="ruler_2_active_controls">
+                            <button id="ruler_2_save" disabled="disabled"
+                                    class="btn btn-success">Save</button>
+                            <button id="ruler_2_abort"
+                                    class="btn btn-danger">Abort</button>
+                        </div>
+                        <div class="row" id="ruler_2_saved_controls">
+                            <button id="ruler_2_view" class="btn btn-info">View</button>
+                            <button id="ruler_2_delete" class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <p>Ruler 3</p>
+                    <input type="text" readonly="true" class="form-control" id="ruler_3_out" />
+                    <div class="ruler_buttons">
+                        <button id="ruler_3_activate" class="btn btn-default ruler_on_btn">Activate</button>
+                        <div class="row" id="ruler_3_active_controls">
+                            <button id="ruler_3_save" disabled="disabled"
+                                    class="btn btn-success">Save</button>
+                            <button id="ruler_3_abort"
+                                    class="btn btn-danger">Abort</button>
+                        </div>
+                        <div class="row" id="ruler_3_saved_controls">
+                            <button id="ruler_3_view" class="btn btn-info">View</button>
+                            <button id="ruler_3_delete" class="btn btn-danger">Delete</button>
                         </div>
                     </div>
                 </div>
