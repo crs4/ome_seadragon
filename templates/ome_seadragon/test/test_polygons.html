@@ -42,7 +42,7 @@
             margin-top: 15px;
         }
 
-        #viewer {
+        #viewer_panel {
             width: 850px;
             display: table-cell;
             padding: 10px;
@@ -67,11 +67,14 @@
     <script type="text/javascript">
         $(document).ready(function() {
             {% if mirax %}
-                $.get("{{ host_name }}/ome_seadragon/mirax/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+                var mpp_path = "{{ host_name }}/ome_seadragon/mirax/deepzoom/image_mpp/{{ image_id }}.dzi";
+                var dzi_path = "{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}.dzi";
             {% else %}
-                $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+                var mpp_path = "{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi";
+                var dzi_path = "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi";
             {% endif %}
 
+            $.get(mpp_path).done(function(data) {
                 var viewer_config = {
                     'showNavigator': true,
                     'showFullPageControl': false,
@@ -82,11 +85,7 @@
                 window.viewer = new ViewerController(
                         "openseadragon_viewer",
                         "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
-                        {% if mirax %}
-                            "{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}.dzi",
-                        {% else %}
-                            "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
-                         {% endif %}
+                        dzi_path,
                         viewer_config
                 );
                 viewer.buildViewer();
@@ -122,9 +121,9 @@
                         'stroke_width': 20
                     };
 
-                    window.annotations_canvas = new AnnotationsController('annotations_canvas');
-                    annotations_canvas.buildAnnotationsCanvas(viewer);
-                    viewer.addAnnotationsController(annotations_canvas, true);
+                    window.annotations_controller = new AnnotationsController('annotations_canvas');
+                    annotations_controller.buildAnnotationsCanvas(viewer);
+                    viewer.addAnnotationsController(annotations_controller, true);
 
                     var $disable_events = $("#disable_events");
                     var $start_drawing = $("#start_drawing");
@@ -147,7 +146,7 @@
                         $remove_point.removeClass("active");
                         $clear_polygon.removeClass("active");
                         $save_tmp.removeClass("active");
-                        window.annotations_canvas.disableMouseEvents();
+                        annotations_controller.disableMouseEvents();
                         $start_drawing.show();
                         $remove_point.hide();
                         $clear_polygon.hide();
@@ -167,7 +166,7 @@
                     });
 
                     $stop_drawing.click(function() {
-                        annotations_canvas.clearTemporaryPolygon();
+                        annotations_controller.clearTemporaryPolygon();
                         $start_drawing.show();
                         $remove_point.hide();
                         $clear_polygon.hide();
@@ -186,9 +185,9 @@
                         $disable_events.show()
                                 .click();
                         polygon_config.stroke_color = polygon_colors[Math.floor(Math.random() * polygon_colors.length)];
-                        annotations_canvas.updatePolygonConfig(polygon_config);
+                        annotations_controller.updatePolygonConfig(polygon_config);
                     });
-                    window.events_controller = new AnnotationsEventsController(annotations_canvas);
+                    var events_controller = new AnnotationsEventsController(annotations_controller);
 
                     events_controller.initializePolygonDrawingTool(polygon_config,
                             'start_drawing', 'save_tmp');
@@ -204,7 +203,7 @@
                                 $delp_btn.bind(
                                         'click', {'polygon_id': polygon_id, 'btn_id': 'del_' + polygon_id},
                                         function (event) {
-                                            window.annotations_canvas.deleteShape(event.data.polygon_id);
+                                            annotations_controller.deleteShape(event.data.polygon_id);
                                             $("#" + event.data.btn_id).remove();
                                         }
                                 );
@@ -216,15 +215,15 @@
                                 drawing_in_progress = true;
                                 $start_drawing.find('a').html('Resume Drawing');
 
-                                $remove_point.click(function() {
-                                    annotations_canvas.removeLastPolygonPoint();
+                                $remove_point.click(function () {
+                                    annotations_controller.removeLastPolygonPoint();
                                 });
 
-                                $clear_polygon.click(function() {
-                                    annotations_canvas.clearTemporaryPolygon();
+                                $clear_polygon.click(function () {
+                                    annotations_controller.clearTemporaryPolygon();
                                 });
                             })
-                            .on('polygon_cleared', function() {
+                            .on('polygon_cleared', function () {
                                 drawing_in_progress = false;
                                 $start_drawing.find('a').html('Draw Polygon');
 
@@ -255,7 +254,7 @@
                     <ul id="del_button_group" class="nav nav-pills nav-stacked"></ul>
                 </div>
             </div>
-            <div id="viewer">
+            <div id="viewer_panel">
                 <div id="openseadragon_viewer" class="graphic_element"></div>
                 <canvas id="annotations_canvas" class="graphic_element"></canvas>
             </div>
