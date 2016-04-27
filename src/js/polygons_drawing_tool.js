@@ -21,7 +21,7 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
                 this.tmp_polygon.addPoint(x, y);
                 trigger_label = 'polygon_add_point';
             } else {
-                this.drawPolygon(this.tmp_polygon_id, [], [], undefined,
+                this.drawPolygon(this.tmp_polygon_id, [], undefined,
                     this.polygon_config, false);
                 this.selectShape(this.tmp_polygon_id);
                 this.tmp_polygon = this.getShape(this.tmp_polygon_id);
@@ -64,10 +64,12 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
             tmp_polygon_json.shape_id = this._getShapeId('polygon');
             // apply translation
             var ac = this;
-            tmp_polygon_json.points = $.map(tmp_polygon_json.points, function (point) {
+            tmp_polygon_json.segments = $.map(tmp_polygon_json.segments, function (segment) {
                 return {
-                    'x': point.x + ac.x_offset,
-                    'y': point.y + ac.y_offset
+                    'point': {
+                        'x': segment.point.x + ac.x_offset,
+                        'y': segment.point.y + ac.y_offset
+                    }
                 }
             });
             this.drawShapeFromJSON(tmp_polygon_json, true);

@@ -428,15 +428,15 @@ function AnnotationsController(canvas_id, default_config) {
         this.drawPolyline(shape_id, points, transform, shape_conf, refresh_view);
     };
 
-    this.drawPolyline = function(shape_id, points, segments, transform, shape_conf, refresh_view) {
-        var polyline = new Polyline(shape_id, points, segments, transform);
+    this.drawPolyline = function(shape_id, segments, transform, shape_conf, refresh_view) {
+        var polyline = new Polyline(shape_id, segments, transform);
         if (this.addShapeToCache(polyline)) {
             this.drawShape(polyline, shape_conf, refresh_view);
         }
     };
 
-    this.drawPolygon = function(shape_id, points, segments, transform, shape_conf, refresh_view) {
-        var polygon = new Polygon(shape_id, points, segments, transform);
+    this.drawPolygon = function(shape_id, segments, transform, shape_conf, refresh_view) {
+        var polygon = new Polygon(shape_id, segments, transform);
         if (this.addShapeToCache(polygon)) {
             this.drawShape(polygon, shape_conf, refresh_view);
         }
@@ -478,13 +478,13 @@ function AnnotationsController(canvas_id, default_config) {
                 break;
             case 'polyline':
                 this.drawPolyline(
-                    shape_json.shape_id, shape_json.points, shape_json.segments,
+                    shape_json.shape_id, shape_json.segments,
                     TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
                 );
                 break;
             case 'polygon':
                 this.drawPolygon(
-                    shape_json.shape_id, shape_json.points, shape_json.segments,
+                    shape_json.shape_id, shape_json.segments,
                     TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
                 );
                 break;
