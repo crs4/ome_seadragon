@@ -187,7 +187,7 @@
                         polygon_config.stroke_color = polygon_colors[Math.floor(Math.random() * polygon_colors.length)];
                         annotations_controller.updatePolygonConfig(polygon_config);
                     });
-                    var events_controller = new AnnotationsEventsController(annotations_controller);
+                    window.events_controller = new AnnotationsEventsController(annotations_controller);
 
                     events_controller.initializePolygonDrawingTool(polygon_config,
                             'start_drawing', 'save_tmp');
