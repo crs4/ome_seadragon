@@ -77,19 +77,19 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
             $("#" + this.canvas_id).trigger('polygon_saved', [tmp_polygon_json.shape_id]);
         };
 
-        var marking_tool = new paper.Tool();
+        var polygon_drawing_tool = new paper.Tool();
 
-        marking_tool.annotations_controller = this.annotation_controller;
+        polygon_drawing_tool.annotations_controller = this.annotation_controller;
 
-        marking_tool.onMouseDown = function (event) {
+        polygon_drawing_tool.onMouseDown = function (event) {
             this.annotations_controller.addPointToPolygon(event);
         };
 
-        marking_tool.onMouseDrag = function (event) {
+        polygon_drawing_tool.onMouseDrag = function (event) {
             this.annotations_controller.replaceLastPolygonPoint(event);
         };
 
-        this.initialized_tools[AnnotationsEventsController.POLYGON_DRAWING_TOOL] = marking_tool;
+        this.initialized_tools[AnnotationsEventsController.POLYGON_DRAWING_TOOL] = polygon_drawing_tool;
 
         if (typeof switch_on_id !== 'undefined') {
             this._bind_switch(switch_on_id, AnnotationsEventsController.POLYGON_DRAWING_TOOL);
