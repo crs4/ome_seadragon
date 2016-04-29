@@ -192,6 +192,15 @@
                     events_controller.initializePolygonDrawingTool(polygon_config,
                             'start_drawing', 'save_tmp');
 
+                    var polygon_drawing_stop = function() {
+                        drawing_in_progress = false;
+                        $start_drawing.find('a').html('Draw Polygon');
+
+                        $remove_point.unbind('click');
+
+                        $clear_polygon.unbind('click');
+                    };
+
                     var $acanvas = $("#annotations_canvas");
                     // when a new marker is created, add a button to delete it
                     $acanvas.on('polygon_saved', function (event, polygon_id) {
@@ -207,9 +216,7 @@
                                             $("#" + event.data.btn_id).remove();
                                         }
                                 );
-
-                                drawing_in_progress = false;
-                                $start_drawing.find('a').html('Draw Polygon');
+                                polygon_drawing_stop();
                             })
                             .on('polygon_created', function () {
                                 drawing_in_progress = true;
@@ -223,14 +230,7 @@
                                     annotations_controller.clearTemporaryPolygon();
                                 });
                             })
-                            .on('polygon_cleared', function () {
-                                drawing_in_progress = false;
-                                $start_drawing.find('a').html('Draw Polygon');
-
-                                $remove_point.unbind('click');
-
-                                $clear_polygon.unbind('click');
-                            });
+                            .on('polygon_cleared', polygon_drawing_stop);
                 });
             });
         });
