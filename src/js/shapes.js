@@ -410,7 +410,8 @@ function Path(id, segments, closed, transform_matrix) {
     this.simplifyPath = function(x_offset, y_offset) {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.simplify();
-            this.segments = this._extract_segments(x_offset, y_offset);
+            this.segments = [];
+            this._extract_segments(x_offset, y_offset);
         } else {
             console.info('Shape not initialized');
         }
