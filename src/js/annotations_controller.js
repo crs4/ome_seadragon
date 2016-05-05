@@ -159,23 +159,23 @@ function AnnotationsController(canvas_id, default_config) {
         return shapes_json;
     };
 
-    this.getShapeDimensions = function(shape_id) {
+    this.getShapeDimensions = function(shape_id, decimal_digits) {
         if (shape_id in this.shapes_cache) {
             return {
-                'area': this.shapes_cache[shape_id].getArea(this.image_mpp),
-                'perimeter': this.shapes_cache[shape_id].getPerimeter(this.image_mpp)
+                'area': this.shapes_cache[shape_id].getArea(this.image_mpp, decimal_digits),
+                'perimeter': this.shapes_cache[shape_id].getPerimeter(this.image_mpp, decimal_digits)
             }
         } else {
             return undefined;
         }
     };
 
-    this.getShapesDimensions = function(shapes_id) {
+    this.getShapesDimensions = function(shapes_id, decimal_digits) {
         var dimensions = {};
         if (typeof shapes_id !== 'undefined') {
             for (var index in shapes_id) {
                 if (shapes_id[index] in this.shapes_cache) {
-                    dimensions[shapes_id[index]] = this.getShapeDimensions(shapes_id[index]);
+                    dimensions[shapes_id[index]] = this.getShapeDimensions(shapes_id[index], decimal_digits);
                 } else {
                     console.warn('There is no shape with ID ' + shapes_id[index]);
                 }
