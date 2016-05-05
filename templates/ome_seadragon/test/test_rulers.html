@@ -52,11 +52,15 @@
             padding: 10px;
         }
 
-        #navigator{
+        #navigator {
             width: 200px;
             text-align: center;
             display: table-cell;
             padding: 2px;
+        }
+
+        .ruler_panel {
+            margin-top: 10px;
         }
     </style>
 
@@ -221,9 +225,12 @@
                 <div class="row">
                     <div id="image_navigator" class="img_navigator"></div>
                 </div>
-                <div class="row">
-                    <p>Ruler 1</p>
-                    <input type="text" readonly="true" class="form-control" id="ruler_1_out" />
+                <div class="row ruler_panel">
+                    Ruler 1
+                    <div class="input-group">
+                        <input type="text" readonly="true" class="form-control" id="ruler_1_out">
+                        <span class="input-group-addon">&micro;m</span>
+                    </div>
                     <div class="ruler_buttons">
                         <button id="ruler_1_activate" class="btn btn-default ruler_on_btn">Activate</button>
                         <div class="row" id="ruler_1_active_controls">
@@ -238,9 +245,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <p>Ruler 2</p>
-                    <input type="text" readonly="true" class="form-control" id="ruler_2_out" />
+                <div class="row ruler_panel">
+                    Ruler 2
+                    <div class="input-group">
+                        <input type="text" readonly="true" class="form-control" id="ruler_2_out">
+                        <span class="input-group-addon">&micro;m</span>
+                    </div>
                     <div class="ruler_buttons">
                         <button id="ruler_2_activate" class="btn btn-default ruler_on_btn">Activate</button>
                         <div class="row" id="ruler_2_active_controls">
@@ -255,9 +265,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <p>Ruler 3</p>
-                    <input type="text" readonly="true" class="form-control" id="ruler_3_out" />
+                <div class="row ruler_panel">
+                    Ruler 3
+                    <div class="input-group">
+                        <input type="text" readonly="true" class="form-control" id="ruler_3_out">
+                        <span class="input-group-addon">&micro;m</span>
+                    </div>
                     <div class="ruler_buttons">
                         <button id="ruler_3_activate" class="btn btn-default ruler_on_btn">Activate</button>
                         <div class="row" id="ruler_3_active_controls">
