@@ -45,7 +45,6 @@
         #viewer_panel {
             width: 850px;
             display: table-cell;
-            padding: 10px;
         }
 
         #navigator {
@@ -62,6 +61,10 @@
 
         .sh_ctrl {
             margin-bottom: 10px;
+        }
+
+        .glyphicon {
+            top: 0px;
         }
     </style>
 
@@ -139,13 +142,32 @@
 
                     var $disable_events = $("#disable_events");
                     var $start_drawing = $("#start_drawing");
+                    var $abort_drawing = $("#abort_drawing");
                     var $shape_details = $("#shape_details");
                     var $del_btn_group = $("#del_button_group");
 
                     $shape_details.hide();
+                    $abort_drawing.hide();
 
                     $disable_events.click( function () {
                         annotations_controller.disableMouseEvents();
+                        $abort_drawing.hide();
+                        $start_drawing.show();
+                        $disable_events.removeClass('btn-default');
+                        $disable_events.addClass('btn-primary');
+                    });
+
+                    $start_drawing.click( function () {
+                        $disable_events.removeClass('btn-primary');
+                        $disable_events.addClass('btn-default');
+                        $start_drawing.hide();
+                        $abort_drawing.show();
+                    });
+
+                    $abort_drawing.click( function () {
+                        $abort_drawing.hide();
+                        $start_drawing.show();
+                        $disable_events.click();
                     });
 
                     var build_shape_controls = function(shape_id) {
@@ -157,9 +179,9 @@
                                     "<input type='text' value='SHAPE " + shape_counter +"'" +
                                         " class='form-control' readonly='true'>" +
                                     "<span id='" + shape_details_id + "'" +
-                                        " class='input-group-addon glyphicon  glyphicon-eye-open'></span>" +
+                                        " class='input-group-addon glyphicon glyphicon-eye-open'></span>" +
                                     "<span id='" + shape_delete_id + "'" +
-                                        " class='input-group-addon glyphicon  glyphicon-remove-circle'></span>" +
+                                        " class='input-group-addon glyphicon glyphicon-remove-circle'></span>" +
                                 "</div>"
                         );
                         $del_btn_group.append($sh_ctrl);
@@ -175,6 +197,9 @@
                                 })
                                 .mouseleave( function () {
                                     hide_shape_details();
+                                })
+                                .click( function () {
+                                    viewer.jumpToShape($shape_details.data('shape_id'), true);
                                 });
 
                         $shape_delete.click ( function() {
@@ -185,12 +210,13 @@
 
                     var show_shape_details = function(shape_id) {
                         annotations_controller.selectShape(shape_id);
+                        var shape_dimensions = annotations_controller.getShapeDimensions(shape_id);
                         $('#shape_id_value').val(shape_id);
                         $('#shape_area_value').val(
-                                annotations_controller.getShapeDimensions(shape_id)['area'] / (1000*1000)
+                                Number((shape_dimensions['area'] / (1000*1000)).toFixed(3))
                         );
                         $('#shape_perimeter_value').val(
-                                annotations_controller.getShapeDimensions(shape_id)['perimeter'] / 1000
+                                Number((shape_dimensions['perimeter'] / 1000).toFixed(3))
                         );
                         $shape_details.show();
                     };
@@ -220,14 +246,12 @@
         <div id="main_frame_row">
             <div id="toolbar">
                 <div class="row toolbar_panel">
-                    <ul class="nav nav-pills nav-stacked">
-                        <li id="disable_events" class="active">
-                            <a href="#">Navigation Mode</a>
-                        </li>
-                        <li id="start_drawing">
-                            <a href="#">Draw Shape</a>
-                        </li>
-                    </ul>
+                    <a id="disable_events" href="#"
+                       class="btn btn-primary btn-block" role="button">Navigation Mode</a>
+                    <a id="start_drawing" href="#"
+                       class="btn btn-info btn-block" role="button">Draw Shape</a>
+                    <a id="abort_drawing" href="#"
+                       class="btn btn-danger btn-block" role="button">Abort Drawing</a>
                 </div>
                 <div class="toolbar_panel del_buttons_panel">
                     <ul id="del_button_group" class="nav nav-pills nav-stacked"></ul>
