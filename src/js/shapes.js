@@ -340,23 +340,36 @@ function Circle(id, center_x, center_y, radius, transform_matrix) {
 
 Circle.prototype = new Shape();
 
-function Path(id, points, closed, transform_matrix) {
+function Path(id, segments, closed, transform_matrix) {
     Shape.call(this, id, transform_matrix);
 
-    this.points = (typeof points === 'undefined') ? [] : points;
+    this.segments = (typeof segments === 'undefined') ? [] : segments;
     this.closed = closed;
 
-    this._points_to_segments = function() {
-        var segments = [];
-        for (var i=0; i<this.points.length; i++) {
-            segments.push([this.points[i].x, this.points[i].y]);
+    this._normalize_segments = function() {
+        var paper_segments = [];
+        for (var i=0; i<this.segments.length; i++) {
+            var seg = {
+                'point': [this.segments[i].point.x, this.segments[i].point.y]
+            };
+            if (this.segments[i].hasOwnProperty('handle_in')) {
+                seg['handleIn'] = [
+                    this.segments[i].handle_in.x, this.segments[i].handle_in.y
+                ];
+            }
+            if (this.segments[i].hasOwnProperty('handle_out')) {
+                seg['handleOut'] = [
+                    this.segments[i].handle_out.x, this.segments[i].handle_out.y
+                ];
+            }
+            paper_segments.push(seg);
         }
-        return segments;
+        return paper_segments;
     };
 
     this.toPaperShape = function(activate_events) {
         var path = new paper.Path({
-            segments: this._points_to_segments(),
+            segments: this._normalize_segments(),
             closed: this.closed
         });
         this.paper_shape = path;
@@ -367,50 +380,85 @@ function Path(id, points, closed, transform_matrix) {
     };
 
     this.updateShapePosition = function(delta_x, delta_y) {
-        var path_points = this.points;
-        this.points.forEach(function(point, index) {
-            path_points[index] = {
-                'x': point.x + delta_x,
-                'y': point.y + delta_y
+        var path_segments = this.segments;
+        this.segments.forEach(function(segment, index) {
+            path_segments[index].point = {
+                'x': segment.point.x + delta_x,
+                'y': segment.point.y + delta_y
             }
         });
     };
 
     this.addPoint = function(point_x, point_y) {
-        this.points.push({'x': point_x, 'y': point_y});
+        this.segments.push({'point': {'x': point_x, 'y': point_y}});
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.add(new paper.Point(point_x, point_y));
         }
     };
 
     this.removePoint = function(index) {
-        if (this.points.length > 0) {
+        if (this.segments.length > 0) {
             //by default, remove the last inserted point
-            var pt_index = (typeof index === 'undefined') ? (this.points.length - 1) : index;
-            this.paper_shape.removeSegment(pt_index);
-            this.points.splice(pt_index, 1);
+            var sg_index = (typeof index === 'undefined') ? (this.segments.length - 1) : index;
+            this.paper_shape.removeSegment(sg_index);
+            this.segments.splice(sg_index, 1);
         } else {
             throw new Error('There is no point to remove');
         }
     };
 
-    this._get_points_json = function() {
-        var points = [];
-        for (var i=0; i<this.points.length; i++) {
-            points.push({
-                'x': this.points[i].x,
-                'y': this.points[i].y
-            });
+    this.simplifyPath = function(x_offset, y_offset) {
+        if (typeof this.paper_shape !== 'undefined') {
+            this.paper_shape.simplify();
+            this.segments = [];
+            this._extract_segments(x_offset, y_offset);
+        } else {
+            console.info('Shape not initialized');
         }
-        return points;
     };
 
-    this.toJSON = function() {
+    this._extract_segments = function(x_offset, y_offset) {
+        if (this.paper_shape !== 'undefined') {
+            var segments = this.paper_shape.getSegments();
+            for (var i=0; i<segments.length; i++) {
+                var segment = {
+                    'point': {
+                        'x': segments[i].getPoint().x + x_offset,
+                        'y': segments[i].getPoint().y + y_offset
+                    }
+                };
+                if (segments[i].getHandleIn().length > 0) {
+                    segment['handle_in'] = {
+                        'x': segments[i].getHandleIn().x,
+                        'y': segments[i].getHandleIn().y
+                    }
+                }
+                if (segments[i].getHandleOut().length > 0) {
+                    segment['handle_out'] = {
+                        'x': segments[i].getHandleOut().x,
+                        'y': segments[i].getHandleOut().y
+                    }
+                }
+                this.segments.push(segment);
+            }
+        } else {
+            throw new Error('Paper shape not initialized');
+        }
+    };
+
+    this._get_segments_json = function(x_offset, y_offset) {
+        if (this.segments.length === 0) {
+            this._extract_segments(x_offset, y_offset);
+        }
+        return this.segments;
+    };
+
+    this.toJSON = function(x_offset, y_offset) {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'points': this._get_points_json()
+                'segments': this._get_segments_json(x_offset, y_offset)
             }
         );
         return shape_json;
@@ -419,8 +467,8 @@ function Path(id, points, closed, transform_matrix) {
 
 Path.prototype = new Shape();
 
-function Polyline(id, points, transform_matrix) {
-    Path.call(this, id, points, false, transform_matrix);
+function Polyline(id, segments, transform_matrix) {
+    Path.call(this, id, segments, false, transform_matrix);
 
     this.getArea = function(pixel_size) {
         // lines have no area
@@ -428,8 +476,8 @@ function Polyline(id, points, transform_matrix) {
     };
 
     var pathToJSON = this.toJSON;
-    this.toJSON = function() {
-        var shape_json = pathToJSON.apply(this);
+    this.toJSON = function(x_offset, y_offset) {
+        var shape_json = pathToJSON.apply(this, [x_offset, y_offset]);
         shape_json['type'] = 'polyline';
         return shape_json;
     };
@@ -437,12 +485,12 @@ function Polyline(id, points, transform_matrix) {
 
 Polyline.prototype = new Path();
 
-function Polygon(id, points, transform_matrix) {
-    Path.call(this, id, points, true, transform_matrix);
+function Polygon(id, segments, transform_matrix) {
+    Path.call(this, id, segments, true, transform_matrix);
 
     var pathToJSON = this.toJSON;
-    this.toJSON = function() {
-        var shape_json = pathToJSON.apply(this);
+    this.toJSON = function(x_offset, y_offset) {
+        var shape_json = pathToJSON.apply(this, [x_offset, y_offset]);
         shape_json['type'] = 'polygon';
         return shape_json;
     };

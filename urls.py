@@ -24,6 +24,8 @@ urlpatterns = patterns(
     url(r'^examples/custom_handlers/rulers/(?P<image_id>[\w\-.]+)/$',
         views.get_example_interactive_rulers,
         name='ome_seadragon_test_interactive_rulers'),
+    url(r'^examples/custom_handlers/freehand/(?P<image_id>[\w\-.]+)/$',
+        views.get_example_interactive_freehand),
     # OMERO PROJECTS, DATASETS AND IMAGES
     url(r'^get/projects/$', views.get_projects, name='ome_seadragon_get_projects'),
     url(r'^get/project/(?P<project_id>[0-9]+)/$', views.get_project,
