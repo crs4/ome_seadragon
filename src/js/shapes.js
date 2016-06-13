@@ -48,6 +48,36 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this.getArea = function(pixel_size, decimal_digits) {
+        var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
+        if (typeof this.paper_shape !== 'undefined') {
+            var area = undefined;
+            try {
+                area = Math.abs(this.paper_shape.toPath().area * pixel_size);
+            } catch(err) {
+                area = Math.abs(this.paper_shape.area * pixel_size);
+            }
+            return Number(area.toFixed(decimals));
+        } else {
+            console.log('Shape not initialized');
+        }
+    };
+
+    this.getPerimeter = function(pixel_size, decimal_digits) {
+        var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
+        if (typeof this.paper_shape !== 'undefined') {
+            var perimeter = undefined;
+            try {
+                perimeter = this.paper_shape.toPath().length * pixel_size;
+            } catch(err) {
+                perimeter = this.paper_shape.length * pixel_size;
+            }
+            return Number(perimeter.toFixed(decimals));
+        } else {
+            console.log('Shape not initialized');
+        }
+    };
+
     this.getBoundingBoxDimensions = function() {
         if (typeof this.paper_shape !== 'undefined') {
             var bbox = this.paper_shape.bounds;
@@ -310,57 +340,12 @@ function Circle(id, center_x, center_y, radius, transform_matrix) {
 
 Circle.prototype = new Shape();
 
-
-function Line(id, from_x, from_y, to_x, to_y, transform_matrix) {
+function Path(id, points, closed, transform_matrix) {
     Shape.call(this, id, transform_matrix);
 
-    this.from_x = from_x;
-    this.from_y = from_y;
-    this.to_x = to_x;
-    this.to_y = to_y;
-
-    this.toPaperShape = function(activate_events) {
-        var line = new paper.Path.Line({
-            from: [this.from_x, this.from_y],
-            to: [this.to_x, this.to_y]
-        });
-        this.paper_shape = line;
-        if (typeof this.original_transform_matrix !== 'undefined')
-            this.transformShape(this.original_transform_matrix);
-        this._bindWrapper();
-        this.initializeEvents(activate_events);
-    };
-
-    this.updateShapePosition = function(delta_x, delta_y) {
-        this.from_x += delta_x;
-        this.from_y += delta_y;
-        this.to_x += delta_x;
-        this.to_y += delta_y;
-    };
-
-    this.toJSON = function() {
-        var shape_json = this._configJSON();
-        $.extend(
-            shape_json,
-            {
-                'from_x': this.from_x,
-                'from_y': this.from_y,
-                'to_x': this.to_x,
-                'to_y': this.to_y,
-                'type': 'line'
-            });
-        return shape_json;
-    };
-}
-
-Line.prototype = new Shape();
-
-function Polygon(id, points, closed, transform_matrix) {
-    Shape.call(this, id, transform_matrix);
-    
     this.points = (typeof points === 'undefined') ? [] : points;
-    this.closed = (typeof closed === 'undefined') ? true : closed;
-    
+    this.closed = closed;
+
     this._points_to_segments = function() {
         var segments = [];
         for (var i=0; i<this.points.length; i++) {
@@ -368,34 +353,47 @@ function Polygon(id, points, closed, transform_matrix) {
         }
         return segments;
     };
-    
+
     this.toPaperShape = function(activate_events) {
         var path = new paper.Path({
             segments: this._points_to_segments(),
             closed: this.closed
         });
         this.paper_shape = path;
+        if (typeof this.original_transform_matrix !== 'undefined')
+            this.transformShape(this.original_transform_matrix);
+        this._bindWrapper();
         this.initializeEvents(activate_events);
     };
-    
+
+    this.updateShapePosition = function(delta_x, delta_y) {
+        var path_points = this.points;
+        this.points.forEach(function(point, index) {
+            path_points[index] = {
+                'x': point.x + delta_x,
+                'y': point.y + delta_y
+            }
+        });
+    };
+
     this.addPoint = function(point_x, point_y) {
         this.points.push({'x': point_x, 'y': point_y});
-        // if paper shape already exists, update it as well
-        if (typeof this.paper_shape !== 'undefined')
+        if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.add(new paper.Point(point_x, point_y));
+        }
     };
 
     this.removePoint = function(index) {
         if (this.points.length > 0) {
-            // by default, remove the last point
+            //by default, remove the last inserted point
             var pt_index = (typeof index === 'undefined') ? (this.points.length - 1) : index;
             this.paper_shape.removeSegment(pt_index);
             this.points.splice(pt_index, 1);
         } else {
-            throw new Error('The polygon has no points');
+            throw new Error('There is no point to remove');
         }
     };
-    
+
     this._get_points_json = function() {
         var points = [];
         for (var i=0; i<this.points.length; i++) {
@@ -406,19 +404,48 @@ function Polygon(id, points, closed, transform_matrix) {
         }
         return points;
     };
-    
+
     this.toJSON = function() {
         var shape_json = this._configJSON();
         $.extend(
             shape_json,
             {
-                'points': this._get_points_json(),
-                'closed': this.closed,
-                'type': 'polygon'
+                'points': this._get_points_json()
             }
         );
+        return shape_json;
+    }
+}
+
+Path.prototype = new Shape();
+
+function Polyline(id, points, transform_matrix) {
+    Path.call(this, id, points, false, transform_matrix);
+
+    this.getArea = function(pixel_size) {
+        // lines have no area
+        return undefined;
+    };
+
+    var pathToJSON = this.toJSON;
+    this.toJSON = function() {
+        var shape_json = pathToJSON.apply(this);
+        shape_json['type'] = 'polyline';
         return shape_json;
     };
 }
 
-Polygon.prototype = new Shape();
+Polyline.prototype = new Path();
+
+function Polygon(id, points, transform_matrix) {
+    Path.call(this, id, points, true, transform_matrix);
+
+    var pathToJSON = this.toJSON;
+    this.toJSON = function() {
+        var shape_json = pathToJSON.apply(this);
+        shape_json['type'] = 'polygon';
+        return shape_json;
+    };
+}
+
+Polygon.prototype = new Path();

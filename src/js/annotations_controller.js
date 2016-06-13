@@ -21,6 +21,7 @@ function AnnotationsController(canvas_id, default_config) {
         if (this.canvas === undefined) {
             this.x_offset = viewport_controller.getImageDimensions().width / 2;
             this.y_offset = viewport_controller.getImageDimensions().height / 2;
+            this.image_mpp = viewport_controller.getImageMicronsPerPixel();
 
             var canvas = $("#" + this.canvas_id);
             if (canvas.length === 0) {
@@ -156,6 +157,35 @@ function AnnotationsController(canvas_id, default_config) {
             }
         }
         return shapes_json;
+    };
+
+    this.getShapeDimensions = function(shape_id) {
+        if (shape_id in this.shapes_cache) {
+            return {
+                'area': this.shapes_cache[shape_id].getArea(this.image_mpp),
+                'perimeter': this.shapes_cache[shape_id].getPerimeter(this.image_mpp)
+            }
+        } else {
+            return undefined;
+        }
+    };
+
+    this.getShapesDimensions = function(shapes_id) {
+        var dimensions = {};
+        if (typeof shapes_id !== 'undefined') {
+            for (var index in shapes_id) {
+                if (shapes_id[index] in this.shapes_cache) {
+                    dimensions[shapes_id[index]] = this.getShapeDimensions(shapes_id[index]);
+                } else {
+                    console.warn('There is no shape with ID ' + shapes_id[index]);
+                }
+            }
+        } else {
+            for (var sh in this.shapes_cache) {
+                dimensions[sh] = this.getShapeDimensions(sh);
+            }
+        }
+        return dimensions;
     };
 
     this.getShapeCenter = function(shape_id, apply_offset) {
@@ -388,17 +418,25 @@ function AnnotationsController(canvas_id, default_config) {
         }
     };
 
+    // keeping for backward compatibility
     this.drawLine = function(shape_id, from_x, from_y, to_x, to_y, transform,
                              shape_conf, refresh_view) {
-        var line = new Line(shape_id, from_x, from_y, to_x, to_y, transform);
-        if (this.addShapeToCache(line)) {
-            this.drawShape(line, shape_conf, refresh_view);
+        var points = [
+            {'x': from_x, 'y': from_y},
+            {'x': to_x, 'y': to_y}
+        ];
+        this.drawPolyline(shape_id, points, transform, shape_conf, refresh_view);
+    };
+
+    this.drawPolyline = function(shape_id, points, transform, shape_conf, refresh_view) {
+        var polyline = new Polyline(shape_id, points, transform);
+        if (this.addShapeToCache(polyline)) {
+            this.drawShape(polyline, shape_conf, refresh_view);
         }
     };
 
-    this.drawPolygon = function(shape_id, points, closed, transform, shape_conf,
-                                refresh_view) {
-        var polygon = new Polygon(shape_id, points, closed, transform);
+    this.drawPolygon = function(shape_id, points, transform, shape_conf, refresh_view) {
+        var polygon = new Polygon(shape_id, points, transform);
         if (this.addShapeToCache(polygon)) {
             this.drawShape(polygon, shape_conf, refresh_view);
         }
@@ -431,15 +469,22 @@ function AnnotationsController(canvas_id, default_config) {
                     TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
                 );
                 break;
+            // keeping for backward compatibility
             case 'line':
                 this.drawLine(
                     shape_json.shape_id, shape_json.from_x, shape_json.from_y, shape_json.to_x, shape_json.to_y,
                     TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
                 );
                 break;
+            case 'polyline':
+                this.drawPolyline(
+                    shape_json.shape_id, shape_json.points,
+                    TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
+                );
+                break;
             case 'polygon':
                 this.drawPolygon(
-                    shape_json.shape_id, shape_json.points, shape_json.closed,
+                    shape_json.shape_id, shape_json.points,
                     TransformMatrixHelper.fromMatrixJSON(shape_json.transform), shape_conf, false
                 );
                 break;
