@@ -354,3 +354,71 @@ function Line(id, from_x, from_y, to_x, to_y, transform_matrix) {
 }
 
 Line.prototype = new Shape();
+
+function Polygon(id, points, closed, transform_matrix) {
+    Shape.call(this, id, transform_matrix);
+    
+    this.points = (typeof points === 'undefined') ? [] : points;
+    this.closed = (typeof closed === 'undefined') ? true : closed;
+    
+    this._points_to_segments = function() {
+        var segments = [];
+        for (var i=0; i<this.points.length; i++) {
+            segments.push([this.points[i].x, this.points[i].y]);
+        }
+        return segments;
+    };
+    
+    this.toPaperShape = function(activate_events) {
+        var path = new paper.Path({
+            segments: this._points_to_segments(),
+            closed: this.closed
+        });
+        this.paper_shape = path;
+        this.initializeEvents(activate_events);
+    };
+    
+    this.addPoint = function(point_x, point_y) {
+        this.points.push({'x': point_x, 'y': point_y});
+        // if paper shape already exists, update it as well
+        if (typeof this.paper_shape !== 'undefined')
+            this.paper_shape.add(new paper.Point(point_x, point_y));
+    };
+
+    this.removePoint = function(index) {
+        if (this.points.length > 0) {
+            // by default, remove the last point
+            var pt_index = (typeof index === 'undefined') ? (this.points.length - 1) : index;
+            this.paper_shape.removeSegment(pt_index);
+            this.points.splice(pt_index, 1);
+        } else {
+            throw new Error('The polygon has no points');
+        }
+    };
+    
+    this._get_points_json = function() {
+        var points = [];
+        for (var i=0; i<this.points.length; i++) {
+            points.push({
+                'x': this.points[i].x,
+                'y': this.points[i].y
+            });
+        }
+        return points;
+    };
+    
+    this.toJSON = function() {
+        var shape_json = this._configJSON();
+        $.extend(
+            shape_json,
+            {
+                'points': this._get_points_json(),
+                'closed': this.closed,
+                'type': 'polygon'
+            }
+        );
+        return shape_json;
+    };
+}
+
+Polygon.prototype = new Shape();

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>OPENSEADRAGON TEST VIEWER WITH INTERACTIVE POLYGONS DRAWING TOOL</title>
+
+    <link href="{{ host_name }}/static/ome_seadragon/css/bootstrap.min.css" rel="stylesheet">
+
+    <style type="text/css">
+        #main_frame {
+            margin-top: 10px;
+            display: table;
+        }
+        
+        #main_frame_row {
+            display: table-row;
+        }
+
+        .graphic_element {
+            position: absolute;
+            height: 600px;
+            width: 800px;
+        }
+
+        .img_navigator {
+            height: 150px;
+            width: 200px;
+        }
+
+        #toolbar {
+            width: 200px;
+            display: table-cell;
+            text-align: center;
+        }
+
+        .toolbar_panel {
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .del_buttons_panel {
+            margin-top: 15px;
+        }
+
+        #viewer {
+            width: 850px;
+            display: table-cell;
+            padding: 10px;
+        }
+
+        #navigator{
+            width: 200px;
+            text-align: center;
+            display: table-cell;
+            padding: 2px;
+        }
+    </style>
+
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/paper-full.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/bootstrap.min.js"></script>
+
+    <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            {% if mirax %}
+                $.get("{{ host_name }}/ome_seadragon/mirax/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+            {% else %}
+                $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+            {% endif %}
+
+                var viewer_config = {
+                    'showNavigator': true,
+                    'showFullPageControl': false,
+                    'animationTime': 0.01,
+                    'navigatorId': "image_navigator"
+                };
+
+                window.viewer = new ViewerController(
+                        "openseadragon_viewer",
+                        "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                        {% if mirax %}
+                            "{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}.dzi",
+                        {% else %}
+                            "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
+                         {% endif %}
+                        viewer_config
+                );
+                viewer.buildViewer();
+
+                // Scalebar setup
+                var image_mpp = data.image_mpp ? data.image_mpp : 0;
+                var scalebar_config = {
+                    "xOffset": 10,
+                    "yOffset": 10,
+                    "barThickness": 5,
+                    "color": "#777777",
+                    "fontColor": "#000000",
+                    "backgroundColor": 'rgba(255, 255, 255, 0.5)'
+                };
+                viewer.enableScalebar(image_mpp, scalebar_config);
+
+                viewer.viewer.addHandler('open', function () {
+                    viewer.setMinDZILevel(8);
+
+                    var polygon_colors = [
+                        '#FF0000',
+                        '#00FF00',
+                        '#0000FF',
+                        '#F7409C',
+                        '#63FF26',
+                        '#FFB800',
+                        '#00DEFF'
+                    ];
+
+                    var polygon_config = {
+                        'fill_alpha': 0.2,
+                        'stroke_color': polygon_colors[Math.floor(Math.random() * polygon_colors.length)],
+                        'stroke_width': 20
+                    };
+
+                    window.annotations_canvas = new AnnotationsController('annotations_canvas');
+                    annotations_canvas.buildAnnotationsCanvas(viewer);
+                    viewer.addAnnotationsController(annotations_canvas, true);
+
+                    var $disable_events = $("#disable_events");
+                    var $start_drawing = $("#start_drawing");
+                    var $remove_point = $("#remove_point");
+                    var $clear_polygon = $("#clear_polygon");
+                    var $save_tmp = $("#save_tmp");
+                    var $stop_drawing = $("#stop_drawing");
+
+                    // use to resume drawing after switching to navigation mode
+                    var drawing_in_progress = false;
+
+                    $remove_point.hide();
+                    $clear_polygon.hide();
+                    $save_tmp.hide();
+                    $stop_drawing.hide();
+
+                    $disable_events.click(function () {
+                        $disable_events.addClass("active");
+                        $start_drawing.removeClass("active");
+                        $remove_point.removeClass("active");
+                        $clear_polygon.removeClass("active");
+                        $save_tmp.removeClass("active");
+                        window.annotations_canvas.disableMouseEvents();
+                        $start_drawing.show();
+                        $remove_point.hide();
+                        $clear_polygon.hide();
+                        $save_tmp.hide();
+                        if (drawing_in_progress === false) {
+                            $stop_drawing.hide();
+                        }
+                    });
+
+                    $start_drawing.click(function () {
+                        // $disable_events.hide();
+                        $start_drawing.hide();
+                        $remove_point.show();
+                        $clear_polygon.show();
+                        $save_tmp.show();
+                        $stop_drawing.show();
+                    });
+
+                    $stop_drawing.click(function() {
+                        annotations_canvas.clearTemporaryPolygon();
+                        $start_drawing.show();
+                        $remove_point.hide();
+                        $clear_polygon.hide();
+                        $save_tmp.hide();
+                        $stop_drawing.hide();
+                        $disable_events.show()
+                                .click();
+                    });
+
+                    $save_tmp.click(function () {
+                        $start_drawing.show();
+                        $remove_point.hide();
+                        $clear_polygon.hide();
+                        $save_tmp.hide();
+                        $stop_drawing.hide();
+                        $disable_events.show()
+                                .click();
+                        polygon_config.stroke_color = polygon_colors[Math.floor(Math.random() * polygon_colors.length)];
+                        annotations_canvas.updatePolygonConfig(polygon_config);
+                    });
+                    window.events_controller = new AnnotationsEventsController(annotations_canvas);
+
+                    events_controller.initializePolygonDrawingTool(polygon_config,
+                            'start_drawing', 'save_tmp');
+
+                    var $acanvas = $("#annotations_canvas");
+                    // when a new marker is created, add a button to delete it
+                    $acanvas.on('polygon_saved', function (event, polygon_id) {
+                                console.log('A new polygon with ID ' + polygon_id + ' was created');
+                                var $delp_btn = $("<li><button id='del_" + polygon_id +
+                                        "' type='button' class='btn btn-danger'>DEL "
+                                        + polygon_id + "</button></li>");
+                                $("#del_button_group").append($delp_btn);
+                                $delp_btn.bind(
+                                        'click', {'polygon_id': polygon_id, 'btn_id': 'del_' + polygon_id},
+                                        function (event) {
+                                            window.annotations_canvas.deleteShape(event.data.polygon_id);
+                                            $("#" + event.data.btn_id).remove();
+                                        }
+                                );
+
+                                drawing_in_progress = false;
+                                $start_drawing.find('a').html('Draw Polygon');
+                            })
+                            .on('polygon_created', function () {
+                                drawing_in_progress = true;
+                                $start_drawing.find('a').html('Resume Drawing');
+
+                                $remove_point.click(function() {
+                                    annotations_canvas.removeLastPoint();
+                                });
+
+                                $clear_polygon.click(function() {
+                                    annotations_canvas.clearTemporaryPolygon();
+                                });
+                            })
+                            .on('polygon_cleared', function() {
+                                drawing_in_progress = false;
+                                $start_drawing.find('a').html('Draw Polygon');
+
+                                $remove_point.unbind('click');
+
+                                $clear_polygon.unbind('click');
+                            });
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="main_frame">
+        <div id="main_frame_row">
+            <div id="toolbar">
+                <div class="row toolbar_panel">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li id="disable_events" class="active"><a href="#">Navigation Mode</a></li>
+                        <li id="start_drawing"><a href="#">Draw Polygon</a></li>
+                        <li id="remove_point"><a href="#">Remove Last Point</a></li>
+                        <li id="clear_polygon"><a href="#">Delete Polygon</a></li>
+                        <li id="save_tmp"><a href="#">Save Polygon</a></li>
+                        <li id="stop_drawing"><a class="btn-danger active" href="#">Cancel</a></li>
+                    </ul>
+                </div>
+                <div class="row toolbar_panel del_buttons_panel">
+                    <ul id="del_button_group" class="nav nav-pills nav-stacked"></ul>
+                </div>
+            </div>
+            <div id="viewer">
+                <div id="openseadragon_viewer" class="graphic_element"></div>
+                <canvas id="annotations_canvas" class="graphic_element"></canvas>
+            </div>
+            <div id="navigator">
+                <div class="row">
+                    <div id="image_navigator" class="img_navigator"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
