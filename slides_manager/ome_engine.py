@@ -3,6 +3,8 @@ from lxml import etree
 from PIL import Image
 from cStringIO import StringIO
 
+from errors import UnsupportedSource
+
 from ome_seadragon.ome_data.projects_datasets import get_fileset_highest_resolution
 from rendering_engine_interface import RenderingEngineInterface
 from ome_seadragon import settings
@@ -108,8 +110,8 @@ class OmeEngine(RenderingEngineInterface):
             # return a white tile
             return Image.new('RGB', (settings.DEEPZOOM_TILE_SIZE, settings.DEEPZOOM_TILE_SIZE), 'white')
 
-    def _get_image_mpp(self):
-        img = self._get_image_object()
+    def _get_image_mpp(self, original_file_source=False):
+        img = self._get_image_object(original_file_source)
         if img:
             try:
                 mpp = (img.getPixelSizeX() + img.getPixelSizeY()) / 2.0
@@ -119,13 +121,19 @@ class OmeEngine(RenderingEngineInterface):
             mpp = 0
         return mpp
 
-    def get_openseadragon_config(self):
+    def _check_source_type(self, original_file_source):
+        if original_file_source:
+            raise UnsupportedSource('OMERO rendering engine does not support OriginalFile as source')
+
+    def get_openseadragon_config(self, original_file_source=False, file_mimetype=None):
+        self._check_source_type(original_file_source)
         return {
             'mpp': self._get_image_mpp()
         }
 
-    def get_dzi_description(self):
-        img = self._get_image_object()
+    def get_dzi_description(self, original_file_source=False, file_mimetype=None):
+        self._check_source_type(original_file_source)
+        img = self._get_image_object(original_file_source)
         if img:
             dzi_root = etree.Element(
                 'Image',
@@ -142,7 +150,8 @@ class OmeEngine(RenderingEngineInterface):
         else:
             return None
 
-    def get_thumbnail(self, size):
+    def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
+        self._check_source_type(original_file_source)
         cache = CacheDriverFactory().get_cache()
         thumbnail = cache.thumbnail_from_cache(self.image_id, size,
                                                settings.DEEPZOOM_FORMAT)
@@ -164,7 +173,8 @@ class OmeEngine(RenderingEngineInterface):
             self.logger.info('Thumbnail loaded from cache')
         return thumbnail, settings.DEEPZOOM_FORMAT
 
-    def get_tile(self, level, column, row):
+    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
+        self._check_source_type(original_file_source)
         cache = CacheDriverFactory().get_cache()
         cache_params = {
             'image_id': self.image_id,

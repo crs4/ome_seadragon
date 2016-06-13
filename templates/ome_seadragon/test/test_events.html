@@ -58,8 +58,11 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
-            $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
-                console.log("Loading openseadragon viewer");
+            {% if mirax %}
+                $.get("{{ host_name }}/ome_seadragon/mirax/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+            {% else %}
+                $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+            {% endif %}                console.log("Loading openseadragon viewer");
 
                 var viewer_config = {
                     'showNavigator': true,
@@ -71,8 +74,11 @@
                 window.viewer = new ViewerController(
                         "openseadragon_viewer",
                         "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
-                        "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
-                        viewer_config
+                        {% if mirax %}
+                            "{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}.dzi",
+                        {% else %}
+                            "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
+                         {% endif %}                        viewer_config
                 );
                 viewer.buildViewer();
 
