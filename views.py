@@ -138,6 +138,16 @@ def get_image(request, image_id, conn=None, **kwargs):
 
 
 @login_required()
+def get_images_quick_list(request, conn=None, **kwargs):
+    try:
+        expand_series = strtobool(request.GET.get('full_series'))
+    except (ValueError, AttributeError):
+        expand_series = False
+    images_list = projects_datasets.get_images_quick_list(conn, expand_series)
+    return HttpResponse(json.dumps(images_list), content_type='application/json')
+
+
+@login_required()
 def get_annotations(request, conn=None, **kwargs):
     try:
         fetch_images = strtobool(request.GET.get('fetch_imgs'))

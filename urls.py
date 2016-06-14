@@ -34,6 +34,8 @@ urlpatterns = patterns(
         name='ome_seadragon_get_dataset'),
     url(r'^get/image/(?P<image_id>[0-9]+)/$', views.get_image,
         name='ome_seadragon_get_image'),
+    url(r'^get/images/index/$', views.get_images_quick_list,
+        name='ome_seadragon_get_images_index'),
     # OMERO TAGS
     url(r'^get/annotations/$', views.get_annotations,
         name='ome_seadragon_get_annotations'),
