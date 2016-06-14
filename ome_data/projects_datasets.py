@@ -91,16 +91,20 @@ def _roi_to_json(roi_object):
     }
 
 
+def _reduce_images_series(images):
+    imgs_map = {}
+    for img in images:
+        imgs_map.setdefault(img.getFileset().getId(), {})[_get_image_resolution(img)] = img
+    filtered_images = []
+    for files in imgs_map.itervalues():
+        filtered_images.append(files[max(files.keys())])
+    return filtered_images
+
+
 def _get_images_for_dataset(dataset_object, reduce_series=True):
     imgs = list(dataset_object.listChildren())
     if reduce_series:
-        imgs_map = {}
-        for img in imgs:
-            imgs_map.setdefault(img.getFileset().getId(), {})[_get_image_resolution(img)] = img
-        filtered_images = []
-        for files in imgs_map.itervalues():
-            filtered_images.append(files[max(files.keys())])
-        return filtered_images
+        return _reduce_images_series(imgs)
     else:
         return imgs
 
@@ -162,3 +166,32 @@ def get_image(connection, image_id, fetch_rois=False):
             rois = []
         return _image_to_json(img, connection, True, rois)
     return None
+
+
+def get_images_quick_list(connection, expand_imgs_series=False):
+    switch_to_default_search_group(connection)
+    images_list = []
+    # get OMERO images
+    imgs = connection.getObjects('Image')
+    if not expand_imgs_series:
+        imgs = _reduce_images_series(imgs)
+    for img in imgs:
+        images_list.append(
+            {
+                'omero_id': img.getId(),
+                'name': img.getName(),
+                'img_type': 'OMERO_IMG' # right now we only need to separate OMERO imgs from "special" ones like MIRAX
+            }
+        )
+    # get "special" images like MIRAX ones (actually, right now only the MIRAX ones...)
+    query_filter = {'mimetype': 'mirax/index'}
+    imgs = connection.getObjects('OriginalFile', attributes=query_filter)
+    for img in imgs:
+        images_list.append(
+            {
+                'omero_id': img.getId(),
+                'name': img.getName(),
+                'img_type': 'MIRAX'
+            }
+        )
+    return images_list
