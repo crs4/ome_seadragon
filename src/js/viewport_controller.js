@@ -151,8 +151,8 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
     this.getImageDimensions = function() {
         if (this.viewer !== undefined) {
             return {
-                'width': this.viewer.viewport.contentSize.x,
-                'height': this.viewer.viewport.contentSize.y
+                'width': this.viewer.world.getItemAt(0).source.dimensions.x,
+                'height': this.viewer.world.getItemAt(0).source.dimensions.y
             }
         } else {
             console.warn('Viewer not initialized');
