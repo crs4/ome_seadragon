@@ -208,9 +208,7 @@ function AnnotationsController(canvas_id, default_config) {
         this._activate_paper_scope();
         var clear = (typeof clear_selected === 'undefined') ? false : clear_selected;
         if (clear === true) {
-            for (var sh_id in this.shapes_cache) {
-                this.deselectShape(sh_id);
-            }
+            this.deselectShapes();
         }
         if (shape_id in this.shapes_cache) {
             this.shapes_cache[shape_id].select();
