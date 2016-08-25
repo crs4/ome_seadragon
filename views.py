@@ -32,7 +32,8 @@ def check_repository(request):
 
 @login_required()
 def check_image_path(request, image_id, conn=None, **kwargs):
-    return HttpResponse(slides_manager._get_image_path(image_id, conn))
+    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
+    return HttpResponse(rendering_engine._get_image_path())
 
 
 def get_example_viewer(request, image_id):
