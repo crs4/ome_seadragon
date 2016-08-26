@@ -31,6 +31,11 @@ def check_repository(request):
 
 
 @login_required()
+def start_connection(request, conn=None, **kwargs):
+    return HttpResponse(status=204)
+
+
+@login_required()
 def check_image_path(request, image_id, conn=None, **kwargs):
     rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
     return HttpResponse(rendering_engine._get_image_path())

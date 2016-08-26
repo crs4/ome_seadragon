@@ -3,6 +3,8 @@ from ome_seadragon import views
 
 urlpatterns = patterns(
     'django.views.generic.simple',
+    # INITIALIZE SESSION
+    url(r'connect/$', views.start_connection, name='ome_seadragon_connect'),
     # TEST
     url(r'^test/$', views.check_app, name='ome_seadragon_test'),
     url(r'test/repository/$', views.check_repository, name='ome_seadragon_test_repository'),
