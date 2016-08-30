@@ -6,7 +6,7 @@ from PIL import Image
 
 from rendering_engine_interface import RenderingEngineInterface
 from ome_seadragon import settings
-from ome_seadragon.images_cache import CacheDriverFactory
+from ome_seadragon_cache import CacheDriverFactory
 
 
 class OpenSlideEngine(RenderingEngineInterface):
@@ -60,10 +60,11 @@ class OpenSlideEngine(RenderingEngineInterface):
             return None
 
     def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
-        cache = CacheDriverFactory().get_cache('openslide')
+        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
+            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
         # get thumbnail from cache
-        thumb = cache.thumbnail_from_cache(self.image_id, size,
-                                           settings.DEEPZOOM_FORMAT)
+        thumb = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT,
+                                           settings.THUMBNAILS_RENDERING_ENGINE)
         # if thumbnail is not in cache build it ....
         if thumb is None:
             self.logger.info('No thumbnail loaded from cache, building it')
@@ -71,27 +72,29 @@ class OpenSlideEngine(RenderingEngineInterface):
             if slide:
                 thumb = slide.get_thumbnail((size, size))
                 # ... and store it into the cache
-                cache.thumbnail_to_cache(self.image_id, thumb, size,
-                                         settings.DEEPZOOM_FORMAT)
+                cache.thumbnail_to_cache(self.image_id, thumb, size, settings.DEEPZOOM_FORMAT,
+                                         settings.THUMBNAILS_RENDERING_ENGINE)
         else:
             self.logger.info('Thumbnail loaded from cache')
         return thumb, settings.DEEPZOOM_FORMAT
 
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
-        cache = CacheDriverFactory().get_cache('openslide')
+        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
+            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
         cache_params = {
             'image_id': self.image_id,
             'level': level,
             'column': column,
             'row': row,
             'tile_size': settings.DEEPZOOM_TILE_SIZE,
-            'image_format': settings.DEEPZOOM_FORMAT
+            'image_format': settings.DEEPZOOM_FORMAT,
+            'rendering_engine': settings.TILES_RENDERING_ENGINE
         }
         if cache_params['image_format'].lower() == 'jpeg':
             cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
         # get tile from cache
         tile = cache.tile_from_cache(**cache_params)
-        # if tile is not in cache build id ...
+        # if tile is not in cache build it ...
         if tile is None:
             slide = self._get_deepzoom_wrapper(original_file_source, file_mimetype)
             if slide:

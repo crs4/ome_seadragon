@@ -9,6 +9,8 @@ def identity(value):
 
 
 def time_dict_to_seconds(value):
+    if value is None:
+        return None
     time_conf = json.loads(value)
     days_to_seconds = time_conf.get('days', 0) * 24 * 60 * 60
     hours_to_seconds = time_conf.get('hours', 0) * 60 * 60
@@ -38,15 +40,13 @@ CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.deepzoom.jpeg_tile_quality': ['DEEPZOOM_JPEG_QUALITY', 90, identity, None],
     'omero.web.ome_seadragon.deepzoom.tile_size': ['DEEPZOOM_TILE_SIZE', 256, identity, None],
     # images cache
-    'omero.web.ome_seadragon.images_cache.cache_enabled': ['IMAGES_CACHE_ENABLED', False, identity, None],
-    'omero.web.ome_seadragon.images_cache.driver': ['IMAGES_CACHE_DRIVER', 'redis', identity, None],
+    'omero.web.ome_seadragon.images_cache.driver': ['IMAGES_CACHE_DRIVER', None, identity, None],
     # expire time must be expressed with a dictionary with keys
     # days, hours, minutes, seconds
     # missing keys will be set to 0 by default
-    'omero.web.ome_seadragon.images_cache.expire_time': ['CACHE_EXPIRE_TIME', '{"minutes": 15}',
-                                                         time_dict_to_seconds, None],
+    'omero.web.ome_seadragon.images_cache.expire_time': ['CACHE_EXPIRE_TIME', None, time_dict_to_seconds, None],
     # redis config
-    'omero.web.ome_seadragon.images_cache.redis.host': ['REDIS_HOST', 'localhost', identity, None],
-    'omero.web.ome_seadragon.images_cache.redis.port': ['REDIS_PORT', 6379, identity, None],
-    'omero.web.ome_seadragon.images_cache.redis.database': ['REDIS_DB', 0, identity, None]
+    'omero.web.ome_seadragon.images_cache.host': ['CACHE_HOST', None, identity, None],
+    'omero.web.ome_seadragon.images_cache.port': ['CACHE_PORT', None, identity, None],
+    'omero.web.ome_seadragon.images_cache.database': ['CACHE_DB', None, identity, None]
 }

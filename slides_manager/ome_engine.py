@@ -8,7 +8,7 @@ from errors import UnsupportedSource
 from ome_seadragon.ome_data.projects_datasets import get_fileset_highest_resolution
 from rendering_engine_interface import RenderingEngineInterface
 from ome_seadragon import settings
-from ome_seadragon.images_cache import CacheDriverFactory
+from ome_seadragon_cache import CacheDriverFactory
 
 
 class OmeEngine(RenderingEngineInterface):
@@ -152,9 +152,10 @@ class OmeEngine(RenderingEngineInterface):
 
     def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
         self._check_source_type(original_file_source)
-        cache = CacheDriverFactory().get_cache('omero')
-        thumbnail = cache.thumbnail_from_cache(self.image_id, size,
-                                               settings.DEEPZOOM_FORMAT)
+        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
+            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
+        thumbnail = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT,
+                                               settings.THUMBNAILS_RENDERING_ENGINE)
         if thumbnail is None:
             self.logger.info('No thumbnail loaded from cache, building it')
             # we want the thumbnail of the image, not the one of the highest resolution image in fileset
@@ -167,22 +168,24 @@ class OmeEngine(RenderingEngineInterface):
                     th_size = (th_w, size)
                 thumbnail_buffer = StringIO(ome_img.getThumbnail(size=th_size))
                 thumbnail = Image.open(thumbnail_buffer)
-                cache.thumbnail_to_cache(self.image_id, thumbnail, size,
-                                         settings.DEEPZOOM_FORMAT)
+                cache.thumbnail_to_cache(self.image_id, thumbnail, size, settings.DEEPZOOM_FORMAT,
+                                         settings.THUMBNAILS_RENDERING_ENGINE)
         else:
             self.logger.info('Thumbnail loaded from cache')
         return thumbnail, settings.DEEPZOOM_FORMAT
 
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
         self._check_source_type(original_file_source)
-        cache = CacheDriverFactory().get_cache('omero')
+        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
+            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
         cache_params = {
             'image_id': self.image_id,
             'level': level,
             'column': column,
             'row': row,
             'tile_size': settings.DEEPZOOM_TILE_SIZE,
-            'image_format': settings.DEEPZOOM_FORMAT
+            'image_format': settings.DEEPZOOM_FORMAT,
+            'rendering_engine': settings.TILES_RENDERING_ENGINE
         }
         if cache_params['image_format'].lower() == 'jpeg':
             cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
