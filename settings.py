@@ -1,21 +1,6 @@
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
-
 def identity(value):
     return value
 
-
-def time_dict_to_seconds(value):
-    if value is None:
-        return None
-    time_conf = json.loads(value)
-    days_to_seconds = time_conf.get('days', 0) * 24 * 60 * 60
-    hours_to_seconds = time_conf.get('hours', 0) * 60 * 60
-    minutes_to_seconds = time_conf.get('minutes', 0) * 60
-    return days_to_seconds + hours_to_seconds + minutes_to_seconds + time_conf.get('seconds', 0)
 
 CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.search.default_group': ['DEFAULT_SEARCH_GROUP', None, identity, None],
@@ -44,7 +29,7 @@ CUSTOM_SETTINGS_MAPPINGS = {
     # expire time must be expressed with a dictionary with keys
     # days, hours, minutes, seconds
     # missing keys will be set to 0 by default
-    'omero.web.ome_seadragon.images_cache.expire_time': ['CACHE_EXPIRE_TIME', None, time_dict_to_seconds, None],
+    'omero.web.ome_seadragon.images_cache.expire_time': ['CACHE_EXPIRE_TIME', None, identity, None],
     # redis config
     'omero.web.ome_seadragon.images_cache.host': ['CACHE_HOST', None, identity, None],
     'omero.web.ome_seadragon.images_cache.port': ['CACHE_PORT', None, identity, None],
