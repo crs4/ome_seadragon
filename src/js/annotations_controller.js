@@ -38,6 +38,8 @@ function AnnotationsController(canvas_id, default_config) {
             }
 
             this.paper_scope.setup(this.canvas);
+            // clean the canvas
+            this.clear();
         } else {
             console.warn("Canvas already initialized");
         }
@@ -65,7 +67,6 @@ function AnnotationsController(canvas_id, default_config) {
 
     this.refreshView = function() {
         this._activate_paper_scope();
-        console.log('Refreshing canvas');
         paper.view.draw();
     };
 

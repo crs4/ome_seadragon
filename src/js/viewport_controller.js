@@ -8,6 +8,8 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
 
     this.buildViewer = function() {
         if (this.viewer === undefined) {
+            // clean every object contained in the DIV that will host the viewer
+            $('#' + this.div_id).empty();
             var base_config = {
                 id: this.div_id,
                 prefixUrl: this.prefix_url,
