@@ -80,7 +80,7 @@ function Shape(id, transform_matrix) {
         }
     };
 
-    this.contains = function(point_x, point_y) {
+    this.containsPoint = function(point_x, point_y) {
         var point_obj = new paper.Point(point_x, point_y);
         if (typeof this.paper_shape !== 'undefined')
             return this.paper_shape.contains(point_obj);
