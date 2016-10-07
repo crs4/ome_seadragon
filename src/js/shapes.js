@@ -88,6 +88,21 @@ function Shape(id, transform_matrix) {
             console.info('Shape not initialized');
     };
 
+    this.containsShape = function(shape) {
+        var shape_segments = shape.paper_shape.toPath().getSegments();
+        if (typeof this.paper_shape !== 'undefined') {
+            for (var segment_id in shape_segments) {
+                if (!this.paper_shape.contains(shape_segments[segment_id].point)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            console.info('Shape not initialized');
+        }
+    };
+
     this.configure = function(shape_config) {
         if (typeof this.paper_shape !== 'undefined') {
             this.fill_color = ColorsAdapter.hexToPaperColor(shape_config.fill_color, shape_config.fill_alpha);
@@ -459,6 +474,10 @@ Path.prototype = new Shape();
 
 function Polyline(id, segments, transform_matrix) {
     Path.call(this, id, segments, false, transform_matrix);
+
+    this.containsShape = function(shape) {
+        return false;
+    };
 
     this.getArea = function(pixel_size) {
         // lines have no area
