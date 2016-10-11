@@ -48,6 +48,14 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this.getPathSegments = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            return this.paper_shape.toPath().getSegments();
+        } else {
+            return undefined;
+        }
+    };
+
     this.getArea = function(pixel_size, decimal_digits) {
         var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
@@ -89,8 +97,8 @@ function Shape(id, transform_matrix) {
     };
 
     this.containsShape = function(shape) {
-        var shape_segments = shape.paper_shape.toPath().getSegments();
-        if (typeof this.paper_shape !== 'undefined') {
+        var shape_segments = shape.getPathSegments(shape);
+        if ((typeof this.paper_shape !== 'undefined') && (typeof shape_segments !== 'undefined')) {
             for (var segment_id in shape_segments) {
                 if (!this.paper_shape.contains(shape_segments[segment_id].point)) {
                     return false;
@@ -99,7 +107,8 @@ function Shape(id, transform_matrix) {
             return true;
         }
         else {
-            console.info('Shape not initialized');
+            console.error('Both shapes must be initialized');
+            return undefined;
         }
     };
 
@@ -382,6 +391,14 @@ function Path(id, segments, closed, transform_matrix) {
             this.transformShape(this.original_transform_matrix);
         this._bindWrapper();
         this.initializeEvents(activate_events);
+    };
+
+    this.getPathSegments = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            return this.paper_shape.getSegments();
+        } else {
+            return undefined;
+        }
     };
 
     this.updateShapePosition = function(delta_x, delta_y) {
