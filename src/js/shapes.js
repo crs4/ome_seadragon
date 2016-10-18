@@ -59,7 +59,12 @@ function Shape(id, transform_matrix) {
     this.getArea = function(pixel_size, decimal_digits) {
         var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
-            var area = Math.abs(this.paper_shape.toPath(false).area * pixel_size);
+            var area = undefined;
+            try {
+                area = Math.abs(this.paper_shape.toPath().area * Math.pow(pixel_size, 2));
+            } catch(err) {
+                area = Math.abs(this.paper_shape.area * Math.pow(pixel_size, 2));
+            }
             return Number(area.toFixed(decimals));
         } else {
             console.log('Shape not initialized');
