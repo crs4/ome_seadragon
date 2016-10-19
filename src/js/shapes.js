@@ -28,6 +28,14 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this._shapeToPath = function() {
+        try {
+            return this.paper_shape.toPath();
+        } catch(err) {
+            return this.paper_shape;
+        }
+    };
+
     this.transformShape = function(transform_matrix) {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.transform(transform_matrix);
@@ -50,7 +58,7 @@ function Shape(id, transform_matrix) {
 
     this.getPathSegments = function() {
         if (typeof this.paper_shape !== 'undefined') {
-            return this.paper_shape.toPath().getSegments();
+            return this._shapeToPath().getSegments();
         } else {
             return undefined;
         }
@@ -59,22 +67,18 @@ function Shape(id, transform_matrix) {
     this.getArea = function(pixel_size, decimal_digits) {
         var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
-            var area = undefined;
-            try {
-                area = Math.abs(this.paper_shape.toPath().area * Math.pow(pixel_size, 2));
-            } catch(err) {
-                area = Math.abs(this.paper_shape.area * Math.pow(pixel_size, 2));
-            }
+            var area = Math.abs(this._shapeToPath().area * Math.pow(pixel_size, 2));
             return Number(area.toFixed(decimals));
         } else {
             console.log('Shape not initialized');
+            return undefined;
         }
     };
 
     this.getPerimeter = function(pixel_size, decimal_digits) {
         var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
-            var perimeter = this.paper_shape.toPath(false).length * pixel_size;
+            var perimeter = this._shapeToPath().length * pixel_size;
             return Number(perimeter.toFixed(decimals));
         } else {
             console.log('Shape not initialized');
@@ -112,6 +116,19 @@ function Shape(id, transform_matrix) {
             return true;
         }
         else {
+            console.error('Both shapes must be initialized');
+            return undefined;
+        }
+    };
+
+    this.getCoveragePercentage = function(shape) {
+        var shape_area = shape.getArea();
+        if ((typeof this.paper_shape !== 'undefined') && (typeof shape_area !== 'undefined')) {
+            var intersection = this._shapeToPath().intersect(shape._shapeToPath());
+            // passing 1 as pixel size because we only need area in pixels to get the coverage ratio
+            var coverage_ratio = intersection.area / this.getArea(1);
+            return (coverage_ratio * 100);
+        } else {
             console.error('Both shapes must be initialized');
             return undefined;
         }
@@ -503,6 +520,11 @@ function Polyline(id, segments, transform_matrix) {
 
     this.getArea = function(pixel_size) {
         // lines have no area
+        return undefined;
+    };
+
+    this.getCoveragePercentage = function(shape) {
+        // lines have no area, it is impossible to calculate coverage
         return undefined;
     };
 
