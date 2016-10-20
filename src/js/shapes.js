@@ -30,7 +30,7 @@ function Shape(id, transform_matrix) {
 
     this._shapeToPath = function() {
         try {
-            return this.paper_shape.toPath();
+            return this.paper_shape.toPath(false);
         } catch(err) {
             return this.paper_shape;
         }
