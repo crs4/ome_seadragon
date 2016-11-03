@@ -15,6 +15,14 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
 
         this.annotation_controller.ruler_out_id = undefined;
 
+        this.annotation_controller.updateRulerConfig = function(ruler_config) {
+            this.ruler_config = ruler_config;
+        };
+
+        this.annotation_controller.extendRulerConfig = function(ruler_config) {
+            this.ruler_config = $.extend({}, this.ruler_config, ruler_config);
+        };
+
         this.annotation_controller._pointToRuler = function(x, y) {
             if (this.ruler) {
                 this.ruler.addPoint(x, y);
