@@ -126,7 +126,7 @@ function Shape(id, transform_matrix) {
         if ((typeof this.paper_shape !== 'undefined') && (typeof shape_area !== 'undefined')) {
             var intersection = this._shapeToPath().intersect(shape._shapeToPath());
             // passing 1 as pixel size because we only need area in pixels to get the coverage ratio
-            var coverage_ratio = intersection.area / this.getArea(1);
+            var coverage_ratio = Math.abs(intersection.area) / this.getArea(1);
             intersection.remove();
             return (coverage_ratio * 100);
         } else {
