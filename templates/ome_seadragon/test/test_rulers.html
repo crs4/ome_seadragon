@@ -82,7 +82,7 @@
                 var dzi_path = "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi";
             {% endif %}
             var setup_ruler = function(ruler_id) {
-                annotations_canvas.bindToRuler(
+                annotations_controller.bindToRuler(
                         'ruler_' + ruler_id + '_activate',
                         'ruler_' + ruler_id + '_save',
                         'ruler_' + ruler_id + '_out'
@@ -108,7 +108,7 @@
 
                 $ruler_abort_btn.click(function() {
                     $ruler_output.val('');
-                    annotations_canvas.clearRuler(false);
+                    annotations_controller.clearRuler(false);
                 });
 
                 $ruler_output.on('ruler_created', function () {
@@ -124,12 +124,12 @@
                                 $ruler_active_controls.hide();
                                 $ruler_saved_controls.show();
                                 $ruler_view_btn.mouseenter(function () {
-                                            annotations_canvas.drawShapeFromJSON(
+                                            annotations_controller.drawShapeFromJSON(
                                                     $ruler_output.data('ruler_json')
                                             );
                                         })
                                         .mouseleave(function () {
-                                            annotations_canvas.deleteShape(
+                                            annotations_controller.deleteShape(
                                                     $ruler_output.data('ruler_json').shape_id
                                             );
                                         });
@@ -182,18 +182,18 @@
                 viewer.viewer.addHandler('open', function () {
                     viewer.setMinDZILevel(8);
 
-                    window.annotations_canvas = new AnnotationsController('annotations_canvas');
-                    annotations_canvas.buildAnnotationsCanvas(viewer);
-                    viewer.addAnnotationsController(annotations_canvas, true);
+                    window.annotations_controller = new AnnotationsController('annotations_canvas');
+                    annotations_controller.buildAnnotationsCanvas(viewer);
+                    viewer.addAnnotationsController(annotations_controller, true);
 
-                    window.events_controller = new AnnotationsEventsController(annotations_canvas);
+                    window.events_controller = new AnnotationsEventsController(annotations_controller);
 
                     events_controller.initializeMeasuringTool(
                             {'stroke_color': '#0000aa', 'stroke_alpha': 0.8, 'stroke_width': 20}
                     );
 
                     $("#navigation_mode").click(function() {
-                        window.annotations_canvas.disableMouseEvents();
+                        window.annotations_controller.disableMouseEvents();
                     });
 
                     setup_ruler(1);

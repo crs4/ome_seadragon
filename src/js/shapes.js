@@ -51,12 +51,7 @@ function Shape(id, transform_matrix) {
     this.getArea = function(pixel_size, decimal_digits) {
         var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
-            var area = undefined;
-            try {
-                area = Math.abs(this.paper_shape.toPath().area * pixel_size);
-            } catch(err) {
-                area = Math.abs(this.paper_shape.area * pixel_size);
-            }
+            var area = Math.abs(this.paper_shape.toPath(false).area * pixel_size);
             return Number(area.toFixed(decimals));
         } else {
             console.log('Shape not initialized');
@@ -66,12 +61,7 @@ function Shape(id, transform_matrix) {
     this.getPerimeter = function(pixel_size, decimal_digits) {
         var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
-            var perimeter = undefined;
-            try {
-                perimeter = this.paper_shape.toPath().length * pixel_size;
-            } catch(err) {
-                perimeter = this.paper_shape.length * pixel_size;
-            }
+            var perimeter = this.paper_shape.toPath(false).length * pixel_size;
             return Number(perimeter.toFixed(decimals));
         } else {
             console.log('Shape not initialized');
@@ -171,13 +161,13 @@ function Shape(id, transform_matrix) {
 
     this.select = function() {
         if (typeof this.paper_shape !== 'undefined') {
-            this.paper_shape.setSelected(true);
+            this.paper_shape.selected = true;
         }
     };
 
     this.deselect = function() {
         if (typeof this.paper_shape !== 'undefined') {
-            this.paper_shape.setSelected(false);
+            this.paper_shape.selected = false;
         }
     };
 
