@@ -36,6 +36,25 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this.setStrokeColor = function(color, alpha) {
+        var color_value = (typeof color === 'undefined') ? this.stroke_color.toCSS(true) : color;
+        var alpha_value = (typeof alpha === 'undefined') ? this.stroke_color.getAlpha() : alpha;
+        this.stroke_color = ColorsAdapter.hexToPaperColor(color_value, alpha_value);
+        this.paper_shape.setStrokeColor(this.stroke_color);
+    };
+
+    this.setFillColor = function(color, alpha) {
+        var color_value = (typeof color === 'undefined') ? this.fill_color.toCSS(true) : color;
+        var alpha_value = (typeof alpha === 'undefined') ? this.fill_color.getAlpha() : alpha;
+        this.fill_color = ColorsAdapter.hexToPaperColor(color_value, alpha_value);
+        this.paper_shape.setFillColor(this.fill_color);
+    };
+
+    this.setStrokeWidth = function(stroke_width) {
+        this.stroke_width = stroke_width;
+        this.paper_shape.setStrokeWidth = this.stroke_width;
+    };
+
     this.transformShape = function(transform_matrix) {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.transform(transform_matrix);
