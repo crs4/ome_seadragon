@@ -15,6 +15,10 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
             this.polygon_config = polygon_config;
         };
 
+        this.annotation_controller.extendPolygonConfig = function (polygon_config) {
+            this.polygon_config = $.extend({}, this.polygon_config, polygon_config);
+        };
+
         this.annotation_controller._pointToPolygon = function (x, y) {
             var trigger_label = undefined;
             if (this.tmp_polygon) {
@@ -58,10 +62,11 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
             }
         };
 
-        this.annotation_controller.saveTemporaryPolygon = function () {
+        this.annotation_controller.saveTemporaryPolygon = function (label_prefix) {
             var tmp_polygon_json = this.getShapeJSON(this.tmp_polygon_id);
             this.deleteShape(this.tmp_polygon_id, false);
-            tmp_polygon_json.shape_id = this._getShapeId('polygon');
+            var polygon_label_prefix = (typeof label_prefix === 'undefined') ? 'polygon' : label_prefix;
+            tmp_polygon_json.shape_id = this._getShapeId(polygon_label_prefix);
             // apply translation
             var ac = this;
             tmp_polygon_json.segments = $.map(tmp_polygon_json.segments, function (segment) {
