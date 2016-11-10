@@ -28,6 +28,33 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this._shapeToPath = function() {
+        try {
+            return this.paper_shape.toPath(false);
+        } catch(err) {
+            return this.paper_shape;
+        }
+    };
+
+    this.setStrokeColor = function(color, alpha) {
+        var color_value = (typeof color === 'undefined') ? this.stroke_color.toCSS(true) : color;
+        var alpha_value = (typeof alpha === 'undefined') ? this.stroke_color.getAlpha() : alpha;
+        this.stroke_color = ColorsAdapter.hexToPaperColor(color_value, alpha_value);
+        this.paper_shape.setStrokeColor(this.stroke_color);
+    };
+
+    this.setFillColor = function(color, alpha) {
+        var color_value = (typeof color === 'undefined') ? this.fill_color.toCSS(true) : color;
+        var alpha_value = (typeof alpha === 'undefined') ? this.fill_color.getAlpha() : alpha;
+        this.fill_color = ColorsAdapter.hexToPaperColor(color_value, alpha_value);
+        this.paper_shape.setFillColor(this.fill_color);
+    };
+
+    this.setStrokeWidth = function(stroke_width) {
+        this.stroke_width = stroke_width;
+        this.paper_shape.setStrokeWidth = this.stroke_width;
+    };
+
     this.transformShape = function(transform_matrix) {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.transform(transform_matrix);
@@ -48,20 +75,29 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this.getPathSegments = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            return this._shapeToPath().getSegments();
+        } else {
+            return undefined;
+        }
+    };
+
     this.getArea = function(pixel_size, decimal_digits) {
         var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
-            var area = Math.abs(this.paper_shape.toPath(false).area * pixel_size);
+            var area = Math.abs(this._shapeToPath().area * Math.pow(pixel_size, 2));
             return Number(area.toFixed(decimals));
         } else {
             console.log('Shape not initialized');
+            return undefined;
         }
     };
 
     this.getPerimeter = function(pixel_size, decimal_digits) {
         var decimals = (typeof decimal_digits === 'undefined') ? 2 : decimal_digits;
         if (typeof this.paper_shape !== 'undefined') {
-            var perimeter = this.paper_shape.toPath(false).length * pixel_size;
+            var perimeter = this._shapeToPath().length * pixel_size;
             return Number(perimeter.toFixed(decimals));
         } else {
             console.log('Shape not initialized');
@@ -80,12 +116,42 @@ function Shape(id, transform_matrix) {
         }
     };
 
-    this.contains = function(point_x, point_y) {
+    this.containsPoint = function(point_x, point_y) {
         var point_obj = new paper.Point(point_x, point_y);
         if (typeof this.paper_shape !== 'undefined')
             return this.paper_shape.contains(point_obj);
         else
             console.info('Shape not initialized');
+    };
+
+    this.containsShape = function(shape) {
+        var shape_segments = shape.getPathSegments(shape);
+        if ((typeof this.paper_shape !== 'undefined') && (typeof shape_segments !== 'undefined')) {
+            for (var segment_id in shape_segments) {
+                if (!this.paper_shape.contains(shape_segments[segment_id].point)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            console.error('Both shapes must be initialized');
+            return undefined;
+        }
+    };
+
+    this.getCoveragePercentage = function(shape) {
+        var shape_area = shape.getArea();
+        if ((typeof this.paper_shape !== 'undefined') && (typeof shape_area !== 'undefined')) {
+            var intersection = this._shapeToPath().intersect(shape._shapeToPath());
+            // passing 1 as pixel size because we only need area in pixels to get the coverage ratio
+            var coverage_ratio = Math.abs(intersection.area) / this.getArea(1);
+            intersection.remove();
+            return (coverage_ratio * 100);
+        } else {
+            console.error('Both shapes must be initialized');
+            return undefined;
+        }
     };
 
     this.configure = function(shape_config) {
@@ -369,6 +435,14 @@ function Path(id, segments, closed, transform_matrix) {
         this.initializeEvents(activate_events);
     };
 
+    this.getPathSegments = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            return this.paper_shape.getSegments();
+        } else {
+            return undefined;
+        }
+    };
+
     this.updateShapePosition = function(delta_x, delta_y) {
         var path_segments = this.segments;
         this.segments.forEach(function(segment, index) {
@@ -460,8 +534,17 @@ Path.prototype = new Shape();
 function Polyline(id, segments, transform_matrix) {
     Path.call(this, id, segments, false, transform_matrix);
 
+    this.containsShape = function(shape) {
+        return false;
+    };
+
     this.getArea = function(pixel_size) {
         // lines have no area
+        return undefined;
+    };
+
+    this.getCoveragePercentage = function(shape) {
+        // lines have no area, it is impossible to calculate coverage
         return undefined;
     };
 
