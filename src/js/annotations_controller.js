@@ -27,15 +27,15 @@ function AnnotationsController(canvas_id, default_config) {
             if (canvas.length === 0) {
                 console.log('Creating a new canvas');
                 // create a canvas that will be used by paper.js
-                var canvas_size = viewport_controller.getCanvasSize();
                 $("body").append("<canvas id='" + this.canvas_id + "'></canvas>");
-                canvas.attr("width", canvas_size.width)
-                      .attr("height", canvas_size.height);
                 this.canvas = canvas[0];
             } else {
                 console.log('Using an existing canvas');
                 this.canvas = canvas[0];
             }
+            var canvas_size = viewport_controller.getCanvasSize();
+            $(this.canvas).width(canvas_size.width)
+                .height(canvas_size.height);
 
             this.paper_scope.setup(this.canvas);
             // clean the canvas
