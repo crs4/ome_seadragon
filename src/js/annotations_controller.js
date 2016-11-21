@@ -421,8 +421,8 @@ function AnnotationsController(canvas_id, default_config) {
     this.drawLine = function(shape_id, from_x, from_y, to_x, to_y, transform,
                              shape_conf, refresh_view) {
         var points = [
-            {'x': from_x, 'y': from_y},
-            {'x': to_x, 'y': to_y}
+            {'point': {'x': from_x, 'y': from_y}},
+            {'point': {'x': to_x, 'y': to_y}}
         ];
         this.drawPolyline(shape_id, points, transform, shape_conf, refresh_view);
     };
