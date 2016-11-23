@@ -27,15 +27,15 @@ function AnnotationsController(canvas_id, default_config) {
             if (canvas.length === 0) {
                 console.log('Creating a new canvas');
                 // create a canvas that will be used by paper.js
-                var canvas_size = viewport_controller.getCanvasSize();
                 $("body").append("<canvas id='" + this.canvas_id + "'></canvas>");
-                canvas.attr("width", canvas_size.width)
-                      .attr("height", canvas_size.height);
                 this.canvas = canvas[0];
             } else {
                 console.log('Using an existing canvas');
                 this.canvas = canvas[0];
             }
+            var canvas_size = viewport_controller.getCanvasSize();
+            $(this.canvas).width(canvas_size.width)
+                .height(canvas_size.height);
 
             this.paper_scope.setup(this.canvas);
             // clean the canvas
@@ -421,8 +421,8 @@ function AnnotationsController(canvas_id, default_config) {
     this.drawLine = function(shape_id, from_x, from_y, to_x, to_y, transform,
                              shape_conf, refresh_view) {
         var points = [
-            {'x': from_x, 'y': from_y},
-            {'x': to_x, 'y': to_y}
+            {'point': {'x': from_x, 'y': from_y}},
+            {'point': {'x': to_x, 'y': to_y}}
         ];
         this.drawPolyline(shape_id, points, transform, shape_conf, refresh_view);
     };

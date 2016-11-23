@@ -195,5 +195,35 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
             var img_zoom = event.eventSource.viewport_controller.getImageZoom();
             event.eventSource.annotations_controller.setZoom(img_zoom);
         });
+
+        this.viewer.addHandler('resize', function (event) {
+            var vctrl = event.eventSource.viewport_controller;
+            var actrl = event.eventSource.annotations_controller;
+
+            // get existing shapes and existing markers
+            var shapes = actrl.getShapesJSON();
+            if (actrl.getMarkersID) {
+                var markers_ids = actrl.getMarkersID();
+            } else {
+                var markers_ids = [];
+            }
+
+            // clear and rebuild canvas
+            actrl.clear();
+            actrl.canvas = undefined;
+            actrl.buildAnnotationsCanvas(vctrl);
+
+            // update zoom level and center of the canvas
+            var zoom = vctrl.getImageZoom();
+            actrl.setZoom(zoom);
+            var center = vctrl.getCenter();
+            actrl.setCenter(center.x, center.y);
+
+            // redraw shapes
+            actrl.drawShapesFromJSON(shapes);
+            if (markers_ids.length > 0) {
+                actrl.shapesToMarkers(markers_ids);
+            }
+        });
     };
 }
