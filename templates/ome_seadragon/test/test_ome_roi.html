@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <title>OPENSEADRAGON TEST VIEWER WITH ANNOTATIONS</title>
 
+    <link href="{{ host_name }}/static/ome_seadragon/css/bootstrap.min.css" rel="stylesheet">
+
     <style type="text/css">
-        .container {
+        #graphic_container {
             position: relative;
+            padding: 0;
         }
 
         .graphic_element {
-            width: 800px;
-            height: 600px;
+            width:100%;
+            height: 10px;
             position: absolute;
+            padding: inherit;
         }
     </style>
 
@@ -27,6 +31,11 @@
         $(document).ready(function() {
             $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
                 console.log("Loading openseadragon viewer");
+
+                $("#openseadragon_viewer").height($(window).height() - 60);
+                $(window).resize(function() {
+                    $('#openseadragon_viewer').height($(window).height() - 60);
+                });
 
                 var viewer_config = {
                     'showNavigator': true,
@@ -118,10 +127,12 @@
     </script>
 </head>
 <body>
-    <div id="toolbar" style="height: 40px"></div>
-    <div id="graphics_container" class="container">
-        <div id="openseadragon_viewer" class="graphic_element"></div>
-        <canvas id="annotations_canvas" class="graphic_element"></canvas>
+    <div class="container-fluid">
+        <div id="toolbar" style="height: 40px"></div>
+        <div id="graphic_container" class="col-md-12">
+            <div id="openseadragon_viewer" class="graphic_element"></div>
+            <canvas id="annotations_canvas" class="graphic_element"></canvas>
+        </div>
     </div>
 </body>
 </html>
