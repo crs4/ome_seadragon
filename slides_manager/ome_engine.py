@@ -152,7 +152,7 @@ class OmeEngine(RenderingEngineInterface):
 
     def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
         self._check_source_type(original_file_source)
-        cache = CacheDriverFactory().get_cache()
+        cache = CacheDriverFactory().get_cache('omero')
         thumbnail = cache.thumbnail_from_cache(self.image_id, size,
                                                settings.DEEPZOOM_FORMAT)
         if thumbnail is None:
@@ -175,7 +175,7 @@ class OmeEngine(RenderingEngineInterface):
 
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
         self._check_source_type(original_file_source)
-        cache = CacheDriverFactory().get_cache()
+        cache = CacheDriverFactory().get_cache('omero')
         cache_params = {
             'image_id': self.image_id,
             'level': level,
