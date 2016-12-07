@@ -60,7 +60,7 @@ class OpenSlideEngine(RenderingEngineInterface):
             return None
 
     def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
-        cache = CacheDriverFactory().get_cache()
+        cache = CacheDriverFactory().get_cache('openslide')
         # get thumbnail from cache
         thumb = cache.thumbnail_from_cache(self.image_id, size,
                                            settings.DEEPZOOM_FORMAT)
@@ -78,7 +78,7 @@ class OpenSlideEngine(RenderingEngineInterface):
         return thumb, settings.DEEPZOOM_FORMAT
 
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
-        cache = CacheDriverFactory().get_cache()
+        cache = CacheDriverFactory().get_cache('openslide')
         cache_params = {
             'image_id': self.image_id,
             'level': level,

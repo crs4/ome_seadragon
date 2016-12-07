@@ -21,10 +21,16 @@ CUSTOM_SETTINGS_MAPPINGS = {
     # <ome_home>/bin/omero config set omero.web.ome_seadragon.repository $(<ome_home>/bin/omero config get omero.data.dir)
     'omero.web.ome_seadragon.repository': ['IMGS_REPOSITORY', None, identity, None],
     'omero.web.ome_seadragon.images_folder': ['IMGS_FOLDER', 'ManagedRepository', identity, None],
-    # default rendering engine
-    'omero.web.ome_seadragon.tiles.rendering_engine': ['TILES_RENDERING_ENGINE', 'openslide', identity, None],
-    'omero.web.ome_seadragon.thumbnails.rendering_engine': ['THUMBNAILS_RENDERING_ENGINE', 'omero',
-                                                            identity, None],
+    # default rendering engines
+    'omero.web.ome_seadragon.tiles.primary_rendering_engine': ['PRIMARY_TILES_RENDERING_ENGINE',
+                                                               'openslide', identity, None],
+    'omero.web.ome_seadragon.thumbnails.primary_rendering_engine': ['PRIMARY_THUMBNAILS_RENDERING_ENGINE',
+                                                                    'omero', identity, None],
+    # secondary rendering engines
+    'omero.web.ome_seadragon.tiles.secondary_rendering_engine': ['SECONDARY_TILES_RENDERING_ENGINE',
+                                                                 'omero', identity, None],
+    'omero.web.ome_seadragon.thumbnails.secondary_rendering_engine': ['SECONDARY_THUMBNAILS_RENDERING_ENGINE',
+                                                                      'openslide', identity, None],
     # deepzoom properties
     'omero.web.ome_seadragon.deepzoom.overlap': ['DEEPZOOM_OVERLAP', 1, identity, None],
     'omero.web.ome_seadragon.deepzoom.format': ['DEEPZOOM_FORMAT', 'jpeg', identity, None],

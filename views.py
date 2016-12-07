@@ -196,8 +196,16 @@ def find_annotations(request, conn=None, **kwargs):
 @login_required()
 def get_image_dzi(request, image_id, fetch_original_file=False,
                   file_mimetype=None, conn=None, **kwargs):
-    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
-    dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype)
+    rf = RenderingEngineFactory()
+    rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
+    try:
+        dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype)
+    except Exception, e:
+        rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
+        if rendering_engine:
+            dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype)
+        else:
+            raise e
     if dzi_metadata:
         return HttpResponse(dzi_metadata, content_type='application/xml')
     else:
@@ -207,9 +215,18 @@ def get_image_dzi(request, image_id, fetch_original_file=False,
 @login_required()
 def get_image_thumbnail(request, image_id, fetch_original_file=False,
                         file_mimetype=None, conn=None, **kwargs):
-    rendering_engine = RenderingEngineFactory().get_thumbnails_rendering_engine(image_id, conn)
-    thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')),
-                                                             fetch_original_file, file_mimetype)
+    rf = RenderingEngineFactory()
+    rendering_engine = rf.get_primary_thumbnails_rendering_engine(image_id, conn)
+    try:
+        thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')),
+                                                                 fetch_original_file, file_mimetype)
+    except Exception, e:
+        rendering_engine = rf.get_secondary_thumbnail_rendering_engine(image_id, conn)
+        if rendering_engine:
+            thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')),
+                                                                     fetch_original_file, file_mimetype)
+        else:
+            raise e
     if thumbnail:
         response = HttpResponse(content_type="image/%s" % image_format)
         thumbnail.save(response, image_format)
@@ -223,9 +240,18 @@ def get_tile(request, image_id, level, column, row, tile_format,
              fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
     if tile_format != settings.DEEPZOOM_FORMAT:
         return HttpResponseServerError("Format %s not supported by the server" % tile_format)
-    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
-    tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
-                                                   fetch_original_file, file_mimetype)
+    rf = RenderingEngineFactory()
+    rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
+    try:
+        tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
+                                                       fetch_original_file, file_mimetype)
+    except Exception, e:
+        rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
+        if rendering_engine:
+            tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
+                                                           fetch_original_file, file_mimetype)
+        else:
+            raise e
     if tile:
         response = HttpResponse(content_type='image/%s' % image_format)
         tile.save(response, image_format)
@@ -237,8 +263,16 @@ def get_tile(request, image_id, level, column, row, tile_format,
 @login_required()
 def get_image_mpp(request, image_id, fetch_original_file=False,
                   file_mimetype=None, conn=None, **kwargs):
-    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
-    image_mpp = rendering_engine.get_openseadragon_config(fetch_original_file, file_mimetype)['mpp']
+    rf = RenderingEngineFactory()
+    rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
+    try:
+        image_mpp = rendering_engine.get_openseadragon_config(fetch_original_file, file_mimetype)['mpp']
+    except Exception, e:
+        rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
+        if rendering_engine:
+            image_mpp = rendering_engine.get_openseadragon_config(fetch_original_file, file_mimetype)['mpp']
+        else:
+            raise e
     return HttpResponse(json.dumps({'image_mpp': image_mpp}), content_type='application/json')
 
 
