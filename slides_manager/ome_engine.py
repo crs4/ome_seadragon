@@ -154,8 +154,7 @@ class OmeEngine(RenderingEngineInterface):
         self._check_source_type(original_file_source)
         cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
             get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
-        thumbnail = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT,
-                                               settings.THUMBNAILS_RENDERING_ENGINE)
+        thumbnail = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT, 'omero')
         if thumbnail is None:
             self.logger.info('No thumbnail loaded from cache, building it')
             # we want the thumbnail of the image, not the one of the highest resolution image in fileset
@@ -168,8 +167,7 @@ class OmeEngine(RenderingEngineInterface):
                     th_size = (th_w, size)
                 thumbnail_buffer = StringIO(ome_img.getThumbnail(size=th_size))
                 thumbnail = Image.open(thumbnail_buffer)
-                cache.thumbnail_to_cache(self.image_id, thumbnail, size, settings.DEEPZOOM_FORMAT,
-                                         settings.THUMBNAILS_RENDERING_ENGINE)
+                cache.thumbnail_to_cache(self.image_id, thumbnail, size, settings.DEEPZOOM_FORMAT, 'omero')
         else:
             self.logger.info('Thumbnail loaded from cache')
         return thumbnail, settings.DEEPZOOM_FORMAT
@@ -185,7 +183,7 @@ class OmeEngine(RenderingEngineInterface):
             'row': row,
             'tile_size': settings.DEEPZOOM_TILE_SIZE,
             'image_format': settings.DEEPZOOM_FORMAT,
-            'rendering_engine': settings.TILES_RENDERING_ENGINE
+            'rendering_engine': 'omero'
         }
         if cache_params['image_format'].lower() == 'jpeg':
             cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY

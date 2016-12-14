@@ -63,8 +63,7 @@ class OpenSlideEngine(RenderingEngineInterface):
         cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
             get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
         # get thumbnail from cache
-        thumb = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT,
-                                           settings.THUMBNAILS_RENDERING_ENGINE)
+        thumb = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT, 'openslide')
         # if thumbnail is not in cache build it ....
         if thumb is None:
             self.logger.info('No thumbnail loaded from cache, building it')
@@ -72,8 +71,7 @@ class OpenSlideEngine(RenderingEngineInterface):
             if slide:
                 thumb = slide.get_thumbnail((size, size))
                 # ... and store it into the cache
-                cache.thumbnail_to_cache(self.image_id, thumb, size, settings.DEEPZOOM_FORMAT,
-                                         settings.THUMBNAILS_RENDERING_ENGINE)
+                cache.thumbnail_to_cache(self.image_id, thumb, size, settings.DEEPZOOM_FORMAT, 'openslide')
         else:
             self.logger.info('Thumbnail loaded from cache')
         return thumb, settings.DEEPZOOM_FORMAT
@@ -88,7 +86,7 @@ class OpenSlideEngine(RenderingEngineInterface):
             'row': row,
             'tile_size': settings.DEEPZOOM_TILE_SIZE,
             'image_format': settings.DEEPZOOM_FORMAT,
-            'rendering_engine': settings.TILES_RENDERING_ENGINE
+            'rendering_engine': 'openslide'
         }
         if cache_params['image_format'].lower() == 'jpeg':
             cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
