@@ -13,6 +13,8 @@ urlpatterns = patterns(
     # EXAMPLES
     url(r'^examples/viewer/(?P<image_id>[\w\-.]+)/$', views.get_example_viewer,
         name='ome_seadragon_test_viewer'),
+    url(r'^examples/viewer_json/(?P<image_id>[\w\-.]+)/$', views.get_example_viewer_json,
+        name='ome_seadragon_test_viewer'),
     url(r'^examples/annotations/(?P<image_id>[\w\-.]+)/$', views.get_example_annotations,
         name='ome_seadragon_test_annotations'),
     url(r'^examples/ome_rois/(?P<image_id>[0-9]+)/$', views.get_example_ome_rois,

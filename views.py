@@ -48,6 +48,13 @@ def get_example_viewer(request, image_id):
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
+def get_example_viewer_json(request, image_id):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    return render(request, 'ome_seadragon/test/test_viewer_json.html',
+                  {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
+
+
 def get_example_annotations(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
     mirax = strtobool(request.GET.get('mirax_image', default='false'))
