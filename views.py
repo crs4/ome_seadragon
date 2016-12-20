@@ -248,6 +248,25 @@ def get_image_json(request, image_id, fetch_original_file=False,
 
 
 @login_required()
+def get_image_metadata(request, image_id, fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
+    rf = RenderingEngineFactory()
+    rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
+    resource_path = request.build_absolute_uri('%s_files/' % image_id)
+    try:
+        img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file, file_mimetype)
+    except Exception, e:
+        rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
+        if rendering_engine:
+            img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file, file_mimetype)
+        else:
+            raise e
+    if img_metadata:
+        return HttpResponse(json.dumps(img_metadata), content_type='application/json')
+    else:
+        return HttpResponseNotFound('No image with ID %s' % image_id)
+
+
+@login_required()
 def get_image_thumbnail(request, image_id, fetch_original_file=False,
                         file_mimetype=None, conn=None, **kwargs):
     rf = RenderingEngineFactory()

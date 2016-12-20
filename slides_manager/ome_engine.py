@@ -98,7 +98,7 @@ class OmeEngine(RenderingEngineInterface):
             # return a white tile
             return Image.new('RGB', (settings.DEEPZOOM_TILE_SIZE, settings.DEEPZOOM_TILE_SIZE), 'white')
 
-    def _get_image_mpp(self, original_file_source=False):
+    def _get_image_mpp(self, original_file_source=False, file_mimetype=None):
         self._check_source_type(original_file_source)
         img = self._get_image_object(get_biggest_in_fileset=True)
         if img:

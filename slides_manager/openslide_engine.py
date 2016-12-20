@@ -35,7 +35,7 @@ class OpenSlideEngine(RenderingEngineInterface):
         else:
             return None
 
-    def _get_image_mpp(self, original_file_source, file_mimetype):
+    def _get_image_mpp(self, original_file_source=False, file_mimetype=None):
         slide = self._get_openslide_wrapper(original_file_source, file_mimetype)
         if slide:
             try:

@@ -13,49 +13,44 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
-            {% if mirax %}
-                $.get("{{ host_name }}/ome_seadragon/mirax/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
-            {% else %}
-                $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
-            {% endif %}
+            $.get("{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}_metadata.json").done(function (data) {
                 console.log("Loading openseadragon viewer");
-                 var image_mpp = data.image_mpp ? data.image_mpp : 0;
+                var image_mpp = data.image_mpp ? data.image_mpp : 0;
 
-                 $.get("{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.json").done(function(data) {
-                    $("#openseadragon_viewer").height($(window).height() - 20);
-                    $(window).resize(function() {
-                        $('#openseadragon_viewer').height($(window).height() - 20);
-                    });
 
-                    var viewer_config = {
-                        'showNavigator': true,
-                        'showFullPageControl': false
-                    };
+                $("#openseadragon_viewer").height($(window).height() - 20);
+                $(window).resize(function () {
+                    $('#openseadragon_viewer').height($(window).height() - 20);
+                });
 
-                    window.viewer = new ViewerController(
-                            "openseadragon_viewer",
-                            "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
-                            data,
-                            viewer_config
-                    );
-                    viewer.buildViewer();
+                var viewer_config = {
+                    'showNavigator': true,
+                    'showFullPageControl': false
+                };
 
-                    // Scalebar setup
-                    var scalebar_config = {
-                        "xOffset": 10,
-                        "yOffset": 10,
-                        "barThickness": 5,
-                        "color": "#777777",
-                        "fontColor": "#000000",
-                        "backgroundColor": 'rgba(255, 255, 255, 0.5)'
-                    };
-                    viewer.enableScalebar(image_mpp, scalebar_config);
+                window.viewer = new ViewerController(
+                    "openseadragon_viewer",
+                    "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                    data.tile_sources,
+                    viewer_config
+                );
+                viewer.buildViewer();
 
-                    viewer.viewer.addHandler('open', function () {
-                        console.log('Open!');
-                        // Ignore lowest-resolution levels in order to improve load times
-                        viewer.setMinDZILevel(8);
-                    });
+                // Scalebar setup
+                var scalebar_config = {
+                    "xOffset": 10,
+                    "yOffset": 10,
+                    "barThickness": 5,
+                    "color": "#777777",
+                    "fontColor": "#000000",
+                    "backgroundColor": 'rgba(255, 255, 255, 0.5)'
+                };
+                viewer.enableScalebar(image_mpp, scalebar_config);
+
+                viewer.viewer.addHandler('open', function () {
+                    console.log('Open!');
+                    // Ignore lowest-resolution levels in order to improve load times
+                    viewer.setMinDZILevel(8);
                 });
             });
         });

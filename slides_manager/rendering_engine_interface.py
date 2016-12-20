@@ -56,6 +56,10 @@ class RenderingEngineInterface(object):
         pass
 
     @abstractmethod
+    def _get_image_mpp(self, original_file_source=False, file_mimetype=None):
+        pass
+
+    @abstractmethod
     def get_openseadragon_config(self, original_file_source=False, file_mimetype=None):
         pass
 
@@ -83,6 +87,12 @@ class RenderingEngineInterface(object):
         else:
             return None
 
+    def get_image_description(self, resource_path, original_file_source=False, file_mimetype=None):
+        return {
+            'image_mpp': self._get_image_mpp(original_file_source, file_mimetype),
+            'tile_sources': self.get_json_description(resource_path, original_file_source,
+                                                      file_mimetype)
+        }
 
     @abstractmethod
     def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):

@@ -54,6 +54,8 @@ urlpatterns = patterns(
         name='ome_seadragon_image_dzi_metadata'),
     url(r'^deepzoom/get/(?P<image_id>[0-9]+).json$', views.get_image_json,
         name='ome_seadragon_image_json_metadata'),
+    url(r'^deepzoom/get/(?P<image_id>[0-9]+)_metadata.json$', views.get_image_metadata,
+        name='ome_seadragon_image_json_metadata_full'),
     url(r'^deepzoom/get/thumbnail/(?P<image_id>[0-9]+).dzi$', views.get_image_thumbnail,
         name='ome_seadragon_image_thumbnail'),
     url(r'^deepzoom/get/(?P<image_id>[0-9]+)_files/(?P<level>[0-9]+)/'
