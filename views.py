@@ -32,6 +32,12 @@ def check_repository(request):
 
 @login_required()
 def start_connection(request, conn=None, **kwargs):
+    public_user_allowed = strtobool(request.GET.get('allow_public_user', default='true'))
+    if not public_user_allowed:
+        if settings.OME_PUBLIC_USER is None:
+            return HttpResponseServerError('"omero.web.ome_seadragon.ome_public_user" property was not configured on the server')
+        if conn.getUser().getName() == settings.OME_PUBLIC_USER:
+            return HttpResponse('Unauthorized', status=401)
     return HttpResponse(status=204)
 
 
