@@ -120,6 +120,9 @@ class OmeEngine(RenderingEngineInterface):
             'mpp': self._get_image_mpp()
         }
 
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None):
+        raise NotImplemented()
+
     def get_dzi_description(self, original_file_source=False, file_mimetype=None):
         self._check_source_type(original_file_source)
         img = self._get_image_object(get_biggest_in_fileset=True)

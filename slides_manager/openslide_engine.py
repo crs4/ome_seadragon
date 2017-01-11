@@ -52,6 +52,14 @@ class OpenSlideEngine(RenderingEngineInterface):
             'mpp': self._get_image_mpp(original_file_source, file_mimetype)
         }
 
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None):
+        slide = self._get_openslide_wrapper(original_file_source=True,
+                                            file_mimetype=file_mimetype)
+        if slide:
+            return self._get_json_description(resource_path, slide.dimensions[0], slide.dimensions[1])
+        else:
+            return None
+
     def get_dzi_description(self, original_file_source=False, file_mimetype=None):
         dzi_slide = self._get_deepzoom_wrapper(original_file_source, file_mimetype)
         if dzi_slide:

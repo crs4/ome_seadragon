@@ -67,25 +67,35 @@ class RenderingEngineInterface(object):
     def get_dzi_description(self, original_file_source=False, file_mimetype=None):
         pass
 
-    def get_json_description(self, resource_path, original_file_source=False, file_mimetype=None):
-        self._check_source_type(original_file_source)
-        img = self._get_image_object(get_biggest_in_fileset=True)
-        if img:
-            return {
-                'Image': {
-                    'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',
-                    'Url': resource_path,
-                    'Format': str(settings.DEEPZOOM_FORMAT),
-                    'Overlap': str(settings.DEEPZOOM_OVERLAP),
-                    'TileSize': str(settings.DEEPZOOM_TILE_SIZE),
-                    'Size': {
-                        'Height': str(img.getSizeY()),
-                        'Width': str(img.getSizeX())
-                    }
+    @abstractmethod
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None):
+        pass
+
+    def _get_json_description(self, resource_path, img_height, img_width):
+        return {
+            'Image': {
+                'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',
+                'Url': resource_path,
+                'Format': str(settings.DEEPZOOM_FORMAT),
+                'Overlap': str(settings.DEEPZOOM_OVERLAP),
+                'TileSize': str(settings.DEEPZOOM_TILE_SIZE),
+                'Size': {
+                    'Height': str(img_height),
+                    'Width': str(img_width)
                 }
             }
+        }
+
+    def get_json_description(self, resource_path, original_file_source=False, file_mimetype=None):
+        self._check_source_type(original_file_source)
+        if not original_file_source:
+            img = self._get_image_object(get_biggest_in_fileset=True)
+            if img:
+                return self._get_json_description(resource_path, img.getSizeX(), img.getSizeY())
+            else:
+                return None
         else:
-            return None
+            return self._get_original_file_json_description(resource_path, file_mimetype)
 
     def get_image_description(self, resource_path, original_file_source=False, file_mimetype=None):
         return {
