@@ -3,6 +3,8 @@ from ome_seadragon import views
 
 urlpatterns = patterns(
     'django.views.generic.simple',
+    # INITIALIZE SESSION
+    url(r'connect/$', views.start_connection, name='ome_seadragon_connect'),
     # TEST
     url(r'^test/$', views.check_app, name='ome_seadragon_test'),
     url(r'test/repository/$', views.check_repository, name='ome_seadragon_test_repository'),
@@ -10,6 +12,8 @@ urlpatterns = patterns(
         name='ome_seadragon_test_image_path'),
     # EXAMPLES
     url(r'^examples/viewer/(?P<image_id>[\w\-.]+)/$', views.get_example_viewer,
+        name='ome_seadragon_test_viewer'),
+    url(r'^examples/viewer_json/(?P<image_id>[\w\-.]+)/$', views.get_example_viewer_json,
         name='ome_seadragon_test_viewer'),
     url(r'^examples/annotations/(?P<image_id>[\w\-.]+)/$', views.get_example_annotations,
         name='ome_seadragon_test_annotations'),
@@ -48,6 +52,10 @@ urlpatterns = patterns(
     # DEEPZOOM
     url(r'^deepzoom/get/(?P<image_id>[0-9]+).dzi$', views.get_image_dzi,
         name='ome_seadragon_image_dzi_metadata'),
+    url(r'^deepzoom/get/(?P<image_id>[0-9]+).json$', views.get_image_json,
+        name='ome_seadragon_image_json_metadata'),
+    url(r'^deepzoom/get/(?P<image_id>[0-9]+)_metadata.json$', views.get_image_metadata,
+        name='ome_seadragon_image_json_metadata_full'),
     url(r'^deepzoom/get/thumbnail/(?P<image_id>[0-9]+).dzi$', views.get_image_thumbnail,
         name='ome_seadragon_image_thumbnail'),
     url(r'^deepzoom/get/(?P<image_id>[0-9]+)_files/(?P<level>[0-9]+)/'
@@ -64,6 +72,12 @@ urlpatterns = patterns(
     # 3DHISTECH FILES HANDLING --- DEEPZOOM
     url(r'^mirax/deepzoom/get/(?P<image_id>[\w\-.]+).dzi$', views.get_image_dzi,
         name='ome_seadragon_image_dzi_metadata_mrxs',
+        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
+    url(r'^mirax/deepzoom/get/(?P<image_id>[\w\-.]+)_metadata.json$', views.get_image_metadata,
+        name='ome_seadragon_image_json_metadata_full',
+        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
+    url(r'^mirax/deepzoom/get/(?P<image_id>[\w\-.]+).json$', views.get_image_json,
+        name='ome_seadragon_image_json_metadata_mrxs',
         kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
     url(r'^mirax/deepzoom/get/thumbnail/(?P<image_id>[\w\-.]+).dzi$', views.get_image_thumbnail,
         name='ome_seadragon_image_thumbnail_mrxs',

@@ -13,15 +13,13 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
-            {% if mirax %}
-                $.get("{{ host_name }}/ome_seadragon/mirax/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
-            {% else %}
-                $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
-            {% endif %}
+            $.get("{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}_metadata.json").done(function (data) {
                 console.log("Loading openseadragon viewer");
+                var image_mpp = data.image_mpp ? data.image_mpp : 0;
+
 
                 $("#openseadragon_viewer").height($(window).height() - 20);
-                $(window).resize(function() {
+                $(window).resize(function () {
                     $('#openseadragon_viewer').height($(window).height() - 20);
                 });
 
@@ -31,19 +29,14 @@
                 };
 
                 window.viewer = new ViewerController(
-                        "openseadragon_viewer",
-                        "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
-                        {% if mirax %}
-                            "{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}.dzi",
-                        {% else %}
-                            "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
-                         {% endif %}
-                        viewer_config
+                    "openseadragon_viewer",
+                    "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                    data.tile_sources,
+                    viewer_config
                 );
                 viewer.buildViewer();
 
                 // Scalebar setup
-                var image_mpp = data.image_mpp ? data.image_mpp : 0;
                 var scalebar_config = {
                     "xOffset": 10,
                     "yOffset": 10,
