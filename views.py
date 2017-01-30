@@ -31,14 +31,33 @@ def check_repository(request):
 
 
 @login_required()
+def start_connection(request, conn=None, **kwargs):
+    public_user_allowed = strtobool(request.GET.get('allow_public_user', default='true'))
+    if not public_user_allowed:
+        if settings.OME_PUBLIC_USER is None:
+            return HttpResponseServerError('"omero.web.ome_seadragon.ome_public_user" property was not configured on the server')
+        if conn.getUser().getName() == settings.OME_PUBLIC_USER:
+            return HttpResponse('Unauthorized', status=401)
+    return HttpResponse(status=204)
+
+
+@login_required()
 def check_image_path(request, image_id, conn=None, **kwargs):
-    return HttpResponse(slides_manager._get_image_path(image_id, conn))
+    rendering_engine = RenderingEngineFactory().get_tiles_rendering_engine(image_id, conn)
+    return HttpResponse(rendering_engine._get_image_path())
 
 
 def get_example_viewer(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
     mirax = strtobool(request.GET.get('mirax_image', default='false'))
     return render(request, 'ome_seadragon/test/test_viewer.html',
+                  {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
+
+
+def get_example_viewer_json(request, image_id):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    return render(request, 'ome_seadragon/test/test_viewer_json.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
@@ -209,7 +228,48 @@ def get_image_dzi(request, image_id, fetch_original_file=False,
     if dzi_metadata:
         return HttpResponse(dzi_metadata, content_type='application/xml')
     else:
-        return HttpResponseNotFound('No image with ID ' + image_id)
+        return HttpResponseNotFound('No image with ID %s' % image_id)
+
+
+@login_required()
+def get_image_json(request, image_id, fetch_original_file=False,
+                   file_mimetype=None, conn=None, **kwargs):
+    rf = RenderingEngineFactory()
+    rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
+    resource_path = request.build_absolute_uri('%s_files/' % image_id)
+    try:
+        json_metadata = rendering_engine.get_json_description(resource_path, fetch_original_file,
+                                                              file_mimetype)
+    except Exception, e:
+        rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
+        if rendering_engine:
+            json_metadata = rendering_engine.get_json_description(resource_path, fetch_original_file,
+                                                                  file_mimetype)
+        else:
+            raise e
+    if json_metadata:
+        return HttpResponse(json.dumps(json_metadata), content_type='application/json')
+    else:
+        return HttpResponseNotFound('No image with ID %s' % image_id)
+
+
+@login_required()
+def get_image_metadata(request, image_id, fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
+    rf = RenderingEngineFactory()
+    rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
+    resource_path = request.build_absolute_uri('%s_files/' % image_id)
+    try:
+        img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file, file_mimetype)
+    except Exception, e:
+        rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
+        if rendering_engine:
+            img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file, file_mimetype)
+        else:
+            raise e
+    if img_metadata:
+        return HttpResponse(json.dumps(img_metadata), content_type='application/json')
+    else:
+        return HttpResponseNotFound('No image with ID %s' % image_id)
 
 
 @login_required()
@@ -221,7 +281,7 @@ def get_image_thumbnail(request, image_id, fetch_original_file=False,
         thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')),
                                                                  fetch_original_file, file_mimetype)
     except Exception, e:
-        rendering_engine = rf.get_secondary_thumbnail_rendering_engine(image_id, conn)
+        rendering_engine = rf.get_secondary_thumbnails_rendering_engine(image_id, conn)
         if rendering_engine:
             thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')),
                                                                      fetch_original_file, file_mimetype)

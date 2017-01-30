@@ -5,10 +5,9 @@ from cStringIO import StringIO
 
 from errors import UnsupportedSource
 
-from ome_seadragon.ome_data.projects_datasets import get_fileset_highest_resolution
 from rendering_engine_interface import RenderingEngineInterface
 from ome_seadragon import settings
-from ome_seadragon.images_cache import CacheDriverFactory
+from ome_seadragon_cache import CacheDriverFactory
 
 
 class OmeEngine(RenderingEngineInterface):
@@ -16,20 +15,9 @@ class OmeEngine(RenderingEngineInterface):
     def __init__(self, image_id, connection):
         super(OmeEngine, self).__init__(image_id, connection)
 
-    # if get_biggest_in_filest is True, return the image with the highest resolution in the fileset
-    # of the image with ID image_id, if False simply return image with ID image_id
-    def _get_image_object(self, get_biggest_in_fileset=True):
-        img = self.connection.getObject('Image', self.image_id)
-        if img is None:
-            return None
-        if get_biggest_in_fileset:
-            return get_fileset_highest_resolution(img, self.connection)
-        else:
-            return img
-
     def _get_dzi_max_level(self, img=None):
         if img is None:
-            img = self._get_image_object()
+            img = self._get_image_object(get_biggest_in_fileset=True)
         x = img.getSizeX()
         y = img.getSizeY()
         return int(math.ceil(math.log(max(x, y), 2)))
@@ -42,7 +30,7 @@ class OmeEngine(RenderingEngineInterface):
 
     def _get_ome_scale_map(self, img=None, swap_keys=False):
         if img is None:
-            img = self._get_image_object()
+            img = self._get_image_object(get_biggest_in_fileset=True)
         tmp_map = img.getZoomLevelScaling()
         ome_scale_map = dict((len(tmp_map) - k - 1, v) for k, v in tmp_map.iteritems())
         if not swap_keys:
@@ -110,8 +98,9 @@ class OmeEngine(RenderingEngineInterface):
             # return a white tile
             return Image.new('RGB', (settings.DEEPZOOM_TILE_SIZE, settings.DEEPZOOM_TILE_SIZE), 'white')
 
-    def _get_image_mpp(self, original_file_source=False):
-        img = self._get_image_object(original_file_source)
+    def _get_image_mpp(self, original_file_source=False, file_mimetype=None):
+        self._check_source_type(original_file_source)
+        img = self._get_image_object(get_biggest_in_fileset=True)
         if img:
             try:
                 mpp = (img.getPixelSizeX() + img.getPixelSizeY()) / 2.0
@@ -131,9 +120,12 @@ class OmeEngine(RenderingEngineInterface):
             'mpp': self._get_image_mpp()
         }
 
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None):
+        raise NotImplemented()
+
     def get_dzi_description(self, original_file_source=False, file_mimetype=None):
         self._check_source_type(original_file_source)
-        img = self._get_image_object(original_file_source)
+        img = self._get_image_object(get_biggest_in_fileset=True)
         if img:
             dzi_root = etree.Element(
                 'Image',
@@ -152,13 +144,13 @@ class OmeEngine(RenderingEngineInterface):
 
     def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
         self._check_source_type(original_file_source)
-        cache = CacheDriverFactory().get_cache('omero')
-        thumbnail = cache.thumbnail_from_cache(self.image_id, size,
-                                               settings.DEEPZOOM_FORMAT)
+        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
+            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
+        thumbnail = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT, 'omero')
         if thumbnail is None:
             self.logger.info('No thumbnail loaded from cache, building it')
             # we want the thumbnail of the image, not the one of the highest resolution image in fileset
-            ome_img = self._get_image_object(get_biggest_in_fileset=False)
+            ome_img = self._get_image_object()
             if ome_img:
                 if ome_img.getSizeX() >= ome_img.getSizeY():
                     th_size = (size, )
@@ -167,28 +159,29 @@ class OmeEngine(RenderingEngineInterface):
                     th_size = (th_w, size)
                 thumbnail_buffer = StringIO(ome_img.getThumbnail(size=th_size))
                 thumbnail = Image.open(thumbnail_buffer)
-                cache.thumbnail_to_cache(self.image_id, thumbnail, size,
-                                         settings.DEEPZOOM_FORMAT)
+                cache.thumbnail_to_cache(self.image_id, thumbnail, size, settings.DEEPZOOM_FORMAT, 'omero')
         else:
             self.logger.info('Thumbnail loaded from cache')
         return thumbnail, settings.DEEPZOOM_FORMAT
 
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
         self._check_source_type(original_file_source)
-        cache = CacheDriverFactory().get_cache('omero')
+        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
+            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
         cache_params = {
             'image_id': self.image_id,
             'level': level,
             'column': column,
             'row': row,
             'tile_size': settings.DEEPZOOM_TILE_SIZE,
-            'image_format': settings.DEEPZOOM_FORMAT
+            'image_format': settings.DEEPZOOM_FORMAT,
+            'rendering_engine': 'omero'
         }
         if cache_params['image_format'].lower() == 'jpeg':
             cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
         tile = cache.tile_from_cache(**cache_params)
         if tile is None:
-            ome_img = self._get_image_object()
+            ome_img = self._get_image_object(get_biggest_in_fileset=True)
             ome_level = self._get_best_downscale_level(level, ome_img)
             tile = self._get_ome_tile(ome_img, ome_level, level, row=column, column=row)
             cache_params['image_obj'] = tile
