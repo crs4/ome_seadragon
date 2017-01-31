@@ -91,7 +91,7 @@ class RenderingEngineInterface(object):
         if not original_file_source:
             img = self._get_image_object(get_biggest_in_fileset=True)
             if img:
-                return self._get_json_description(resource_path, img.getSizeX(), img.getSizeY())
+                return self._get_json_description(resource_path, img.getSizeY(), img.getSizeX())
             else:
                 return None
         else:
