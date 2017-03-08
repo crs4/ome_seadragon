@@ -103,3 +103,34 @@ TransformMatrixHelper.fromMatrixJSON = function(matrix_json) {
         return undefined;
     }
 };
+
+function ShapeConverter() {}
+
+ShapeConverter.extractPathSegments = function(paper_shape, x_offset, y_offset) {
+    var x_off = (typeof x_offset === 'undefined') ? 0 : x_offset;
+    var y_off = (typeof y_offset === 'undefined') ? 0: y_offset;
+    var segments = [];
+    var paper_segments = paper_shape.getSegments();
+    for (var i=0 ; i<paper_segments.length; i++) {
+        var segment = {
+            point: {
+                x: paper_segments[i].getPoint().x + x_off,
+                y: paper_segments[i].getPoint().y + y_off
+            }
+        };
+        if (paper_segments[i].getHandleIn().length > 0) {
+            segment['handle_in'] = {
+                x: paper_segments[i].getHandleIn().x,
+                y: paper_segments[i].getHandleIn().y
+            }
+        }
+        if (paper_segments[i].getHandleOut().length > 0) {
+            segment['handle_out'] = {
+                x: paper_segments[i].getHandleOut().x,
+                y: paper_segments[i].getHandleOut().y
+            }
+        }
+        segments.push(segment);
+    }
+    return segments;
+};

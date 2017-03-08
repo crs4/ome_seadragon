@@ -487,28 +487,8 @@ function Path(id, segments, closed, transform_matrix) {
 
     this._extract_segments = function(x_offset, y_offset) {
         if (this.paper_shape !== 'undefined') {
-            var segments = this.paper_shape.getSegments();
-            for (var i=0; i<segments.length; i++) {
-                var segment = {
-                    'point': {
-                        'x': segments[i].getPoint().x + x_offset,
-                        'y': segments[i].getPoint().y + y_offset
-                    }
-                };
-                if (segments[i].getHandleIn().length > 0) {
-                    segment['handle_in'] = {
-                        'x': segments[i].getHandleIn().x,
-                        'y': segments[i].getHandleIn().y
-                    }
-                }
-                if (segments[i].getHandleOut().length > 0) {
-                    segment['handle_out'] = {
-                        'x': segments[i].getHandleOut().x,
-                        'y': segments[i].getHandleOut().y
-                    }
-                }
-                this.segments.push(segment);
-            }
+            this.segments = ShapeConverter.extractPathSegments(this.paper_shape,
+                x_offset, y_offset);
         } else {
             throw new Error('Paper shape not initialized');
         }
