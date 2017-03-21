@@ -11,6 +11,7 @@ module.exports = function(grunt) {
         "src/js/polygons_drawing_tool.js",
         "src/js/measuring_tool.js",
         "src/js/freehand_drawing_tool.js",
+        "src/js/area_measuring_tool.js",
         "src/js/utils.js"
     ];
 

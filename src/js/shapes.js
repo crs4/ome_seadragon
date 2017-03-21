@@ -140,10 +140,14 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this.getIntersection = function(shape) {
+        return this._shapeToPath().intersect(shape._shapeToPath());
+    };
+
     this.getCoveragePercentage = function(shape) {
         var shape_area = shape.getArea(1);
         if ((typeof this.paper_shape !== 'undefined') && (typeof shape_area !== 'undefined')) {
-            var intersection = this._shapeToPath().intersect(shape._shapeToPath());
+            var intersection = this.getIntersection(shape);
             // passing 1 as pixel size because we only need area in pixels to get the coverage ratio
             var coverage_ratio = Math.abs(intersection.area) / this.getArea(1);
             intersection.remove();
@@ -483,28 +487,8 @@ function Path(id, segments, closed, transform_matrix) {
 
     this._extract_segments = function(x_offset, y_offset) {
         if (this.paper_shape !== 'undefined') {
-            var segments = this.paper_shape.getSegments();
-            for (var i=0; i<segments.length; i++) {
-                var segment = {
-                    'point': {
-                        'x': segments[i].getPoint().x + x_offset,
-                        'y': segments[i].getPoint().y + y_offset
-                    }
-                };
-                if (segments[i].getHandleIn().length > 0) {
-                    segment['handle_in'] = {
-                        'x': segments[i].getHandleIn().x,
-                        'y': segments[i].getHandleIn().y
-                    }
-                }
-                if (segments[i].getHandleOut().length > 0) {
-                    segment['handle_out'] = {
-                        'x': segments[i].getHandleOut().x,
-                        'y': segments[i].getHandleOut().y
-                    }
-                }
-                this.segments.push(segment);
-            }
+            this.segments = ShapeConverter.extractPathSegments(this.paper_shape,
+                x_offset, y_offset);
         } else {
             throw new Error('Paper shape not initialized');
         }
