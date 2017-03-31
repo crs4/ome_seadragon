@@ -45,24 +45,14 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         };
 
         this.annotation_controller.adaptRulerToShape = function () {
-            var intersection = this.area_ruler.getIntersection(
-                this.getShape(this.area_ruler_binding_shape_id)
-            );
-            var intersection_path = ShapeConverter.extractPathSegments(intersection,
-                this.x_offset, this.y_offset);
-            if (intersection_path.length === 0) {
+            var bindingShape = this.getShape(this.area_ruler_binding_shape_id);
+            if (this.area_ruler.intersectsShape(bindingShape) === true) {
+                this.intersectShapes(this.area_ruler, bindingShape, true, false, true);
+                this.area_ruler = this.getShape(this.area_ruler_id);
+            } else {
                 this.deleteShape(this.area_ruler_id);
                 this.area_ruler = undefined;
                 $("#" + this.area_ruler_out_id).trigger('area_ruler_empty_intersection');
-            } else {
-                var ruler_json = this.getShapeJSON(this.area_ruler_id);
-                // replace segments of the ruler with the ones of the intersection
-                ruler_json.segments = intersection_path;
-                this.deleteShape(this.area_ruler_id);
-                intersection.remove();
-                this.drawShapeFromJSON(ruler_json);
-                this.area_ruler = this.getShape(this.area_ruler_id);
-                this.refreshView();
             }
         };
 
