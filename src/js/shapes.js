@@ -142,6 +142,12 @@ function Shape(id, transform_matrix) {
 
     this.getIntersection = function(shape) {
         return this._shapeToPath().intersect(shape._shapeToPath());
+    this.intersectsShape = function(shape, x_offset, y_offset) {
+        var intersection = this.getIntersection(shape);
+        var intersection_path = ShapeConverter.extractPathSegments(intersection, x_offset, y_offset);
+        return (intersection_path.length > 0);
+    };
+
     };
 
     this.getCoveragePercentage = function(shape) {
