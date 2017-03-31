@@ -512,7 +512,11 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this.intersectShapes = function(shape1, shape2, replace_shape_1, replace_shape_2, clear_intersection) {
-        if (shape1.intersectsShape(shape2, this.x_offset, this.y_offset) === true) {
+        if (
+            shape1.intersectsShape(shape2) === true ||
+            shape1.containsShape(shape2) === true ||
+            shape2.containsShape(shape1) === true
+        ) {
             var remove_intersection = typeof clear_intersection === 'undefined' ? true : clear_intersection;
             var intersection = shape1.getIntersection(shape2 , !(remove_intersection));
             console.log('REPLACING WITH INTERSECTION: ' + intersection);

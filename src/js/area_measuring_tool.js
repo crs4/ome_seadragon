@@ -45,9 +45,13 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         };
 
         this.annotation_controller.adaptRulerToShape = function () {
-            var bindingShape = this.getShape(this.area_ruler_binding_shape_id);
-            if (this.area_ruler.intersectsShape(bindingShape) === true) {
-                this.intersectShapes(this.area_ruler, bindingShape, true, false, true);
+            var binding_shape = this.getShape(this.area_ruler_binding_shape_id);
+            if (
+                this.area_ruler.intersectsShape(binding_shape) === true ||
+                this.area_ruler.containsShape(binding_shape) ||
+                binding_shape.containsShape(this.area_ruler)
+            ) {
+                this.intersectShapes(this.area_ruler, binding_shape, true, false, true);
                 this.area_ruler = this.getShape(this.area_ruler_id);
             } else {
                 this.deleteShape(this.area_ruler_id);
