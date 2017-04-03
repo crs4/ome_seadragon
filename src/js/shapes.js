@@ -140,8 +140,13 @@ function Shape(id, transform_matrix) {
         }
     };
 
-    this.getIntersection = function(shape) {
-        return this._shapeToPath().intersect(shape._shapeToPath());
+    this.intersectsShape = function(shape) {
+        return this._shapeToPath().intersects(shape._shapeToPath());
+    };
+
+    this.getIntersection = function(shape, draw_intersection) {
+        var draw = typeof draw_intersection === 'undefined' ? false : draw_intersection;
+        return this._shapeToPath().intersect(shape._shapeToPath(), {insert: draw});
     };
 
     this.getCoveragePercentage = function(shape) {

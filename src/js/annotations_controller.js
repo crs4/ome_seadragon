@@ -500,4 +500,35 @@ function AnnotationsController(canvas_id, default_config) {
         });
         refresh(this, refresh_view);
     };
+
+    this._replaceShapePath = function(shape_id, path) {
+        console.log('SHAPE ID IS: ' + shape_id);
+        var shape_json = this.getShapeJSON(shape_id);
+        console.log(shape_json);
+        shape_json.segments = path;
+        this.deleteShape(shape_id);
+        this.drawShapeFromJSON(shape_json);
+        this.refreshView();
+    };
+
+    this.intersectShapes = function(shape1, shape2, replace_shape_1, replace_shape_2, clear_intersection) {
+        if (
+            shape1.intersectsShape(shape2) === true ||
+            shape1.containsShape(shape2) === true ||
+            shape2.containsShape(shape1) === true
+        ) {
+            var remove_intersection = typeof clear_intersection === 'undefined' ? true : clear_intersection;
+            var intersection = shape1.getIntersection(shape2 , !(remove_intersection));
+            console.log('REPLACING WITH INTERSECTION: ' + intersection);
+            var intersection_path = ShapeConverter.extractPathSegments(intersection,
+                this.x_offset, this.y_offset);
+            if (replace_shape_1 === true) {
+                this._replaceShapePath(shape1.id, intersection_path);
+            } else if (replace_shape_2 === true) {
+                this._replaceShapePath(shape2.id, intersection_path);
+            }
+        } else {
+            console.warn('No intersection between the two shapes');
+        }
+    };
 }
