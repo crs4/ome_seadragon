@@ -51,7 +51,7 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
                 this.area_ruler.containsShape(binding_shape) ||
                 binding_shape.containsShape(this.area_ruler)
             ) {
-                this.intersectShapes(this.area_ruler, binding_shape, true, false, true);
+                this.intersectShapes(this.area_ruler, binding_shape, true, false, true, true);
                 this.area_ruler = this.getShape(this.area_ruler_id);
             } else {
                 this.deleteShape(this.area_ruler_id);
