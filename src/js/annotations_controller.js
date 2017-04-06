@@ -511,15 +511,19 @@ function AnnotationsController(canvas_id, default_config) {
         this.refreshView();
     };
 
-    this.intersectShapes = function(shape1, shape2, replace_shape_1, replace_shape_2, clear_intersection) {
+    this.intersectShapes = function(shape1, shape2, replace_shape_1, replace_shape_2,
+                                    clear_intersection, filter_intersection) {
         if (
             shape1.intersectsShape(shape2) === true ||
             shape1.containsShape(shape2) === true ||
             shape2.containsShape(shape1) === true
         ) {
             var remove_intersection = typeof clear_intersection === 'undefined' ? true : clear_intersection;
+            var keep_bigger_intersection = typeof filter_intersection === 'undefined' ? false : filter_intersection;
             var intersection = shape1.getIntersection(shape2 , !(remove_intersection));
-            console.log('REPLACING WITH INTERSECTION: ' + intersection);
+            if (keep_bigger_intersection === true) {
+                intersection = ShapeConverter.keepBiggerShape(intersection);
+            }
             var intersection_path = ShapeConverter.extractPathSegments(intersection,
                 this.x_offset, this.y_offset);
             if (replace_shape_1 === true) {
