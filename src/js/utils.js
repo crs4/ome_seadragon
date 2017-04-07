@@ -110,7 +110,11 @@ ShapeConverter.extractPathSegments = function(paper_shape, x_offset, y_offset) {
     var x_off = (typeof x_offset === 'undefined') ? 0 : x_offset;
     var y_off = (typeof y_offset === 'undefined') ? 0: y_offset;
     var segments = [];
-    var paper_segments = paper_shape.getSegments();
+    try {
+        var paper_segments = paper_shape.getSegments();
+    } catch(err) {
+        var paper_segments = new paper.CompoundPath(paper_shape.getPathData()).getSegments();
+    }
     for (var i=0 ; i<paper_segments.length; i++) {
         var segment = {
             point: {
@@ -133,4 +137,29 @@ ShapeConverter.extractPathSegments = function(paper_shape, x_offset, y_offset) {
         segments.push(segment);
     }
     return segments;
+};
+
+ShapeConverter.keepBiggerShape = function(path_items) {
+    console.log(path_items);
+    try {
+        // single path, no need to filter
+        path_items.getSegments();
+        return path_items;
+    } catch(err) {
+        var bigger_area = undefined;
+        var selected_children_index = undefined;
+        for (var ch in path_items.getChildren()) {
+            var children_path = path_items.children[ch];
+            if (typeof selected_children_index !== 'undefined') {
+                if (children_path.getArea() > bigger_area) {
+                    selected_children_index = ch;
+                    bigger_area = children_path.getArea();
+                }
+            } else {
+                selected_children_index = ch;
+                bigger_area = children_path.getArea();
+            }
+        }
+        return path_items.children[selected_children_index];
+    }
 };
