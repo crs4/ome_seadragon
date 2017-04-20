@@ -10,7 +10,7 @@ import logging
 class SlidesDeleter(object):
 
     def __init__(self, ome_base_url, slides_file_list, log_level='INFO', log_file=None):
-        self.ome_delete_url = urljoin(ome_base_url, 'mirax/delete_file/')
+        self.ome_delete_url = urljoin(ome_base_url, 'mirax/delete_files/')
         self.ome_get_file_info_url = urljoin(ome_base_url, 'mirax/file_info/')
         self.slides_list = self.get_slides_list(slides_file_list)
         self.logger = self.get_logger(log_level, log_file)
@@ -63,15 +63,26 @@ class SlidesDeleter(object):
     def _delete_original_file(self, file_name):
         self.logger.info('## DELETING ORIGINAL FILE from OMERO %s' % file_name)
         response = requests.get(urljoin(self.ome_delete_url, '%s/' % file_name))
+        if response.status_code != requests.codes.OK:
+            self.logger.warn('RESPONSE CODE %s', response.status_code)
+            self.logger.warn('%s', response.text)
+            return False
+        else:
+            return True
 
     def run(self, delete_files=False):
         self.logger.info('STARTING DELETION JOB')
         for slide in self.slides_list:
             if delete_files:
-                file_path = self._get_file_path(slide, self.INDEX_FILE_MT)
-                folder_path = self._get_file_path(slide, self.DATA_FOLDER_MT)
-            self._delete_original_file(slide)
-            if delete_files:
+                try:
+                    file_path = self._get_file_path(slide, self.INDEX_FILE_MT)
+                    folder_path = self._get_file_path(slide, self.DATA_FOLDER_MT)
+                except TypeError:
+                    # if TypeError -> there is no file with that name on the server
+                    self.logger.warn('There is no file with name %s on the server', slide)
+                    continue
+            deleted = self._delete_original_file(slide)
+            if delete_files and deleted:
                 self._delete_file(file_path)
                 self._delete_file(folder_path, is_folder=True)
         self.logger.info('DELETION JOB COMPLETED')
