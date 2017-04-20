@@ -355,6 +355,15 @@ def register_original_file(request, conn=None, **kwargs):
 
 
 @login_required()
+def get_original_file_infos(request, file_name, conn=None, **kwargs):
+    fmtype = request.GET.get('mimetype')
+    if fmtype is None:
+        return HttpResponseServerError('Missing mandatory mimetype value to complete the request')
+    details = original_files.get_original_file_infos(conn, file_name, fmtype)
+    return HttpResponse(json.dumps(details), content_type='application/json')
+
+
+@login_required()
 def delete_original_file(request, file_name, conn=None, **kwargs):
     fmtype = request.GET.get('mimetype')
     if fmtype is None:

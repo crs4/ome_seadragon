@@ -64,3 +64,12 @@ def delete_original_files(connection, name, mimetype=None):
         except:
             return False, 0
     return True, len(of_ids)
+
+
+def get_original_file_infos(connection, name, mimetype):
+    ofile = get_original_file(connection, name, mimetype)
+    if ofile:
+        return {
+            'file_path': ofile.getPath(),
+            'file_hash': ofile.getHash()
+        }
