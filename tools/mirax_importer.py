@@ -11,6 +11,7 @@ class MiraxImporter(object):
 
     def __init__(self, source_folder, ome_base_url, chunk_size, log_level='INFO', log_file=None):
         self.source_folder = source_folder
+        self.ome_slides_list_url = urljoin(ome_base_url, 'get/images/index/')
         self.ome_save_url = urljoin(ome_base_url, 'mirax/register_file/')
         self.ome_delete_url = urljoin(ome_base_url, 'mirax/delete_files/')
         self.INDEX_FILE_MT = 'mirax/index'
@@ -78,14 +79,27 @@ class MiraxImporter(object):
         self.logger.debug('Details for file %s: %r', file_name, details)
         return label, details
 
+    def _clean_existing_slides(self, files_list):
+        response = requests.get(self.ome_slides_list_url)
+        slides_list = [x['name'] for x in response.json()]
+        cleaned_list = []
+        for f in files_list:
+            if not f.split('.')[0] in slides_list:
+                cleaned_list.append(f)
+        return cleaned_list
+
     def _get_files_map(self):
         if path.exists(self.source_folder):
             files = listdir(self.source_folder)
             # exclude hidden files and folders
             files = [f for f in files if not f.startswith('.')]
+            cleaned_files = self._clean_existing_slides(files)
+            if len(cleaned_files) == 0:
+                self.logger.info('Nothing to import, exit')
+                sys.exit(0)
             files_map = {}
-            self.logger.info('Found %d files, building files map', len(files))
-            for f in files:
+            self.logger.info('Found %d files, building files map', len(cleaned_files))
+            for f in cleaned_files:
                 self.logger.debug('Getting details for file %s', f)
                 label, details = self._get_file_details(path.join(self.source_folder, f))
                 if label:
