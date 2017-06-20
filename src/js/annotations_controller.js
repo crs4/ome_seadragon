@@ -490,6 +490,9 @@ function AnnotationsController(canvas_id, default_config) {
             default:
                 console.warn('Item ' + shape_json + ' is not a JSON shape representation');
         }
+        if (shape_json.hidden === true) {
+            this.hideShape(shape_json.shape_id);
+        }
         refresh(this, refresh_view);
     };
 
