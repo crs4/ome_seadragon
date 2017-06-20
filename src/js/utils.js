@@ -52,10 +52,18 @@ ColorsAdapter.paperColorToHex = function(paper_color) {
 function TransformMatrixHelper() {}
 
 TransformMatrixHelper.getPaperMatrix = function(a, c, b, d, tx, ty) {
+    var a = isNaN(a) ? 0 : a;
+    var b = isNaN(b) ? 0 : b;
+    var c = isNaN(c) ? 0 : c;
+    var d = isNaN(d) ? 0 : d;
+    var tx = isNaN(tx) ? 0 : tx;
+    var ty = isNaN(ty) ? 0 : ty;
     return new paper.Matrix(a, c, b, d, tx, ty);
 };
 
 TransformMatrixHelper.getTranslationMatrix = function(tx, ty) {
+    var tx = isNaN(tx) ? 0 : tx;
+    var ty = isNaN(ty) ? 0 : ty;
     return TransformMatrixHelper.getPaperMatrix(1, 0, 0, 1, tx, ty);
 };
 
