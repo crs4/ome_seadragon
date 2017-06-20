@@ -18,7 +18,8 @@ function Shape(id, transform_matrix) {
             'fill_alpha': fill_color_json.alpha,
             'stroke_color': stroke_color_json.hex_color,
             'stroke_alpha': stroke_color_json.alpha,
-            'stroke_width': this.stroke_width
+            'stroke_width': this.stroke_width,
+            'hidden': this.isHidden()
         }
     };
 
