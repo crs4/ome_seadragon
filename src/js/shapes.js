@@ -266,6 +266,12 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this.isHidden = function() {
+        if (typeof this.paper_shape !== 'undefined') {
+            return !(this.paper_shape.getVisible());
+        }
+    };
+
     this.delete = function() {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.remove();
