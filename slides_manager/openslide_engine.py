@@ -56,7 +56,7 @@ class OpenSlideEngine(RenderingEngineInterface):
         slide = self._get_openslide_wrapper(original_file_source=True,
                                             file_mimetype=file_mimetype)
         if slide:
-            return self._get_json_description(resource_path, slide.dimensions[0], slide.dimensions[1])
+            return self._get_json_description(resource_path, slide.dimensions[1], slide.dimensions[0])
         else:
             return None
 
