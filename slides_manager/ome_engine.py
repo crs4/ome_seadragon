@@ -58,12 +58,13 @@ class OmeEngine(RenderingEngineInterface):
         dzi_diag = math.sqrt(math.pow(dzi_w, 2) + math.pow(dzi_h, 2))
         return ome_diag / dzi_diag
 
-    def _get_ome_tile(self, ome_img, ome_level, dzi_level, column, row):
+    def _get_ome_tile(self, ome_img, ome_level, dzi_level, column, row, tile_size=None):
+        tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         scale_factor = self._get_scale_factor(ome_img.getSizeX(), ome_img.getSizeY(),
                                               self._get_ome_scale_factor(ome_level, ome_img),
                                               self._get_dzi_scale_factor(dzi_level, ome_img))
-        ome_tile_size = (settings.DEEPZOOM_TILE_SIZE + 2 * settings.DEEPZOOM_OVERLAP) * scale_factor
-        ome_x = row * (settings.DEEPZOOM_TILE_SIZE * scale_factor)
+        ome_tile_size = (tile_size + 2 * settings.DEEPZOOM_OVERLAP) * scale_factor
+        ome_x = row * (tile_size * scale_factor)
         if ome_x != 0:
             ome_x -= settings.DEEPZOOM_OVERLAP * scale_factor
         ome_y = column * (settings.DEEPZOOM_TILE_SIZE * scale_factor)
@@ -96,7 +97,7 @@ class OmeEngine(RenderingEngineInterface):
             return tile
         except TypeError:
             # return a white tile
-            return Image.new('RGB', (settings.DEEPZOOM_TILE_SIZE, settings.DEEPZOOM_TILE_SIZE), 'white')
+            return Image.new('RGB', (tile_size, tile_size), 'white')
 
     def _get_image_mpp(self, original_file_source=False, file_mimetype=None):
         self._check_source_type(original_file_source)
@@ -120,10 +121,11 @@ class OmeEngine(RenderingEngineInterface):
             'mpp': self._get_image_mpp()
         }
 
-    def _get_original_file_json_description(self, resource_path, file_mimetype=None):
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None):
         raise NotImplemented()
 
-    def get_dzi_description(self, original_file_source=False, file_mimetype=None):
+    def get_dzi_description(self, original_file_source=False, file_mimetype=None, tile_size=None):
+        tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         self._check_source_type(original_file_source)
         img = self._get_image_object(get_biggest_in_fileset=True)
         if img:
@@ -132,7 +134,7 @@ class OmeEngine(RenderingEngineInterface):
                 attrib={
                     'Format': str(settings.DEEPZOOM_FORMAT),
                     'Overlap': str(settings.DEEPZOOM_OVERLAP),
-                    'TileSize': str(settings.DEEPZOOM_TILE_SIZE)
+                    'TileSize': str(tile_size)
                 },
                 nsmap={None: 'http://schemas.microsoft.com/deepzoom/2008'}
             )
@@ -164,7 +166,8 @@ class OmeEngine(RenderingEngineInterface):
             self.logger.info('Thumbnail loaded from cache')
         return thumbnail, settings.DEEPZOOM_FORMAT
 
-    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
+    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None, tile_size=None):
+        tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         self._check_source_type(original_file_source)
         cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
             get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
@@ -173,7 +176,7 @@ class OmeEngine(RenderingEngineInterface):
             'level': level,
             'column': column,
             'row': row,
-            'tile_size': settings.DEEPZOOM_TILE_SIZE,
+            'tile_size': tile_size,
             'image_format': settings.DEEPZOOM_FORMAT,
             'rendering_engine': 'omero'
         }
@@ -183,7 +186,7 @@ class OmeEngine(RenderingEngineInterface):
         if tile is None:
             ome_img = self._get_image_object(get_biggest_in_fileset=True)
             ome_level = self._get_best_downscale_level(level, ome_img)
-            tile = self._get_ome_tile(ome_img, ome_level, level, row=column, column=row)
+            tile = self._get_ome_tile(ome_img, ome_level, level, row=column, column=row, tile_size=tile_size)
             cache_params['image_obj'] = tile
             cache.tile_to_cache(**cache_params)
         return tile, settings.DEEPZOOM_FORMAT
