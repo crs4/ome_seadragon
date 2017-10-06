@@ -64,21 +64,22 @@ class RenderingEngineInterface(object):
         pass
 
     @abstractmethod
-    def get_dzi_description(self, original_file_source=False, file_mimetype=None):
+    def get_dzi_description(self, original_file_source=False, file_mimetype=None, tile_size=None):
         pass
 
     @abstractmethod
-    def _get_original_file_json_description(self, resource_path, file_mimetype=None):
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None):
         pass
 
-    def _get_json_description(self, resource_path, img_height, img_width):
+    def _get_json_description(self, resource_path, img_height, img_width, tile_size=None):
+        tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         return {
             'Image': {
                 'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',
                 'Url': resource_path,
                 'Format': str(settings.DEEPZOOM_FORMAT),
                 'Overlap': str(settings.DEEPZOOM_OVERLAP),
-                'TileSize': str(settings.DEEPZOOM_TILE_SIZE),
+                'TileSize': str(tile_size),
                 'Size': {
                     'Height': str(img_height),
                     'Width': str(img_width)
@@ -86,22 +87,22 @@ class RenderingEngineInterface(object):
             }
         }
 
-    def get_json_description(self, resource_path, original_file_source=False, file_mimetype=None):
+    def get_json_description(self, resource_path, original_file_source=False, file_mimetype=None, tile_size=None):
         self._check_source_type(original_file_source)
         if not original_file_source:
             img = self._get_image_object(get_biggest_in_fileset=True)
             if img:
-                return self._get_json_description(resource_path, img.getSizeY(), img.getSizeX())
+                return self._get_json_description(resource_path, img.getSizeY(), img.getSizeX(), tile_size)
             else:
                 return None
         else:
-            return self._get_original_file_json_description(resource_path, file_mimetype)
+            return self._get_original_file_json_description(resource_path, file_mimetype, tile_size)
 
-    def get_image_description(self, resource_path, original_file_source=False, file_mimetype=None):
+    def get_image_description(self, resource_path, original_file_source=False, file_mimetype=None, tile_size=None):
         return {
             'image_mpp': self._get_image_mpp(original_file_source, file_mimetype),
             'tile_sources': self.get_json_description(resource_path, original_file_source,
-                                                      file_mimetype)
+                                                      file_mimetype, tile_size)
         }
 
     @abstractmethod
@@ -109,5 +110,5 @@ class RenderingEngineInterface(object):
         pass
 
     @abstractmethod
-    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
+    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None, tile_size=None):
         pass
