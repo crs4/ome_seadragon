@@ -215,14 +215,18 @@ def find_annotations(request, conn=None, **kwargs):
 @login_required()
 def get_image_dzi(request, image_id, fetch_original_file=False,
                   file_mimetype=None, conn=None, **kwargs):
+    try:
+        tile_size = int(request.GET.get('tile_size'))
+    except TypeError:
+        tile_size = None
     rf = RenderingEngineFactory()
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
-        dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype)
+        dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype, tile_size)
     except Exception, e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
-            dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype)
+            dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype, tile_size)
         else:
             raise e
     if dzi_metadata:
@@ -234,17 +238,21 @@ def get_image_dzi(request, image_id, fetch_original_file=False,
 @login_required()
 def get_image_json(request, image_id, fetch_original_file=False,
                    file_mimetype=None, conn=None, **kwargs):
+    try:
+        tile_size = int(request.GET.get('tile_size'))
+    except TypeError:
+        tile_size = None
     rf = RenderingEngineFactory()
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     resource_path = request.build_absolute_uri('%s_files/' % image_id)
     try:
         json_metadata = rendering_engine.get_json_description(resource_path, fetch_original_file,
-                                                              file_mimetype)
+                                                              file_mimetype, tile_size)
     except Exception, e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
             json_metadata = rendering_engine.get_json_description(resource_path, fetch_original_file,
-                                                                  file_mimetype)
+                                                                  file_mimetype, tile_size)
         else:
             raise e
     if json_metadata:
@@ -255,15 +263,21 @@ def get_image_json(request, image_id, fetch_original_file=False,
 
 @login_required()
 def get_image_metadata(request, image_id, fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
+    try:
+        tile_size = int(request.GET.get('tile_size'))
+    except TypeError:
+        tile_size = None
     rf = RenderingEngineFactory()
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     resource_path = request.build_absolute_uri('%s_files/' % image_id)
     try:
-        img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file, file_mimetype)
+        img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file,
+                                                              file_mimetype, tile_size)
     except Exception, e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
-            img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file, file_mimetype)
+            img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file,
+                                                                  file_mimetype, tile_size)
         else:
             raise e
     if img_metadata:
@@ -298,18 +312,22 @@ def get_image_thumbnail(request, image_id, fetch_original_file=False,
 @login_required()
 def get_tile(request, image_id, level, column, row, tile_format,
              fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
+    try:
+        tile_size = int(request.GET.get('tile_size'))
+    except TypeError:
+        tile_size = None
     if tile_format != settings.DEEPZOOM_FORMAT:
         return HttpResponseServerError("Format %s not supported by the server" % tile_format)
     rf = RenderingEngineFactory()
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
         tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
-                                                       fetch_original_file, file_mimetype)
+                                                       fetch_original_file, file_mimetype, tile_size)
     except Exception, e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
             tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
-                                                           fetch_original_file, file_mimetype)
+                                                           fetch_original_file, file_mimetype, tile_size)
         else:
             raise e
     if tile:

@@ -21,17 +21,19 @@ class OpenSlideEngine(RenderingEngineInterface):
         else:
             return None
 
-    def _get_deepzoom_config(self):
-        return {
-            'tile_size': settings.DEEPZOOM_TILE_SIZE,
+    def _get_deepzoom_config(self, tile_size=None):
+        cfg = {
+            'tile_size': tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE,
             'overlap': settings.DEEPZOOM_OVERLAP,
             'limit_bounds': settings.DEEPZOOM_LIMIT_BOUNDS
         }
+        self.logger.info(cfg)
+        return cfg
 
-    def _get_deepzoom_wrapper(self, original_file_source, file_mimetype):
+    def _get_deepzoom_wrapper(self, original_file_source, file_mimetype, tile_size=None):
         os_wrapper = self._get_openslide_wrapper(original_file_source, file_mimetype)
         if os_wrapper:
-            return DeepZoomGenerator(os_wrapper, **self._get_deepzoom_config())
+            return DeepZoomGenerator(os_wrapper, **self._get_deepzoom_config(tile_size))
         else:
             return None
 
@@ -52,16 +54,16 @@ class OpenSlideEngine(RenderingEngineInterface):
             'mpp': self._get_image_mpp(original_file_source, file_mimetype)
         }
 
-    def _get_original_file_json_description(self, resource_path, file_mimetype=None):
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None):
         slide = self._get_openslide_wrapper(original_file_source=True,
                                             file_mimetype=file_mimetype)
         if slide:
-            return self._get_json_description(resource_path, slide.dimensions[0], slide.dimensions[1])
+            return self._get_json_description(resource_path, slide.dimensions[1], slide.dimensions[0], tile_size)
         else:
             return None
 
-    def get_dzi_description(self, original_file_source=False, file_mimetype=None):
-        dzi_slide = self._get_deepzoom_wrapper(original_file_source, file_mimetype)
+    def get_dzi_description(self, original_file_source=False, file_mimetype=None, tile_size=None):
+        dzi_slide = self._get_deepzoom_wrapper(original_file_source, file_mimetype, tile_size)
         if dzi_slide:
             return dzi_slide.get_dzi(settings.DEEPZOOM_FORMAT)
         else:
@@ -84,15 +86,17 @@ class OpenSlideEngine(RenderingEngineInterface):
             self.logger.info('Thumbnail loaded from cache')
         return thumb, settings.DEEPZOOM_FORMAT
 
-    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None):
+    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None, tile_size=None):
         cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
             get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
+        tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
+        self.logger.info('TILE SIZE IS: %s', tile_size)
         cache_params = {
             'image_id': self.image_id,
             'level': level,
             'column': column,
             'row': row,
-            'tile_size': settings.DEEPZOOM_TILE_SIZE,
+            'tile_size': tile_size,
             'image_format': settings.DEEPZOOM_FORMAT,
             'rendering_engine': 'openslide'
         }
@@ -102,7 +106,7 @@ class OpenSlideEngine(RenderingEngineInterface):
         tile = cache.tile_from_cache(**cache_params)
         # if tile is not in cache build it ...
         if tile is None:
-            slide = self._get_deepzoom_wrapper(original_file_source, file_mimetype)
+            slide = self._get_deepzoom_wrapper(original_file_source, file_mimetype, tile_size)
             if slide:
                 dzi_tile = slide.get_tile(level, (column, row))
                 tile_buffer = StringIO()
