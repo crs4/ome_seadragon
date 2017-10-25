@@ -88,10 +88,14 @@ function AnnotationsController(canvas_id, default_config) {
         paper.view.setCenter(center);
     };
 
+    this.shapeIdAvailable = function(shape_id) {
+        return !(shape_id in this.shapes_cache);
+    };
+
     this._getShapeId = function(id_prefix) {
         var id_counter = 1;
         var shape_id = id_prefix + '_' + id_counter;
-        while (shape_id in this.shapes_cache) {
+        while (!this.shapeIdAvailable(shape_id)) {
             id_counter += 1;
             shape_id = id_prefix + '_' + id_counter;
         }
