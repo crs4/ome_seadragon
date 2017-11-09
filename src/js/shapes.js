@@ -37,6 +37,10 @@ function Shape(id, transform_matrix) {
         }
     };
 
+    this.setId = function(id) {
+        this.id = id;
+    };
+
     this.setStrokeColor = function(color, alpha) {
         var color_value = (typeof color === 'undefined') ? this.stroke_color.toCSS(true) : color;
         var alpha_value = (typeof alpha === 'undefined') ? this.stroke_color.getAlpha() : alpha;

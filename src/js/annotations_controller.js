@@ -92,7 +92,16 @@ function AnnotationsController(canvas_id, default_config) {
         return !(shape_id in this.shapes_cache);
     };
 
-    this._getShapeId = function(id_prefix) {
+    this.changeShapeId = function(shape_id, new_shape_id) {
+        var shape = this.getShape(shape_id);
+        if (typeof shape !== 'undefined') {
+            shape.setId(new_shape_id);
+            this.shapes_cache[new_shape_id] = shape;
+            delete this.shapes_cache[shape_id];
+        }
+    };
+
+    this.getFirstAvailableLabel = function(id_prefix) {
         var id_counter = 1;
         var shape_id = id_prefix + '_' + id_counter;
         while (!this.shapeIdAvailable(shape_id)) {
