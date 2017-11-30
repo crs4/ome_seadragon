@@ -52,7 +52,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
             this.tmp_freehand_path.simplifyPath(this.x_offset, this.y_offset);
             var tmp_path_json = this.getShapeJSON(this.tmp_path_id);
             this.deleteShape(this.tmp_path_id, false);
-            tmp_path_json.shape_id = this._getShapeId(this.label_prefix);
+            tmp_path_json.shape_id = this.getFirstAvailableLabel(this.label_prefix);
             this.drawShapeFromJSON(tmp_path_json, true);
             this.tmp_freehand_path = undefined;
             $("#" + this.canvas_id).trigger('freehand_polygon_saved', [tmp_path_json.shape_id]);

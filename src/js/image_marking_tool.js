@@ -55,7 +55,7 @@ AnnotationsEventsController.prototype.initializeImageMarkingTool = function (mar
 
         this.annotation_controller._createMarker = function (x, y, radius, shape_id) {
             if (typeof(shape_id) === 'undefined') {
-                shape_id = this._getShapeId('marker');
+                shape_id = this.getFirstAvailableLabel('marker');
             }
             this.drawCircle(shape_id, x, y, radius, undefined, this.markers_config, true);
             this.markers_id.push(shape_id);
