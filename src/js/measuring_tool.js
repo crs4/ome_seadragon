@@ -81,7 +81,7 @@ AnnotationsEventsController.prototype.initializeMeasuringTool = function(polylin
                     }
                 }
             });
-            ruler_json.shape_id = this._getShapeId('ruler');
+            ruler_json.shape_id = this.getFirstAvailableLabel('ruler');
             $ruler_out.data('ruler_json', ruler_json);
         };
 

@@ -77,7 +77,7 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
                 // serialize ruler in output field's data
                 var $ruler_out = $("#" + this.area_ruler_out_id);
                 var ruler_json = this.getShapeJSON(this.area_ruler_id);
-                ruler_json.shape_id = this._getShapeId('area_ruler');
+                ruler_json.shape_id = this.getFirstAvailableLabel('area_ruler');
                 $ruler_out.data('ruler_json', ruler_json);
             }
         };

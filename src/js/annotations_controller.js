@@ -88,10 +88,23 @@ function AnnotationsController(canvas_id, default_config) {
         paper.view.setCenter(center);
     };
 
-    this._getShapeId = function(id_prefix) {
+    this.shapeIdAvailable = function(shape_id) {
+        return !(shape_id in this.shapes_cache);
+    };
+
+    this.changeShapeId = function(shape_id, new_shape_id) {
+        var shape = this.getShape(shape_id);
+        if (typeof shape !== 'undefined') {
+            shape.setId(new_shape_id);
+            this.shapes_cache[new_shape_id] = shape;
+            delete this.shapes_cache[shape_id];
+        }
+    };
+
+    this.getFirstAvailableLabel = function(id_prefix) {
         var id_counter = 1;
         var shape_id = id_prefix + '_' + id_counter;
-        while (shape_id in this.shapes_cache) {
+        while (!this.shapeIdAvailable(shape_id)) {
             id_counter += 1;
             shape_id = id_prefix + '_' + id_counter;
         }

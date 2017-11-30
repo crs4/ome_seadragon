@@ -66,7 +66,7 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
             var tmp_polygon_json = this.getShapeJSON(this.tmp_polygon_id);
             this.deleteShape(this.tmp_polygon_id, false);
             var polygon_label_prefix = (typeof label_prefix === 'undefined') ? 'polygon' : label_prefix;
-            tmp_polygon_json.shape_id = this._getShapeId(polygon_label_prefix);
+            tmp_polygon_json.shape_id = this.getFirstAvailableLabel(polygon_label_prefix);
             // apply translation
             var ac = this;
             tmp_polygon_json.segments = $.map(tmp_polygon_json.segments, function (segment) {
