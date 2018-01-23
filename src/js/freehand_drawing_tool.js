@@ -9,7 +9,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
         this.annotation_controller.tmp_freehand_path = undefined;
         this.annotation_controller.tmp_path_id = 'tmp_freehand_path';
         this.annotation_controller.path_config = path_config;
-        this.label_prefix = (typeof label_prefix === 'undefined') ? 'polygon' : label_prefix;
+        this.annotation_controller.label_prefix = (typeof label_prefix === 'undefined') ? 'polygon' : label_prefix;
 
         this.annotation_controller.updatePathConfig = function (path_config) {
             this.path_config = path_config;
@@ -81,6 +81,6 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
         }
 
     } else {
-        console.warn('Tool"' + AnnotationsEventsController.POLYGON_DRAWING_TOOL + '" already initialized');
+        console.warn('Tool"' + AnnotationsEventsController.FREEHAND_DRAWING_TOOL + '" already initialized');
     }
 };
