@@ -31,21 +31,30 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingToolPlus = functi
         };
 
         this.annotation_controller._setCheckpoint = function () {
-            var shape_json = this.tmp_freehand_plus_path.toJSON();
-            this.tmp_shape_history.push(shape_json);
+            var shape_json = this.getShapeJSON(this.tmp_path_plus_id);
+            // remove last point from the shape, it was not included in the previous version of the polygon
+            shape_json.segments.pop();
+            this.tmp_shape_history.push(JSON.stringify(shape_json));
+        };
+
+        this.annotation_controller.shapeHistoryExist = function () {
+            return (typeof this.tmp_shape_history !== 'undefined') && (this.tmp_shape_history.length > 0);
         };
 
         this.annotation_controller.rollbackFreehandPathPlus = function() {
             this.deleteShape(this.tmp_path_plus_id, false);
-            if (this.tmp_shape_history.length > 0) {
-                var prev_shape_json = this.tmp_shape_history.pop();
+            var stop_rollback = false;
+            if (this.shapeHistoryExist()) {
+                var prev_shape_json = JSON.parse(this.tmp_shape_history.pop());
                 this.drawShapeFromJSON(prev_shape_json, false);
                 this.tmp_freehand_plus_path = this.getShape(this.tmp_path_plus_id);
+                this.selectShape(this.tmp_path_plus_id);
             } else {
-                this.tmp_freehand_plus_path = undefined;
-                this.tmp_shape_history = undefined;
+                this.clearTemporaryFreehandPlus();
+                stop_rollback = true;
             }
             this.refreshView();
+            return stop_rollback;
         };
 
         this.annotation_controller._initShape = function(x, y, trigger_label) {
