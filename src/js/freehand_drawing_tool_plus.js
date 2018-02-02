@@ -11,6 +11,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingToolPlus = functi
         this.annotation_controller.path_plus_config = path_config;
         this.annotation_controller.fhp_label_prefix = (typeof label_prefix === 'undefined') ? 'polygon' : label_prefix;
         this.annotation_controller.tmp_shape_history = undefined;
+        this.annotation_controller.path_plus_preview_mode_on = false;
 
         this.annotation_controller.updateFHPlusPathConfig = function (path_config) {
             this.path_plus_config = path_config;
@@ -26,8 +27,27 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingToolPlus = functi
             }
         };
 
+        this.annotation_controller.replaceLastFreehandShapePoint = function (event) {
+            this.tmp_freehand_plus_path.removePoint();
+            this.addPointToFreehandPathPlus(event.point.x, event.point.y);
+        };
+
         this.annotation_controller.freehandPlusShapeExists = function () {
             return typeof this.tmp_freehand_plus_path !== 'undefined';
+        };
+
+        this.annotation_controller.activateFreehandPlusPreviewMode = function () {
+            this.path_plus_preview_mode_on = true;
+        };
+
+        this.annotation_controller.deactivateFreehandPlusPreviewMode = function () {
+            this.path_plus_preview_mode_on = false;
+            this.tmp_freehand_plus_path.closePath();
+            this.tmp_freehand_plus_path.disableDashedBorder();
+        };
+
+        this.annotation_controller.freehandPlusPreviewModeActive = function () {
+            return this.path_plus_preview_mode_on;
         };
 
         this.annotation_controller._setCheckpoint = function () {
@@ -82,8 +102,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingToolPlus = functi
         };
 
         this.annotation_controller.pauseFreehandPathPlus = function () {
-            this._setCheckpoint();
-            $("#" + this.canvas_id).trigger('freehand_polygon_plus_paused');
+            $("#" + this.canvas_id).trigger('freehand_polygon_plus_paused', this.tmp_path_plus_id);
         };
 
         this.annotation_controller.saveTemporaryFreehandPathPlus = function () {
@@ -112,6 +131,8 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingToolPlus = functi
 
         freehand_drawing_tool_plus.onMouseDown = function (event) {
             if (this.annotations_controller.freehandPlusShapeExists()) {
+                this.annotations_controller._setCheckpoint();
+                this.annotations_controller.deactivateFreehandPlusPreviewMode();
                 this.annotations_controller.continueFreehandPlusPath(event.point.x, event.point.y);
             } else {
                 this.annotations_controller.createFreehandPlusPath(event.point.x, event.point.y);
@@ -122,9 +143,46 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingToolPlus = functi
             this.annotations_controller.addPointToFreehandPathPlus(event.point.x, event.point.y);
         };
 
-        freehand_drawing_tool_plus.onMouseUp = function() {
+        freehand_drawing_tool_plus.onMouseUp = function () {
             this.annotations_controller.pauseFreehandPathPlus();
         };
+
+        freehand_drawing_tool_plus.onMouseMove = function (event) {
+            // check if preview mode is active and if the mouse is moving over the canvas
+            if (this.annotations_controller.freehandPlusPreviewModeActive() &&
+                $("#" + this.annotations_controller.canvas_id).is(':hover')) {
+                this.annotations_controller.replaceLastFreehandShapePoint(event);
+            }
+        };
+
+        var canvasMouseEnter = function (event) {
+            var annotation_controller = event.data.annotation_controller;
+            if (annotation_controller.freehandPlusPreviewModeActive()) {
+                annotation_controller.tmp_freehand_plus_path.openPath();
+                annotation_controller.tmp_freehand_plus_path.deselect();
+                annotation_controller.tmp_freehand_plus_path.enableDashedBorder(100, 50);
+            }
+        };
+
+        var canvasMouseLeave = function (event) {
+            var annotation_controller = event.data.annotation_controller;
+            if (annotation_controller.freehandPlusPreviewModeActive()) {
+                annotation_controller.tmp_freehand_plus_path.removePoint();
+                annotation_controller.tmp_freehand_plus_path.closePath();
+                annotation_controller.tmp_freehand_plus_path.select();
+                annotation_controller.tmp_freehand_plus_path.disableDashedBorder();
+            }
+        };
+
+        $("#" + this.annotation_controller.canvas_id)
+            .mouseenter(
+                { annotation_controller: this.annotation_controller },
+                canvasMouseEnter
+            )
+            .mouseleave(
+                { annotation_controller: this.annotation_controller },
+                canvasMouseLeave
+            );
 
         this.initialized_tools[AnnotationsEventsController.FREEHAND_DRAWING_TOOL_PLUS] = freehand_drawing_tool_plus;
 
