@@ -144,6 +144,7 @@
                     var $start_drawing = $("#start_drawing");
                     var $stop_drawing = $("#save_drawing");
                     var $continue_drawing = $("#continue_drawing");
+                    var $rollback = $("#rollback");
                     var $abort_drawing = $("#abort_drawing");
                     var $shape_details = $("#shape_details");
                     var $del_btn_group = $("#del_button_group");
@@ -152,6 +153,7 @@
                     $continue_drawing.hide();
                     $stop_drawing.hide();
                     $abort_drawing.hide();
+                    $rollback.hide();
 
                     $disable_events.click( function () {
                         annotations_controller.disableMouseEvents();
@@ -168,11 +170,20 @@
                         $start_drawing.hide();
                         $abort_drawing.show();
                         $stop_drawing.show();
-                        $continue_drawing.show();
+                        $continue_drawing.hide();
+                        $rollback.hide();
                     });
 
                     $continue_drawing.click( function () {
+                        annotations_controller.activateFreehandPlusPreviewMode();
                         annotations_controller.enableMouseEvents();
+                    });
+
+                    $rollback.click( function () {
+                        var stop_rollback = annotations_controller.rollbackFreehandPathPlus();
+                        if (stop_rollback) {
+                            $abort_drawing.click();
+                        }
                     });
 
                     $stop_drawing.click( function () {
@@ -181,13 +192,17 @@
                         $stop_drawing.hide();
                         $start_drawing.show();
                         $continue_drawing.hide();
+                        $rollback.hide();
                         $disable_events.click();
                     });
 
                     $abort_drawing.click( function () {
+                        annotations_controller.clearTemporaryFreehandPlus();
                         $abort_drawing.hide();
                         $stop_drawing.hide();
                         $start_drawing.show();
+                        $continue_drawing.hide();
+                        $rollback.hide();
                         $disable_events.click();
                     });
 
@@ -254,6 +269,8 @@
 
                     $acanvas.on('freehand_polygon_plus_paused', function(event, polygon_id) {
                         annotations_controller.disableMouseEvents();
+                        $continue_drawing.show();
+                        $rollback.show();
                     });
 
                     $acanvas.on('freehand_polygon_plus_saved', function(event, polygon_id) {
@@ -280,6 +297,8 @@
                        class="btn btn-danger btn-block" role="button">Abort Drawing</a>
                     <a id="continue_drawing" href="#"
                        class="btn btn-primary btn-block" role="button">Resume Drawing</a>
+                    <a id="rollback" href="#"
+                       class="btn btn-warning btn-block" role="button">Go one step back</a>
                     <a id="save_drawing" href="#"
                        class="btn btn-primary btn-block" role="button">Save Shape</a>
                 </div>
