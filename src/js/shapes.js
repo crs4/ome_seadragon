@@ -41,6 +41,14 @@ function Shape(id, transform_matrix) {
         this.id = id;
     };
 
+    this.enableDashedBorder = function(dash, gap) {
+        this.paper_shape.setDashArray([dash, gap]);
+    };
+
+    this.disableDashedBorder = function() {
+        this.paper_shape.setDashArray([]);
+    };
+
     this.setStrokeColor = function(color, alpha) {
         var color_value = (typeof color === 'undefined') ? this.stroke_color.toCSS(true) : color;
         var alpha_value = (typeof alpha === 'undefined') ? this.stroke_color.getAlpha() : alpha;
