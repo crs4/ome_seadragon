@@ -481,6 +481,17 @@ function Path(id, segments, closed, transform_matrix) {
         });
     };
 
+    this.openPath = function() {
+        this.closed = false;
+        this.paper_shape.closed = false;
+    };
+
+    this.closePath = function() {
+        this.closed = true;
+        this.paper_shape.closed = true;
+    };
+
+
     this.addPoint = function(point_x, point_y) {
         this.segments.push({'point': {'x': point_x, 'y': point_y}});
         if (typeof this.paper_shape !== 'undefined') {
