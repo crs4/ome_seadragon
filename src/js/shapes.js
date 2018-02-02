@@ -510,20 +510,20 @@ function Path(id, segments, closed, transform_matrix) {
         }
     };
 
-    this.simplifyPath = function(x_offset, y_offset) {
+    this.simplifyPath = function() {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.simplify();
+            // get new segments
             this.segments = [];
-            this._extract_segments(x_offset, y_offset);
+            this._extract_segments();
         } else {
             console.info('Shape not initialized');
         }
     };
 
-    this._extract_segments = function(x_offset, y_offset) {
+    this._extract_segments = function() {
         if (this.paper_shape !== 'undefined') {
-            this.segments = ShapeConverter.extractPathSegments(this.paper_shape,
-                x_offset, y_offset);
+            this.segments = ShapeConverter.extractPathSegments(this.paper_shape);
         } else {
             throw new Error('Paper shape not initialized');
         }
@@ -531,9 +531,9 @@ function Path(id, segments, closed, transform_matrix) {
 
     this._get_segments_json = function(x_offset, y_offset) {
         if (this.segments.length === 0) {
-            this._extract_segments(x_offset, y_offset);
+            this._extract_segments();
         }
-        return this.segments;
+        return ShapeConverter.extractPathSegments(this.paper_shape, x_offset, y_offset);
     };
 
     this.toJSON = function(x_offset, y_offset) {
