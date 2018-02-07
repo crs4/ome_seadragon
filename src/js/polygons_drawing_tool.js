@@ -67,16 +67,6 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
             this.deleteShape(this.tmp_polygon_id, false);
             var polygon_label_prefix = (typeof label_prefix === 'undefined') ? 'polygon' : label_prefix;
             tmp_polygon_json.shape_id = this.getFirstAvailableLabel(polygon_label_prefix);
-            // apply translation
-            var ac = this;
-            tmp_polygon_json.segments = $.map(tmp_polygon_json.segments, function (segment) {
-                return {
-                    'point': {
-                        'x': segment.point.x + ac.x_offset,
-                        'y': segment.point.y + ac.y_offset
-                    }
-                }
-            });
             this.drawShapeFromJSON(tmp_polygon_json, true);
             this.tmp_polygon = undefined;
             $("#" + this.canvas_id).trigger('polygon_saved', [tmp_polygon_json.shape_id]);
