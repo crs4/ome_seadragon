@@ -70,7 +70,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
                 this.tmp_freehand_path = this.getShape(this.tmp_path_id);
                 this.selectShape(this.tmp_path_id);
             } else {
-                this.clearTemporaryFreehand();
+                this.clearTemporaryFreehandPath();
                 stop_rollback = true;
             }
             this.refreshView();
