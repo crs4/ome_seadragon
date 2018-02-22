@@ -57,14 +57,14 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
             this.tmp_shape_history.push(JSON.stringify(shape_json));
         };
 
-        this.annotation_controller.shapeHistoryExist = function () {
+        this.annotation_controller.shapeHistoryExists = function () {
             return (typeof this.tmp_shape_history !== 'undefined') && (this.tmp_shape_history.length > 0);
         };
 
-        this.annotation_controller.rollbackFreehandPath = function() {
+        this.annotation_controller.rollbackFreehandPath = function () {
             this.deleteShape(this.tmp_path_id, false);
             var stop_rollback = false;
-            if (this.shapeHistoryExist()) {
+            if (this.shapeHistoryExists()) {
                 var prev_shape_json = JSON.parse(this.tmp_shape_history.pop());
                 this.drawShapeFromJSON(prev_shape_json, false);
                 this.tmp_freehand_path = this.getShape(this.tmp_path_id);
@@ -77,7 +77,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
             return stop_rollback;
         };
 
-        this.annotation_controller._initShape = function(x, y, trigger_label) {
+        this.annotation_controller._initShape = function (x, y, trigger_label) {
             this.selectShape(this.tmp_path_id);
             this.tmp_freehand_path = this.getShape(this.tmp_path_id);
             this.tmp_freehand_path.addPoint(x, y);
