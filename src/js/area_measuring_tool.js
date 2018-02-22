@@ -10,25 +10,84 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         this.annotation_controller.area_ruler_id = 'tmp_area_ruler';
         this.annotation_controller.area_ruler_config =
             (typeof path_config === 'undefined') ? {} : path_config;
+        this.annotation_controller.tmp_area_ruler_history = undefined;
 
         this.annotation_controller.area_ruler_out_id = undefined;
         this.annotation_controller.area_ruler_binding_shape_id = undefined;
 
-        this.annotation_controller.updateAreaRulerConfig = function(ruler_config) {
+        this.annotation_controller.updateAreaRulerConfig = function (ruler_config) {
             this.area_ruler_config = ruler_config;
         };
 
-        this.annotation_controller.extendAreaRulerConfig = function(ruler_config) {
+        this.annotation_controller.extendAreaRulerConfig = function (ruler_config) {
             this.area_ruler_config = $.extend({}, this.area_ruler_config, ruler_config);
         };
 
-        this.annotation_controller.createAreaRulerPath = function (x, y) {
-            this.drawPolygon(this.area_ruler_id, [], undefined, this.area_ruler_config, false);
+        this.annotation_controller.tmpAreaRulerExists = function () {
+            return typeof this.area_ruler !== 'undefined';
+        };
+
+        this.annotation_controller.replaceLastAreaRulerPoint = function (event) {
+            this.area_ruler.removePoint();
+            this.addPointToAreaRuler(event.point.x, event.point.y);
+        };
+
+        this.annotation_controller.activateAreaRulerPreviewMode = function () {
+            this.area_ruler_preview_mode_on = true;
+        };
+
+        this.annotation_controller.deactivateAreaRulerPreviewMode = function () {
+            this.area_ruler_preview_mode_on = false;
+            this.area_ruler.closePath();
+            this.area_ruler.disableDashedBorder();
+        };
+
+        this.annotation_controller.areaRulerPreviewModeActive = function () {
+            return this.area_ruler_preview_mode_on;
+        };
+
+        this.annotation_controller._setAreaRulerCheckpoint = function () {
+            var shape_json = this.getShapeJSON(this.area_ruler_id);
+            shape_json.segments.pop();
+            this.tmp_area_ruler_history.push(JSON.stringify(shape_json));
+        };
+
+        this.annotation_controller.areaRulerHistoryExists = function () {
+            return (typeof this.tmp_area_ruler_history !== 'undefined') && (this.tmp_area_ruler_history.length > 0);
+        };
+
+        this.annotation_controller.rollbackAreaRulerPath = function () {
+            this.deleteShape(this.area_ruler_id, false);
+            var stop_rollback = false;
+            if (this.areaRulerHistoryExists()) {
+                var prev_shape_json = JSON.parse(this.tmp_area_ruler_history.pop());
+                this.drawShapeFromJSON(prev_shape_json, false);
+                this.area_ruler = this.getShape(this.area_ruler_id);
+                this.selectShape(this.area_ruler_id);
+            } else {
+                this.clearAreaRuler();
+                stop_rollback = true;
+            }
+            this.refreshView();
+            return stop_rollback;
+        };
+
+        this.annotation_controller._initAreaRuler = function (x, y, trigger_label) {
             this.selectShape(this.area_ruler_id);
             this.area_ruler = this.getShape(this.area_ruler_id);
             this.area_ruler.addPoint(x, y);
-            $("#" + this.area_ruler_out_id).trigger('area_ruler_created', [{'x': x, 'y': y}]);
+            $("#" +this.canvas_id).trigger(trigger_label, [{'x': x, 'y': y}]);
             this.refreshView();
+        };
+
+        this.annotation_controller.createAreaRulerPath = function (x, y) {
+            this.tmp_area_ruler_history = [];
+            this.drawPolygon(this.area_ruler_id, [], undefined, this.area_ruler_config, false);
+            this._initAreaRuler(x, y, 'area_ruler_created');
+        };
+
+        this.annotation_controller.continueAreaRulerPath = function (x, y) {
+            this._initAreaRuler(x, y, 'area_ruler_updated');
         };
 
         this.annotation_controller.addPointToAreaRuler = function (x, y) {
@@ -36,10 +95,22 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
             this.refreshView();
         };
 
+        this.annotation_controller.pauseAreaRuler = function () {
+            $("#" + this.area_ruler_out_id).trigger('area_ruler_paused', this.area_ruler_id);
+        };
+
+        this.annotation_controller.saveAreaRuler = function () {
+            this.serializeAreaRuler();
+            this.updateAreaRulerOutputField();
+            this.clearAreaRuler(true);
+        };
+
         this.annotation_controller.clearAreaRuler = function (ruler_saved) {
             if (typeof this.area_ruler !== 'undefined') {
                 this.deleteShape(this.area_ruler_id);
                 this.area_ruler_id = undefined;
+                this.tmp_area_ruler_history = undefined;
+                this.area_ruler = undefined;
             }
             $("#" + this.area_ruler_out_id).trigger('area_ruler_cleared', [ruler_saved]);
         };
@@ -114,7 +185,13 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         area_ruler_tool.annotations_controller = this.annotation_controller;
 
         area_ruler_tool.onMouseDown = function (event) {
-            this.annotations_controller.createAreaRulerPath(event.point.x, event.point.y);
+            if (this.annotations_controller.tmpAreaRulerExists()) {
+                this.annotations_controller._setAreaRulerCheckpoint();
+                this.annotations_controller.deactivateAreaRulerPreviewMode();
+                this.annotations_controller.continueAreaRulerPath(event.point.x, event.point.y);
+            } else {
+                this.annotations_controller.createAreaRulerPath(event.point.x, event.point.y);
+            }
         };
 
         area_ruler_tool.onMouseDrag = function (event) {
@@ -122,10 +199,44 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         };
 
         area_ruler_tool.onMouseUp = function () {
-            this.annotations_controller.serializeAreaRuler();
-            this.annotations_controller.updateAreaRulerOutputField();
-            this.annotations_controller.clearAreaRuler();
+            this.annotations_controller.pauseAreaRuler();
         };
+
+        area_ruler_tool.onMouseMove = function (event) {
+            if (this.annotations_controller.areaRulerPreviewModeActive() &&
+                $("#" + this.annotations_controller.canvas_id).is(':hover')) {
+                this.annotations_controller.replaceLastAreaRulerPoint(event);
+            }
+        };
+
+        var canvasMouseEnter = function (event) {
+            var annotation_controller = event.data.annotation_controller;
+            if (annotation_controller.areaRulerPreviewModeActive()) {
+                annotation_controller.area_ruler.openPath();
+                annotation_controller.area_ruler.deselect();
+                annotation_controller.area_ruler.enableDashedBorder(100, 50);
+            }
+        };
+
+        var canvasMouseLeave = function (event) {
+            var annotation_controller = event.data.annotation_controller;
+            if (annotation_controller.areaRulerPreviewModeActive()) {
+                annotation_controller.area_ruler.removePoint();
+                annotation_controller.area_ruler.closePath();
+                annotation_controller.area_ruler.select();
+                annotation_controller.area_ruler.disableDashedBorder();
+            }
+        };
+
+        $("#" + this.annotation_controller.canvas_id)
+            .mouseenter(
+                { annotation_controller: this.annotation_controller },
+                canvasMouseEnter
+            )
+            .mouseleave(
+                { annotation_controller: this.annotation_controller },
+                canvasMouseLeave
+            );
 
         this.initialized_tools[AnnotationsEventsController.AREA_MEASURING_TOOL] = area_ruler_tool;
 
