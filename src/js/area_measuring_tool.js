@@ -11,6 +11,8 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         this.annotation_controller.area_ruler_config =
             (typeof path_config === 'undefined') ? {} : path_config;
         this.annotation_controller.tmp_area_ruler_history = undefined;
+        this.annotation_controller.area_ruler_preview_mode_on = false;
+        this.annotation_controller.area_ruler_updated_by_preview = false;
 
         this.annotation_controller.area_ruler_out_id = undefined;
         this.annotation_controller.area_ruler_binding_shape_id = undefined;
@@ -110,6 +112,7 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
                 this.deleteShape(this.area_ruler_id);
                 this.area_ruler_id = undefined;
                 this.tmp_area_ruler_history = undefined;
+                this.area_ruler_preview_mode_on = false;
                 this.area_ruler = undefined;
             }
             $("#" + this.area_ruler_out_id).trigger('area_ruler_cleared', [ruler_saved]);
@@ -192,6 +195,7 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
             } else {
                 this.annotations_controller.createAreaRulerPath(event.point.x, event.point.y);
             }
+            this.annotations_controller.area_ruler_updated_by_preview = false;
         };
 
         area_ruler_tool.onMouseDrag = function (event) {
@@ -205,7 +209,12 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         area_ruler_tool.onMouseMove = function (event) {
             if (this.annotations_controller.areaRulerPreviewModeActive() &&
                 $("#" + this.annotations_controller.canvas_id).is(':hover')) {
-                this.annotations_controller.replaceLastAreaRulerPoint(event);
+                if (this.annotations_controller.area_ruler_updated_by_preview) {
+                    this.annotations_controller.replaceLastAreaRulerPoint(event);
+                } else {
+                    this.annotations_controller.addPointToAreaRuler(event.point.x, event.point.y);
+                    this.annotations_controller.area_ruler_updated_by_preview = true;
+                }
             }
         };
 
@@ -225,6 +234,7 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
                 annotation_controller.area_ruler.closePath();
                 annotation_controller.area_ruler.select();
                 annotation_controller.area_ruler.disableDashedBorder();
+                annotation_controller.area_ruler_updated_by_preview = false;
             }
         };
 
