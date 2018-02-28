@@ -188,6 +188,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
         freehand_drawing_tool.onMouseMove = function (event) {
             // check if preview mode is active and if the mouse is moving over the canvas
             if (this.annotations_controller.previewModeActive() &&
+                this.annotations_controller.tmpFreehandPathExists() &&
                 $("#" + this.annotations_controller.canvas_id).is(':hover')) {
                 if (this.annotations_controller.shape_updated_by_preview) {
                     this.annotations_controller.replaceLastFreehandPathPoint(event);
@@ -200,7 +201,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
 
         var canvasMouseEnter = function (event) {
             var annotation_controller = event.data.annotation_controller;
-            if (annotation_controller.previewModeActive()) {
+            if (annotation_controller.previewModeActive() && annotation_controller.tmpFreehandPathExists()) {
                 annotation_controller.tmp_freehand_path.openPath();
                 annotation_controller.tmp_freehand_path.deselect();
                 annotation_controller.tmp_freehand_path.enableDashedBorder(100, 50);
@@ -209,7 +210,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
 
         var canvasMouseLeave = function (event) {
             var annotation_controller = event.data.annotation_controller;
-            if (annotation_controller.previewModeActive()) {
+            if (annotation_controller.previewModeActive() && annotation_controller.tmpFreehandPathExists()) {
                 annotation_controller.tmp_freehand_path.removePoint();
                 annotation_controller.tmp_freehand_path.closePath();
                 annotation_controller.tmp_freehand_path.select();
