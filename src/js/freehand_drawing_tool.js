@@ -10,7 +10,8 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
         this.annotation_controller.tmp_path_id = 'tmp_freehand_path';
         this.annotation_controller.path_config = path_config;
         this.annotation_controller.label_prefix = (typeof label_prefix === 'undefined') ? 'polygon' : label_prefix;
-        this.annotation_controller.tmp_shape_history = undefined;
+        this.annotation_controller.tmp_shape_undo_history = undefined;
+        this.annotation_controller.tmp_shape_redo_history = undefined;
         this.annotation_controller.preview_mode_on = false;
         this.annotation_controller.shape_updated_by_preview = false;
 
@@ -51,31 +52,59 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
             return this.preview_mode_on;
         };
 
-        this.annotation_controller._setCheckpoint = function () {
-            var shape_json = this.getShapeJSON(this.tmp_path_id);
-            // remove last point from the shape, it was not included in the previous version of the polygon
-            shape_json.segments.pop();
-            this.tmp_shape_history.push(JSON.stringify(shape_json));
+        this.annotation_controller.tmpFreehandPathExists = function () {
+            return typeof this.tmp_freehand_path !== 'undefined';
         };
 
-        this.annotation_controller.shapeHistoryExists = function () {
-            return (typeof this.tmp_shape_history !== 'undefined') && (this.tmp_shape_history.length > 0);
+        this.annotation_controller._setUndoCheckpoint = function (remove_last_point) {
+            var shape_json = this.getShapeJSON(this.tmp_path_id);
+            // remove last point from the shape, it was not included in the previous version of the polygon
+            if (remove_last_point) {
+                shape_json.segments.pop();
+            }
+            this.tmp_shape_undo_history.push(JSON.stringify(shape_json));
+        };
+
+        this.annotation_controller._setRedoCheckpoint = function () {
+            var shape_json = this.getShapeJSON(this.tmp_path_id);
+            this.tmp_shape_redo_history.push(JSON.stringify(shape_json));
+        };
+
+        this.annotation_controller.shapeUndoHistoryExists = function () {
+            return (typeof this.tmp_shape_undo_history !== 'undefined') && (this.tmp_shape_undo_history.length > 0);
+        };
+
+        this.annotation_controller.shapeRedoHistoryExists = function () {
+            return (typeof this.tmp_shape_redo_history !== 'undefined') && (this.tmp_shape_redo_history.length > 0);
         };
 
         this.annotation_controller.rollbackFreehandPath = function () {
-            this.deleteShape(this.tmp_path_id, false);
-            var stop_rollback = false;
-            if (this.shapeHistoryExists()) {
-                var prev_shape_json = JSON.parse(this.tmp_shape_history.pop());
-                this.drawShapeFromJSON(prev_shape_json, false);
+            if (this.tmpFreehandPathExists()) {
+                this._setRedoCheckpoint();
+                this.deleteShape(this.tmp_path_id, false);
+                if (this.shapeUndoHistoryExists()) {
+                    var shape_json = JSON.parse(this.tmp_shape_undo_history.pop());
+                    this.drawShapeFromJSON(shape_json, true);
+                    this.tmp_freehand_path = this.getShape(this.tmp_path_id);
+                    this.selectShape(this.tmp_path_id);
+                } else {
+                    this.tmp_freehand_path = undefined;
+                    this.refreshView();
+                }
+            }
+        };
+
+        this.annotation_controller.restoreFreehandPath = function() {
+            if (this.shapeRedoHistoryExists()) {
+                if (this.tmpFreehandPathExists()) {
+                    this._setUndoCheckpoint(false);
+                }
+                this.deleteShape(this.tmp_path_id, false);
+                var shape_json = JSON.parse(this.tmp_shape_redo_history.pop());
+                this.drawShapeFromJSON(shape_json, true);
                 this.tmp_freehand_path = this.getShape(this.tmp_path_id);
                 this.selectShape(this.tmp_path_id);
-            } else {
-                this.clearTemporaryFreehandPath();
-                stop_rollback = true;
             }
-            this.refreshView();
-            return stop_rollback;
         };
 
         this.annotation_controller._initShape = function (x, y, trigger_label) {
@@ -88,7 +117,8 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
 
         this.annotation_controller.createFreehandPath = function (x, y) {
             // initialize shape's history
-            this.tmp_shape_history = [];
+            this.tmp_shape_undo_history = [];
+            this.tmp_shape_redo_history = [];
             this.drawPolygon(this.tmp_path_id, [], undefined, this.path_config, false);
             this._initShape(x, y, 'freehand_polygon_created');
         };
@@ -113,7 +143,8 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
             tmp_path_json.shape_id = this.getFirstAvailableLabel(this.label_prefix);
             this.drawShapeFromJSON(tmp_path_json, true);
             this.tmp_freehand_path =undefined;
-            this.tmp_shape_history = undefined;
+            this.tmp_shape_undo_history = undefined;
+            this.tmp_shape_redo_history = undefined;
             this.preview_mode_on = false;
             $("#" + this.canvas_id).trigger('freehand_polygon_saved', [tmp_path_json.shape_id]);
         };
@@ -122,7 +153,8 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
             if (typeof this.tmp_freehand_path !== 'undefined') {
                 this.deleteShape(this.tmp_path_id);
                 this.tmp_freehand_path = undefined;
-                this.tmp_shape_history = undefined;
+                this.tmp_shape_undo_history = undefined;
+                this.tmp_shape_redo_history = undefined;
                 this.preview_mode_on = false;
                 $("#" + this.canvas_id).trigger('freehand_polygon_cleared');
             }
@@ -134,7 +166,9 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
 
         freehand_drawing_tool.onMouseDown = function (event) {
             if (this.annotations_controller.freehandShapeExists()) {
-                this.annotations_controller._setCheckpoint();
+                this.annotations_controller._setUndoCheckpoint(true);
+                // creating a "new" path will delete the redo history
+                this.annotations_controller.tmp_shape_redo_history = [];
                 this.annotations_controller.deactivatePreviewMode();
                 this.annotations_controller.continueFreehandPath(event.point.x, event.point.y);
             } else {
