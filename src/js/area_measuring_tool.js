@@ -10,7 +10,8 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         this.annotation_controller.area_ruler_id = 'tmp_area_ruler';
         this.annotation_controller.area_ruler_config =
             (typeof path_config === 'undefined') ? {} : path_config;
-        this.annotation_controller.tmp_area_ruler_history = undefined;
+        this.annotation_controller.tmp_ruler_undo_history = undefined;
+        this.annotation_controller.tmp_ruler_redo_history = undefined;
         this.annotation_controller.area_ruler_preview_mode_on = false;
         this.annotation_controller.area_ruler_updated_by_preview = false;
 
@@ -48,30 +49,54 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
             return this.area_ruler_preview_mode_on;
         };
 
-        this.annotation_controller._setAreaRulerCheckpoint = function () {
+        this.annotation_controller._setAreaRulerUndoCheckpoint = function (remove_last_point) {
             var shape_json = this.getShapeJSON(this.area_ruler_id);
-            shape_json.segments.pop();
-            this.tmp_area_ruler_history.push(JSON.stringify(shape_json));
+            if (remove_last_point) {
+                shape_json.segments.pop();
+            }
+            this.tmp_ruler_undo_history.push(JSON.stringify(shape_json));
         };
 
-        this.annotation_controller.areaRulerHistoryExists = function () {
-            return (typeof this.tmp_area_ruler_history !== 'undefined') && (this.tmp_area_ruler_history.length > 0);
+        this.annotation_controller._setAreaRulerRedoCheckpoint = function () {
+            var shape_json = this.getShapeJSON(this.area_ruler_id);
+            this.tmp_ruler_redo_history.push(JSON.stringify(shape_json))
+        };
+
+        this.annotation_controller.areaRulerUndoHistoryExists = function () {
+            return (typeof this.tmp_ruler_undo_history !== 'undefined') && (this.tmp_ruler_undo_history.length > 0);
+        };
+
+        this.annotation_controller.areaRulerRedoHistoryExists = function () {
+            return (typeof this.tmp_ruler_redo_history !== 'undefined') && (this.tmp_ruler_redo_history.length > 0);
         };
 
         this.annotation_controller.rollbackAreaRulerPath = function () {
-            this.deleteShape(this.area_ruler_id, false);
-            var stop_rollback = false;
-            if (this.areaRulerHistoryExists()) {
-                var prev_shape_json = JSON.parse(this.tmp_area_ruler_history.pop());
-                this.drawShapeFromJSON(prev_shape_json, false);
+            if (this.tmpAreaRulerExists()) {
+                this._setAreaRulerRedoCheckpoint();
+                this.deleteShape(this.area_ruler_id, false);
+                if (this.areaRulerUndoHistoryExists()) {
+                    var prev_shape_json = JSON.parse(this.tmp_ruler_undo_history.pop());
+                    this.drawShapeFromJSON(prev_shape_json, true);
+                    this.area_ruler = this.getShape(this.area_ruler_id);
+                    this.selectShape(this.area_ruler_id);
+                } else {
+                    this.area_ruler = undefined;
+                    this.refreshView();
+                }
+            }
+        };
+
+        this.annotation_controller.restoreAreaRulerPath = function () {
+            if (this.areaRulerRedoHistoryExists()) {
+                if (this.tmpAreaRulerExists()) {
+                    this._setAreaRulerUndoCheckpoint(false);
+                }
+                this.deleteShape(this.area_ruler_id, false);
+                var shape_json = JSON.parse(this.tmp_ruler_redo_history.pop());
+                this.drawShapeFromJSON(shape_json, true);
                 this.area_ruler = this.getShape(this.area_ruler_id);
                 this.selectShape(this.area_ruler_id);
-            } else {
-                this.clearAreaRuler();
-                stop_rollback = true;
             }
-            this.refreshView();
-            return stop_rollback;
         };
 
         this.annotation_controller._initAreaRuler = function (x, y, trigger_label) {
@@ -83,7 +108,8 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         };
 
         this.annotation_controller.createAreaRulerPath = function (x, y) {
-            this.tmp_area_ruler_history = [];
+            this.tmp_ruler_undo_history = [];
+            this.tmp_ruler_redo_history = [];
             this.drawPolygon(this.area_ruler_id, [], undefined, this.area_ruler_config, false);
             this._initAreaRuler(x, y, 'area_ruler_created');
         };
@@ -111,7 +137,8 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
             if (typeof this.area_ruler !== 'undefined') {
                 this.deleteShape(this.area_ruler_id);
                 this.area_ruler_id = undefined;
-                this.tmp_area_ruler_history = undefined;
+                this.tmp_ruler_undo_history = undefined;
+                this.tmp_ruler_redo_history = undefined;
                 this.area_ruler_preview_mode_on = false;
                 this.area_ruler = undefined;
             }
@@ -189,7 +216,8 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
 
         area_ruler_tool.onMouseDown = function (event) {
             if (this.annotations_controller.tmpAreaRulerExists()) {
-                this.annotations_controller._setAreaRulerCheckpoint();
+                this.annotations_controller._setAreaRulerUndoCheckpoint(true);
+                this.annotations_controller.tmp_ruler_redo_history = [];
                 this.annotations_controller.deactivateAreaRulerPreviewMode();
                 this.annotations_controller.continueAreaRulerPath(event.point.x, event.point.y);
             } else {
@@ -208,6 +236,7 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
 
         area_ruler_tool.onMouseMove = function (event) {
             if (this.annotations_controller.areaRulerPreviewModeActive() &&
+                this.annotations_controller.tmpAreaRulerExists() &&
                 $("#" + this.annotations_controller.canvas_id).is(':hover')) {
                 if (this.annotations_controller.area_ruler_updated_by_preview) {
                     this.annotations_controller.replaceLastAreaRulerPoint(event);
@@ -220,7 +249,7 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
 
         var canvasMouseEnter = function (event) {
             var annotation_controller = event.data.annotation_controller;
-            if (annotation_controller.areaRulerPreviewModeActive()) {
+            if (annotation_controller.areaRulerPreviewModeActive() && annotation_controller.tmpAreaRulerExists()) {
                 annotation_controller.area_ruler.openPath();
                 annotation_controller.area_ruler.deselect();
                 annotation_controller.area_ruler.enableDashedBorder(100, 50);
@@ -229,7 +258,7 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
 
         var canvasMouseLeave = function (event) {
             var annotation_controller = event.data.annotation_controller;
-            if (annotation_controller.areaRulerPreviewModeActive()) {
+            if (annotation_controller.areaRulerPreviewModeActive() && annotation_controller.tmpAreaRulerExists()) {
                 annotation_controller.area_ruler.removePoint();
                 annotation_controller.area_ruler.closePath();
                 annotation_controller.area_ruler.select();
