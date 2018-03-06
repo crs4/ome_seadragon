@@ -499,12 +499,17 @@ function Path(id, segments, closed, transform_matrix) {
         }
     };
 
+    this.isEmpty = function() {
+        return this.segments.length === 0;
+    };
+
     this.removePoint = function(index) {
         if (this.segments.length > 0) {
             //by default, remove the last inserted point
             var sg_index = (typeof index === 'undefined') ? (this.segments.length - 1) : index;
-            this.paper_shape.removeSegment(sg_index);
+            var sg = this.paper_shape.removeSegment(sg_index);
             this.segments.splice(sg_index, 1);
+            return {'x': sg.point.x, 'y': sg.point.y};
         } else {
             throw new Error('There is no point to remove');
         }

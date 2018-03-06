@@ -127,7 +127,8 @@
 
                     var $disable_events = $("#disable_events");
                     var $start_drawing = $("#start_drawing");
-                    var $remove_point = $("#remove_point");
+                    var $rollback = $("#rollback");
+                    var $restore = $("#restore");
                     var $clear_polygon = $("#clear_polygon");
                     var $save_tmp = $("#save_tmp");
                     var $stop_drawing = $("#stop_drawing");
@@ -135,7 +136,8 @@
                     // use to resume drawing after switching to navigation mode
                     var drawing_in_progress = false;
 
-                    $remove_point.hide();
+                    $rollback.hide();
+                    $restore.hide();
                     $clear_polygon.hide();
                     $save_tmp.hide();
                     $stop_drawing.hide();
@@ -143,12 +145,14 @@
                     $disable_events.click(function () {
                         $disable_events.addClass("active");
                         $start_drawing.removeClass("active");
-                        $remove_point.removeClass("active");
+                        $rollback.removeClass("active");
+                        $restore.removeClass("active");
                         $clear_polygon.removeClass("active");
                         $save_tmp.removeClass("active");
                         annotations_controller.disableMouseEvents();
                         $start_drawing.show();
-                        $remove_point.hide();
+                        $rollback.hide();
+                        $restore.hide();
                         $clear_polygon.hide();
                         $save_tmp.hide();
                         if (drawing_in_progress === false) {
@@ -159,7 +163,8 @@
                     $start_drawing.click(function () {
                         // $disable_events.hide();
                         $start_drawing.hide();
-                        $remove_point.show();
+                        $rollback.show();
+                        $restore.show();
                         $clear_polygon.show();
                         $save_tmp.show();
                         $stop_drawing.show();
@@ -168,7 +173,8 @@
                     $stop_drawing.click(function() {
                         annotations_controller.clearTemporaryPolygon();
                         $start_drawing.show();
-                        $remove_point.hide();
+                        $rollback.hide();
+                        restore.hide();
                         $clear_polygon.hide();
                         $save_tmp.hide();
                         $stop_drawing.hide();
@@ -178,7 +184,8 @@
 
                     $save_tmp.click(function () {
                         $start_drawing.show();
-                        $remove_point.hide();
+                        $rollback.hide();
+                        $restore.hide();
                         $clear_polygon.hide();
                         $save_tmp.hide();
                         $stop_drawing.hide();
@@ -196,7 +203,8 @@
                         drawing_in_progress = false;
                         $start_drawing.find('a').html('Draw Polygon');
 
-                        $remove_point.unbind('click');
+                        $rollback.unbind('click');
+                        $restore.unbind('click');
 
                         $clear_polygon.unbind('click');
                     };
@@ -222,8 +230,12 @@
                                 drawing_in_progress = true;
                                 $start_drawing.find('a').html('Resume Drawing');
 
-                                $remove_point.click(function () {
-                                    annotations_controller.removeLastPolygonPoint();
+                                $rollback.click(function () {
+                                    annotations_controller.rollbackPolygon();
+                                });
+
+                                $restore.click(function() {
+                                    annotations_controller.restorePolygon();
                                 });
 
                                 $clear_polygon.click(function () {
@@ -244,7 +256,8 @@
                     <ul class="nav nav-pills nav-stacked">
                         <li id="disable_events" class="active"><a href="#">Navigation Mode</a></li>
                         <li id="start_drawing"><a href="#">Draw Polygon</a></li>
-                        <li id="remove_point"><a href="#">Remove Last Point</a></li>
+                        <li id="rollback"><a href="#">Rollback</a></li>
+                        <li id="restore"><a href="#">Restore</a></li>
                         <li id="clear_polygon"><a href="#">Delete Polygon</a></li>
                         <li id="save_tmp"><a href="#">Save Polygon</a></li>
                         <li id="stop_drawing"><a class="btn-danger active" href="#">Cancel</a></li>
