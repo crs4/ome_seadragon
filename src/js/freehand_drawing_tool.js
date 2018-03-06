@@ -56,7 +56,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
             return typeof this.tmp_freehand_path !== 'undefined';
         };
 
-        this.annotation_controller._setUndoCheckpoint = function (remove_last_point) {
+        this.annotation_controller._setFreehandPathUndoCheckpoint = function (remove_last_point) {
             var shape_json = this.getShapeJSON(this.tmp_path_id);
             // remove last point from the shape, it was not included in the previous version of the polygon
             if (remove_last_point) {
@@ -65,7 +65,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
             this.tmp_shape_undo_history.push(JSON.stringify(shape_json));
         };
 
-        this.annotation_controller._setRedoCheckpoint = function () {
+        this.annotation_controller._setFreehandPathRedoCheckpoint = function () {
             var shape_json = this.getShapeJSON(this.tmp_path_id);
             this.tmp_shape_redo_history.push(JSON.stringify(shape_json));
         };
@@ -80,7 +80,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
 
         this.annotation_controller.rollbackFreehandPath = function () {
             if (this.tmpFreehandPathExists()) {
-                this._setRedoCheckpoint();
+                this._setFreehandPathRedoCheckpoint();
                 this.deleteShape(this.tmp_path_id, false);
                 if (this.shapeUndoHistoryExists()) {
                     var shape_json = JSON.parse(this.tmp_shape_undo_history.pop());
@@ -97,7 +97,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
         this.annotation_controller.restoreFreehandPath = function() {
             if (this.shapeRedoHistoryExists()) {
                 if (this.tmpFreehandPathExists()) {
-                    this._setUndoCheckpoint(false);
+                    this._setFreehandPathUndoCheckpoint(false);
                 }
                 this.deleteShape(this.tmp_path_id, false);
                 var shape_json = JSON.parse(this.tmp_shape_redo_history.pop());
@@ -166,7 +166,7 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
 
         freehand_drawing_tool.onMouseDown = function (event) {
             if (this.annotations_controller.freehandShapeExists()) {
-                this.annotations_controller._setUndoCheckpoint(true);
+                this.annotations_controller._setFreehandPathUndoCheckpoint(true);
                 // creating a "new" path will delete the redo history
                 this.annotations_controller.tmp_shape_redo_history = [];
                 this.annotations_controller.deactivatePreviewMode();
