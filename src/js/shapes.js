@@ -41,6 +41,14 @@ function Shape(id, transform_matrix) {
         this.id = id;
     };
 
+    this.enableDashedBorder = function(dash, gap) {
+        this.paper_shape.setDashArray([dash, gap]);
+    };
+
+    this.disableDashedBorder = function() {
+        this.paper_shape.setDashArray([]);
+    };
+
     this.setStrokeColor = function(color, alpha) {
         var color_value = (typeof color === 'undefined') ? this.stroke_color.toCSS(true) : color;
         var alpha_value = (typeof alpha === 'undefined') ? this.stroke_color.getAlpha() : alpha;
@@ -473,6 +481,17 @@ function Path(id, segments, closed, transform_matrix) {
         });
     };
 
+    this.openPath = function() {
+        this.closed = false;
+        this.paper_shape.closed = false;
+    };
+
+    this.closePath = function() {
+        this.closed = true;
+        this.paper_shape.closed = true;
+    };
+
+
     this.addPoint = function(point_x, point_y) {
         this.segments.push({'point': {'x': point_x, 'y': point_y}});
         if (typeof this.paper_shape !== 'undefined') {
@@ -480,31 +499,36 @@ function Path(id, segments, closed, transform_matrix) {
         }
     };
 
+    this.isEmpty = function() {
+        return this.segments.length === 0;
+    };
+
     this.removePoint = function(index) {
         if (this.segments.length > 0) {
             //by default, remove the last inserted point
             var sg_index = (typeof index === 'undefined') ? (this.segments.length - 1) : index;
-            this.paper_shape.removeSegment(sg_index);
+            var sg = this.paper_shape.removeSegment(sg_index);
             this.segments.splice(sg_index, 1);
+            return {'x': sg.point.x, 'y': sg.point.y};
         } else {
             throw new Error('There is no point to remove');
         }
     };
 
-    this.simplifyPath = function(x_offset, y_offset) {
+    this.simplifyPath = function() {
         if (typeof this.paper_shape !== 'undefined') {
             this.paper_shape.simplify();
+            // get new segments
             this.segments = [];
-            this._extract_segments(x_offset, y_offset);
+            this._extract_segments();
         } else {
             console.info('Shape not initialized');
         }
     };
 
-    this._extract_segments = function(x_offset, y_offset) {
+    this._extract_segments = function() {
         if (this.paper_shape !== 'undefined') {
-            this.segments = ShapeConverter.extractPathSegments(this.paper_shape,
-                x_offset, y_offset);
+            this.segments = ShapeConverter.extractPathSegments(this.paper_shape);
         } else {
             throw new Error('Paper shape not initialized');
         }
@@ -512,9 +536,9 @@ function Path(id, segments, closed, transform_matrix) {
 
     this._get_segments_json = function(x_offset, y_offset) {
         if (this.segments.length === 0) {
-            this._extract_segments(x_offset, y_offset);
+            this._extract_segments();
         }
-        return this.segments;
+        return ShapeConverter.extractPathSegments(this.paper_shape, x_offset, y_offset);
     };
 
     this.toJSON = function(x_offset, y_offset) {
