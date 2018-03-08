@@ -142,16 +142,25 @@
 
                     var $disable_events = $("#disable_events");
                     var $start_drawing = $("#start_drawing");
+                    var $stop_drawing = $("#save_drawing");
+                    var $continue_drawing = $("#continue_drawing");
+                    var $rollback = $("#rollback");
+                    var $restore = $("#restore");
                     var $abort_drawing = $("#abort_drawing");
                     var $shape_details = $("#shape_details");
                     var $del_btn_group = $("#del_button_group");
 
                     $shape_details.hide();
+                    $continue_drawing.hide();
+                    $stop_drawing.hide();
                     $abort_drawing.hide();
+                    $rollback.hide();
+                    $restore.hide();
 
                     $disable_events.click( function () {
                         annotations_controller.disableMouseEvents();
                         $abort_drawing.hide();
+                        $stop_drawing.hide();
                         $start_drawing.show();
                         $disable_events.removeClass('btn-default');
                         $disable_events.addClass('btn-primary');
@@ -162,11 +171,47 @@
                         $disable_events.addClass('btn-default');
                         $start_drawing.hide();
                         $abort_drawing.show();
+                        $stop_drawing.show();
+                        $continue_drawing.hide();
+                        $rollback.hide();
+                        $restore.hide();
+                    });
+
+                    $continue_drawing.click( function () {
+                        annotations_controller.activatePreviewMode();
+                        annotations_controller.enableMouseEvents();
+                    });
+
+                    $rollback.click( function () {
+                        var stop_rollback = annotations_controller.rollbackFreehandPath();
+                        if (stop_rollback) {
+                            $abort_drawing.click();
+                        }
+                    });
+
+                    $restore.click( function () {
+                        annotations_controller.restoreFreehandPath();
+                    });
+
+                    $stop_drawing.click( function () {
+                        annotations_controller.saveTemporaryFreehandPath();
+                        $abort_drawing.hide();
+                        $stop_drawing.hide();
+                        $start_drawing.show();
+                        $continue_drawing.hide();
+                        $rollback.hide();
+                        $restore.hide();
+                        $disable_events.click();
                     });
 
                     $abort_drawing.click( function () {
+                        annotations_controller.clearTemporaryFreehandPath();
                         $abort_drawing.hide();
+                        $stop_drawing.hide();
                         $start_drawing.show();
+                        $continue_drawing.hide();
+                        $rollback.hide();
+                        $restore.hide();
                         $disable_events.click();
                     });
 
@@ -230,6 +275,14 @@
                     };
 
                     var $acanvas = $("#annotations_canvas");
+
+                    $acanvas.on('freehand_polygon_paused', function(event, polygon_id) {
+                        annotations_controller.disableMouseEvents();
+                        $continue_drawing.show();
+                        $rollback.show();
+                        $restore.show();
+                    });
+
                     $acanvas.on('freehand_polygon_saved', function(event, polygon_id) {
                         $disable_events.click();
                         build_shape_controls(polygon_id);
@@ -252,6 +305,14 @@
                        class="btn btn-info btn-block" role="button">Draw Shape</a>
                     <a id="abort_drawing" href="#"
                        class="btn btn-danger btn-block" role="button">Abort Drawing</a>
+                    <a id="continue_drawing" href="#"
+                       class="btn btn-primary btn-block" role="button">Resume Drawing</a>
+                    <a id="rollback" href="#"
+                       class="btn btn-warning btn-block" role="button">Undo</a>
+                    <a id="restore" href="#"
+                       class="btn btn-warning btn-block" role="button">Redo</a>
+                    <a id="save_drawing" href="#"
+                       class="btn btn-primary btn-block" role="button">Save Shape</a>
                 </div>
                 <div class="toolbar_panel del_buttons_panel">
                     <ul id="del_button_group" class="nav nav-pills nav-stacked"></ul>
