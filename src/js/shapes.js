@@ -585,6 +585,18 @@ Polyline.prototype = new Path();
 function Polygon(id, segments, transform_matrix) {
     Path.call(this, id, segments, true, transform_matrix);
 
+    this.isValid = function() {
+        if (this.segments.length < 2) {
+            return false;
+        } else {
+            if (typeof this.paper_shape !== 'undefined') {
+                return (this._shapeToPath().area > 0);
+            } else {
+                return false;
+            }
+        }
+    };
+
     var pathToJSON = this.toJSON;
     this.toJSON = function(x_offset, y_offset) {
         var shape_json = pathToJSON.apply(this, [x_offset, y_offset]);
