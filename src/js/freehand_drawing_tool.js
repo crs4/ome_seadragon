@@ -56,6 +56,14 @@ AnnotationsEventsController.prototype.initializeFreehandDrawingTool = function(p
             return typeof this.tmp_freehand_path !== 'undefined';
         };
 
+        this.annotation_controller.tmpFreehandPathValid = function() {
+            if (this.tmpFreehandPathExists()) {
+                return this.tmp_freehand_path.isValid();
+            } else {
+                return false;
+            }
+        };
+
         this.annotation_controller._setFreehandPathUndoCheckpoint = function (remove_last_point) {
             var shape_json = this.getShapeJSON(this.tmp_path_id);
             // remove last point from the shape, it was not included in the previous version of the polygon

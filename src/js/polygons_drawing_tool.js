@@ -57,6 +57,14 @@ AnnotationsEventsController.prototype.initializePolygonDrawingTool = function (p
             return typeof this.tmp_polygon !== 'undefined';
         };
 
+        this.annotation_controller.temporaryPolygonValid = function() {
+            if (this.temporaryPolygonExists()) {
+                return this.tmp_polygon.isValid();
+            } else {
+                return false;
+            }
+        };
+
         this.annotation_controller._removeLastPolygonPoint = function (clear_tmp_polygon) {
             try {
                 var removed_point = this.tmp_polygon.removePoint();
