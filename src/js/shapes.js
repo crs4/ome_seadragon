@@ -590,7 +590,7 @@ function Polygon(id, segments, transform_matrix) {
             return false;
         } else {
             if (typeof this.paper_shape !== 'undefined') {
-                return (this._shapeToPath().area > 0);
+                return (Math.abs(this._shapeToPath().area) > 0);
             } else {
                 return false;
             }
