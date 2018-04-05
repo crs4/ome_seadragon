@@ -65,7 +65,7 @@ AnnotationsEventsController.prototype.initializeImageMarkingTool = function (mar
         this.annotation_controller.addMarker = function (event) {
             var add_new_marker = this._check_markers_limit();
             if (add_new_marker === true) {
-                console.log('Adding marker');
+                console.debug('Adding marker');
                 var img_x = event.point.x + this.x_offset;
                 var img_y = event.point.y + this.y_offset;
                 this._createMarker(img_x, img_y, event.marker_radius);

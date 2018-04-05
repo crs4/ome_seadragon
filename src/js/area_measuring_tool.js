@@ -31,9 +31,9 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
         };
 
         this.annotation_controller.tmpAreaRulerValid = function() {
-            console.log('TMP AREA RULER EXISTS: ' + this.tmpAreaRulerExists());
+            console.debug('TMP AREA RULER EXISTS: ' + this.tmpAreaRulerExists());
             if (this.tmpAreaRulerExists()) {
-                console.log('TMP AREA RULER IS VALID SHAPE: ' + this.area_ruler.isValid());
+                console.debug('TMP AREA RULER IS VALID SHAPE: ' + this.area_ruler.isValid());
                 return this.area_ruler.isValid();
             } else {
                 return false;

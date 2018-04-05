@@ -148,7 +148,7 @@ ShapeConverter.extractPathSegments = function(paper_shape, x_offset, y_offset) {
 };
 
 ShapeConverter.keepBiggerShape = function(path_items) {
-    console.log(path_items);
+    console.debug(path_items);
     try {
         // single path, no need to filter
         path_items.getSegments();

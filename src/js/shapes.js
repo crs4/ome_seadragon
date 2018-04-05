@@ -102,7 +102,7 @@ function Shape(id, transform_matrix) {
             var area = Math.abs(this._shapeToPath().area * Math.pow(pixel_size, 2));
             return Number(area.toFixed(decimals));
         } else {
-            console.log('Shape not initialized');
+            console.debug('Shape not initialized');
             return undefined;
         }
     };
@@ -113,7 +113,7 @@ function Shape(id, transform_matrix) {
             var perimeter = this._shapeToPath().length * pixel_size;
             return Number(perimeter.toFixed(decimals));
         } else {
-            console.log('Shape not initialized');
+            console.debug('Shape not initialized');
         }
     };
 

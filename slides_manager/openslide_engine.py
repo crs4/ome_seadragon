@@ -76,14 +76,14 @@ class OpenSlideEngine(RenderingEngineInterface):
         thumb = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT, 'openslide')
         # if thumbnail is not in cache build it ....
         if thumb is None:
-            self.logger.info('No thumbnail loaded from cache, building it')
+            self.logger.debug('No thumbnail loaded from cache, building it')
             slide = self._get_openslide_wrapper(original_file_source, file_mimeype)
             if slide:
                 thumb = slide.get_thumbnail((size, size))
                 # ... and store it into the cache
                 cache.thumbnail_to_cache(self.image_id, thumb, size, settings.DEEPZOOM_FORMAT, 'openslide')
         else:
-            self.logger.info('Thumbnail loaded from cache')
+            self.logger.debug('Thumbnail loaded from cache')
         return thumb, settings.DEEPZOOM_FORMAT
 
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None, tile_size=None):
