@@ -30,6 +30,16 @@ AnnotationsEventsController.prototype.initializeAreaMeasuringTool = function(pat
             return typeof this.area_ruler !== 'undefined';
         };
 
+        this.annotation_controller.tmpAreaRulerValid = function() {
+            console.debug('TMP AREA RULER EXISTS: ' + this.tmpAreaRulerExists());
+            if (this.tmpAreaRulerExists()) {
+                console.debug('TMP AREA RULER IS VALID SHAPE: ' + this.area_ruler.isValid());
+                return this.area_ruler.isValid();
+            } else {
+                return false;
+            }
+        };
+
         this.annotation_controller.replaceLastAreaRulerPoint = function (event) {
             this.area_ruler.removePoint();
             this.addPointToAreaRuler(event.point.x, event.point.y);

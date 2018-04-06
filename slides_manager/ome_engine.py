@@ -150,7 +150,7 @@ class OmeEngine(RenderingEngineInterface):
             get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
         thumbnail = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT, 'omero')
         if thumbnail is None:
-            self.logger.info('No thumbnail loaded from cache, building it')
+            self.logger.debug('No thumbnail loaded from cache, building it')
             # we want the thumbnail of the image, not the one of the highest resolution image in fileset
             ome_img = self._get_image_object()
             if ome_img:
@@ -163,7 +163,7 @@ class OmeEngine(RenderingEngineInterface):
                 thumbnail = Image.open(thumbnail_buffer)
                 cache.thumbnail_to_cache(self.image_id, thumbnail, size, settings.DEEPZOOM_FORMAT, 'omero')
         else:
-            self.logger.info('Thumbnail loaded from cache')
+            self.logger.debug('Thumbnail loaded from cache')
         return thumbnail, settings.DEEPZOOM_FORMAT
 
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None, tile_size=None):

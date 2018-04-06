@@ -8,7 +8,7 @@ function AnnotationsController(canvas_id, default_config) {
     // geometries appearance default configuration
     if (typeof default_config === 'undefined') {
         // to prevent errors in the following lines
-        console.log('No configuration provided, using default values for shapes config');
+        console.debug('No configuration provided, using default values for shapes config');
         default_config = {};
     }
     this.default_fill_color = (typeof default_config.fill_color === 'undefined') ? '#ffffff' : default_config.fill_color;
@@ -25,12 +25,12 @@ function AnnotationsController(canvas_id, default_config) {
 
             var canvas = $("#" + this.canvas_id);
             if (canvas.length === 0) {
-                console.log('Creating a new canvas');
+                console.debug('Creating a new canvas');
                 // create a canvas that will be used by paper.js
                 $("body").append("<canvas id='" + this.canvas_id + "'></canvas>");
                 this.canvas = canvas[0];
             } else {
-                console.log('Using an existing canvas');
+                console.debug('Using an existing canvas');
                 this.canvas = canvas[0];
             }
             var canvas_size = viewport_controller.getCanvasSize();
@@ -518,9 +518,9 @@ function AnnotationsController(canvas_id, default_config) {
     };
 
     this._replaceShapePath = function(shape_id, path) {
-        console.log('SHAPE ID IS: ' + shape_id);
+        console.debug('SHAPE ID IS: ' + shape_id);
         var shape_json = this.getShapeJSON(shape_id);
-        console.log(shape_json);
+        console.debug(shape_json);
         shape_json.segments = path;
         this.deleteShape(shape_id);
         this.drawShapeFromJSON(shape_json);
