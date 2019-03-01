@@ -1,0 +1,5 @@
+openslide-python
+Pillow
+lxml
+django-cors-headers
+https://github.com/crs4/ome_seadragon_cache/archive/master.zip
