@@ -1,5 +1,5 @@
 openslide-python
 Pillow
 lxml
-django-cors-headers
+django-cors-headers<=2.4.1
 https://github.com/crs4/ome_seadragon_cache/archive/master.zip
