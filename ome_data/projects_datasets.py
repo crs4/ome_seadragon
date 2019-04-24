@@ -21,7 +21,7 @@ from time import mktime
 
 from omeroweb.webgateway.marshal import shapeMarshal
 
-from utils import switch_to_default_search_group
+from utils import switch_to_default_search_group, adapt_rois_json
 
 
 def _date_to_timestamp(date):
@@ -106,7 +106,7 @@ def _image_to_json(image_object, connection, full_info=False, roi_objects=None):
 def _roi_to_json(roi_object):
     return {
         'id': roi_object.getId().getValue(),
-        'shapes': [shapeMarshal(s) for s in roi_object.copyShapes()]
+        'shapes': adapt_rois_json([shapeMarshal(s) for s in roi_object.copyShapes()])
     }
 
 

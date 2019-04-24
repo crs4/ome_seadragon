@@ -18,6 +18,7 @@
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from ome_seadragon import settings
+from copy import copy
 
 
 def _get_group_id_by_name(group_name, connection):
@@ -37,3 +38,25 @@ def switch_to_default_search_group(connection):
         group_id = _get_group_id_by_name(settings.DEFAULT_SEARCH_GROUP, connection)
         if group_id and (group_id != _get_current_group_id(connection)):
             connection.setGroupForSession(group_id)
+
+
+def _adapt_ellipse_roi(roi_json):
+    new_json = copy(roi_json)
+    try:
+        new_json['cx'] = new_json.pop('x')
+        new_json['cy'] = new_json.pop('y')
+        new_json['rx'] = new_json.pop('radiusX')
+        new_json['ry'] = new_json.pop('radiusY')
+    except KeyError:
+        pass
+    return new_json
+
+
+def adapt_rois_json(rois):
+    adapted_rois = list()
+    for r in rois:
+        if r['type'] == 'Ellipse':
+            adapted_rois.append(_adapt_ellipse_roi(r))
+        else:
+            adapted_rois.append(r)
+    return adapted_rois
