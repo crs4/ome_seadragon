@@ -46,7 +46,7 @@ class OpenSlideEngine(RenderingEngineInterface):
             'overlap': settings.DEEPZOOM_OVERLAP,
             'limit_bounds': settings.DEEPZOOM_LIMIT_BOUNDS
         }
-        self.logger.info(cfg)
+        self.logger.debug(cfg)
         return cfg
 
     def _get_deepzoom_wrapper(self, original_file_source, file_mimetype, tile_size=None):
@@ -109,7 +109,7 @@ class OpenSlideEngine(RenderingEngineInterface):
         cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
             get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
         tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
-        self.logger.info('TILE SIZE IS: %s', tile_size)
+        self.logger.debug('TILE SIZE IS: %s', tile_size)
         cache_params = {
             'image_id': self.image_id,
             'level': level,
