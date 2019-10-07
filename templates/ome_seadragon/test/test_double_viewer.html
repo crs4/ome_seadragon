@@ -1,0 +1,228 @@
+<!--
+  ~ Copyright (c) 2019, CRS4
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy of
+  ~ this software and associated documentation files (the "Software"), to deal in
+  ~ the Software without restriction, including without limitation the rights to
+  ~ use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+  ~ the Software, and to permit persons to whom the Software is furnished to do so,
+  ~ subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all
+  ~ copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+  ~ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+  ~ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+  ~ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  ~ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+  <!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>OPENSEADRAGON TEST VIEWER</title>
+
+    <link href="{{ host_name }}/static/ome_seadragon/css/bootstrap.min.css" rel="stylesheet">
+
+    <style type="text/css">
+        .viewer_panel {
+            margin-top:10px;
+            margin-bottom: 10px;
+            margin-left: 5px;
+            margin-right: 5px;
+
+            border: 1px solid #ddd;
+        };
+
+        .navi_buttons {
+            padding-right: 17px;
+        };
+    </style>
+
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/jquery.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            console.log("Image A ID: {{ image_a_id }}");
+            console.log("Image B ID: {{ image_b_id }}");
+
+            var scalebar_config = {
+                    "xOffset": 10,
+                    "yOffset": 10,
+                    "barThickness": 5,
+                    "color": "#777777",
+                    "fontColor": "#000000",
+                    "backgroundColor": 'rgba(255, 255, 255, 0.5)'
+            };
+
+            var page_header_height = $("#pg_header").outerHeight(true);
+            console.log('Page header is ' + page_header_height)
+
+            // load first image
+            $.get("{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_a_id }}_metadata.json").done(function (data) {
+                var image_a_mpp = data.image_mpp ? data.image_mpp : 0;
+
+                $("#openseadragon_viewer_a").height($(window).height() - (page_header_height + 100));
+
+                var viewer_config = {
+                    'showNavigator': false,
+                    'showFullPageControl': false,
+                    'zoomInButton': 'navi_zoom_in_a',
+                    'zoomOutButton': 'navi_zoom_out_a',
+                    'homeButton': 'navi_home_a'
+                };
+
+                window.viewer_a = new ViewerController(
+                    "openseadragon_viewer_a",
+                    "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                    data.tile_sources,
+                    viewer_config
+                );
+                viewer_a.buildViewer();
+                viewer_a.enableScalebar(image_a_mpp, scalebar_config);
+
+                viewer_a.viewer.addHandler('open', function() {
+                    console.log('Opening viewer A');
+                    viewer_a.setMinDZILevel(8);
+                });
+            });
+
+            // load second image
+            $.get("{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_b_id }}_metadata.json").done(function (data) {
+                var image_b_mpp = data.image_mpp ? data.image_mpp : 0;
+
+                $("#openseadragon_viewer_b").height($(window).height() - (page_header_height + 100));
+
+                var viewer_config = {
+                    'showNavigator': false,
+                    'showFullPageControl': false,
+                    'zoomInButton': 'navi_zoom_in_b',
+                    'zoomOutButton': 'navi_zoom_out_b',
+                    'homeButton': 'navi_home_b'
+                };
+
+                window.viewer_b = new ViewerController(
+                    "openseadragon_viewer_b",
+                    "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                    data.tile_sources,
+                    viewer_config
+                );
+                viewer_b.buildViewer();
+                viewer_b.enableScalebar(image_b_mpp, scalebar_config);
+
+                viewer_b.viewer.addHandler('open', function () {
+                    console.log('Opening viewer B');
+                    viewer_b.setMinDZILevel(8);
+                });
+            });
+        });
+    </script>
+
+    </head>
+    <body>
+        <div id="pg_header" class="page-header">
+            <h2 class="text-center">SIDE TO SIDE SLIDES COMPARISON</h2>
+        </div>
+        <div class="container-fluid">
+            <div class="col-md-6" id="viewer_a_panel">
+                <div class="row">
+                    <div class="col-md-5 navi_buttons">
+                        <button id="navi_zoom_out_a" class="btn btn-default">
+                            <i class="glyphicon glyphicon-minus aria-hidden="true""></i>
+                        </button>
+                        <button id="navi_home_a" class="btn btn-default">
+                            <i class="glyphicon glyphicon-refresh"></i>
+                        </button>
+                        <button id="navi_zoom_in_a" class="btn btn-default">
+                            <i class="glyphicon glyphicon-plus"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-7 text-left">
+                        <span> <h4>Sample #{{ image_a_id }} </h4> </span>
+                    </div>
+                </div>
+                <div id="openseadragon_viewer_a" class="viewer_panel"></div>
+            </div>
+            <div class="col-md-6" id="viewer_panel_b">
+                <div class="row">
+                    <div class="col-md-5 navi_buttons">
+                        <button id="navi_zoom_out_b" class="btn btn-default">
+                            <i class="glyphicon glyphicon-minus aria-hidden="true""></i>
+                        </button>
+                        <button id="navi_home_b" class="btn btn-default">
+                            <i class="glyphicon glyphicon-refresh"></i>
+                        </button>
+                        <button id="navi_zoom_in_b" class="btn btn-default">
+                            <i class="glyphicon glyphicon-plus"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-7 text-left">
+                        <span> <h4>Sample #{{ image_b_id }} </h4> </span>
+                    </div>
+                </div>
+                <div id="openseadragon_viewer_b" class="viewer_panel"></div>
+            </div>
+        </div>
+        {% comment %} <div id="questions_panel" class="container-fluid">
+            <div class="col-md-3"></div>
+            <!-- QUESTIONS -->
+            <div class="col-md-6 panel">
+                <!-- QUESTION 1 -->
+                <div class="row">
+                <div class="col-md-7">
+                    <span>Ho do you regard the structural preservation of tissue: 
+                </div>
+                <label class="radio-inline">
+                    <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> Valid
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> Invalid
+                </label>
+                </div>
+                <!-- QUESTION 2 -->
+                <div class="row">
+                <div class="col-md-7">
+                    <span>Ho do you regard the preservation of nuclei: 
+                </div>
+                <label class="radio-inline">
+                    <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> Valid
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> Invalid
+                </label>
+                </div>
+                <!-- QUESTION 3 -->
+                <div class="row">
+                <div class="col-md-7">
+                    <span>Ho do you regard the preservation of cytoplasm: 
+                </div>
+                <label class="radio-inline">
+                    <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> Valid
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> Invalid
+                </label>
+                </div>
+                <!-- QUESTION 1 -->
+                <div class="row">
+                <div class="col-md-7">
+                    <span>Ho do you regard the diagnostic value of these preparations: 
+                </div>
+                <label class="radio-inline">
+                    <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> Valid
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> Invalid
+                </label>
+                </div>
+            </div>
+            <div class="col-md-3"></div>
+        </div> {% endcomment %}
+    </body>
+</html>
