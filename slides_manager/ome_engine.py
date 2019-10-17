@@ -140,6 +140,14 @@ class OmeEngine(RenderingEngineInterface):
             'mpp': self._get_image_mpp()
         }
 
+    def get_slide_bounds(self, original_file_source=False, file_mimetype=None):
+        return {
+                'bounds_x': 0,
+                'bounds_y': 0,
+                'bounds_height': 0,
+                'bounds_width': 0
+            }
+
     def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None):
         raise NotImplemented()
 
