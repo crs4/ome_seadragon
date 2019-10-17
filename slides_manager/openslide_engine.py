@@ -73,6 +73,30 @@ class OpenSlideEngine(RenderingEngineInterface):
             'mpp': self._get_image_mpp(original_file_source, file_mimetype)
         }
 
+    def _get_slide_bounds(self, original_file_source=False, file_mimetype=None):
+        slide = self._get_openslide_wrapper(original_file_source, file_mimetype)
+        if slide:
+            return (
+                int(slide.properties.get('openslide.bounds-x', 0)),
+                int(slide.properties.get('openslide.bounds-y', 0)),
+                int(slide.properties.get('openslide.bounds-height', 0)),
+                int(slide.properties.get('openslide.bounds-width', 0))
+            )
+        else:
+            return None
+
+    def get_slide_bounds(self, original_file_source=False, file_mimetype=None):
+        bounds = self._get_slide_bounds(original_file_source, file_mimetype)
+        if bounds:
+            return {
+                'bounds_x': bounds[0],
+                'bounds_y': bounds[1],
+                'bounds_height': bounds[2],
+                'bounds_width': bounds[3]
+            }
+        else:
+            return bounds
+
     def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None):
         slide = self._get_openslide_wrapper(original_file_source=True,
                                             file_mimetype=file_mimetype)
