@@ -83,6 +83,10 @@ class RenderingEngineInterface(object):
         pass
 
     @abstractmethod
+    def get_slide_bounds(self, original_file_source=False, file_mimetype=None):
+        pass
+
+    @abstractmethod
     def get_dzi_description(self, original_file_source=False, file_mimetype=None, tile_size=None):
         pass
 
@@ -121,7 +125,8 @@ class RenderingEngineInterface(object):
         return {
             'image_mpp': self._get_image_mpp(original_file_source, file_mimetype),
             'tile_sources': self.get_json_description(resource_path, original_file_source,
-                                                      file_mimetype, tile_size)
+                                                      file_mimetype, tile_size),
+            'slide_bounds': self.get_slide_bounds(original_file_source, file_mimetype)
         }
 
     @abstractmethod

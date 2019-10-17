@@ -239,8 +239,7 @@ def find_annotations(request, conn=None, **kwargs):
 
 
 @login_required()
-def get_image_dzi(request, image_id, fetch_original_file=False,
-                  file_mimetype=None, conn=None, **kwargs):
+def get_image_dzi(request, image_id, fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
     try:
         tile_size = int(request.GET.get('tile_size'))
     except TypeError:
@@ -262,8 +261,7 @@ def get_image_dzi(request, image_id, fetch_original_file=False,
 
 
 @login_required()
-def get_image_json(request, image_id, fetch_original_file=False,
-                   file_mimetype=None, conn=None, **kwargs):
+def get_image_json(request, image_id, fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
     try:
         tile_size = int(request.GET.get('tile_size'))
     except TypeError:
@@ -365,8 +363,7 @@ def get_tile(request, image_id, level, column, row, tile_format,
 
 
 @login_required()
-def get_image_mpp(request, image_id, fetch_original_file=False,
-                  file_mimetype=None, conn=None, **kwargs):
+def get_image_mpp(request, image_id, fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
     rf = RenderingEngineFactory()
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
@@ -378,6 +375,24 @@ def get_image_mpp(request, image_id, fetch_original_file=False,
         else:
             raise e
     return HttpResponse(json.dumps({'image_mpp': image_mpp}), content_type='application/json')
+
+
+@login_required()
+def get_slide_bounds(request, image_id, fetch_original_file=False, file_mimetype=None, conn=None, **kwargs):
+    rf = RenderingEngineFactory()
+    rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
+    try:
+        slide_bounds = rendering_engine.get_slide_bounds(fetch_original_file, file_mimetype)
+    except Exception, e:
+        rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
+        if rendering_engine:
+            slide_bounds = rendering_engine.get_slide_bounds(fetch_original_file, file_mimetype)
+        else:
+            raise e
+    if slide_bounds:
+        return HttpResponse(json.dumps(slide_bounds), content_type='application/json')
+    else:
+        return HttpResponseNotFound('No image with ID %s' % image_id)
 
 
 @login_required()
