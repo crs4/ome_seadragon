@@ -59,6 +59,9 @@ target/
 # PyCharm
 .idea
 
+# Visual Studio code
+.vscode
+
 # Grunt
 node_modules
 
