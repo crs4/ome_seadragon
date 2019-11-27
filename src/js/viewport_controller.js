@@ -26,6 +26,7 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
     this.tile_sources = tile_sources;
     this.config = viewer_config;
     this.image_mpp = image_mpp;
+    this.sequence_mode = undefined;
 
     this.buildViewer = function() {
         if (this.viewer === undefined) {
@@ -36,6 +37,13 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
                 prefixUrl: this.prefix_url,
                 tileSources: this.tile_sources
             };
+            if (Array.isArray(tile_sources)) {
+                base_config.sequenceMode = true;
+                this.sequence_mode = true;
+                console.log('tile_sources is a list, activate sequence mode');
+            } else {
+                this.sequence_mode = false;
+            }
             $.extend(base_config, this.config);
             this.viewer = OpenSeadragon(base_config);
         } else {
@@ -60,6 +68,64 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
                 $.extend(sc_conf, scalebar_config);
             }
             this.viewer.scalebar(sc_conf);
+        }
+    };
+
+    this.sequenceModeActive = function() {
+        if (this.sequence_mode !== undefined) {
+            return this.sequence_mode;
+        } else {
+            console.warn("Viewer not initialized!");
+            return undefined;
+        }
+    };
+
+    this.getCurrentPage = function() {
+        if (this.viewer !== undefined) {
+            if (this.sequenceModeActive()) {
+                return this.viewer.currentPage();
+            } else {
+                console.warn("The viewer is not in sequence mode");
+                return -1;
+            }
+        } else {
+            console.warn("Viewer not initialized!");
+            return undefined;
+        }
+    };
+
+    this.getPagesCount = function() {
+        if (this.viewer !== undefined) {
+            if (this.sequenceModeActive()) {
+                return this.viewer.tileSources.length;
+            } else {
+                console.warn("The viewer is not in sequence mode");
+                return -1;
+            }
+        } else {
+            console.warn("Viewer not initialized!");
+            return undefined;
+        }
+    };
+
+    this.goToPage = function(page_id) {
+        if (this.viewer  !== undefined) {
+            if (this.sequenceModeActive()) {
+                if (page_id >= 0 && page_id < this.getPagesCount()) {
+                    if (page_id !== this.getCurrentPage()) {
+                        this.viewer.goToPage(page_id);
+                    } else {
+                        console.warn("No need to change page, already at index " + page_id);
+                    }
+                } else {
+                    console.warn("Index " + page_id + " out of range");
+                }
+            } else {
+                console.warn("The viewer is not in sequence mode");
+            }
+        } else {
+            console.warn("Viewer not initialized!");
+            return undefined;
         }
     };
 
