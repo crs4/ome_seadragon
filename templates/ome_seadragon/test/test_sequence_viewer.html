@@ -1,0 +1,104 @@
+<!--
+  ~ Copyright (c) 2019, CRS4
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy of
+  ~ this software and associated documentation files (the "Software"), to deal in
+  ~ the Software without restriction, including without limitation the rights to
+  ~ use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+  ~ the Software, and to permit persons to whom the Software is furnished to do so,
+  ~ subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all
+  ~ copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+  ~ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+  ~ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+  ~ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  ~ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <title>OPENSEADRAGON TEST SEQUENCE VIEWER</title>
+
+        <link href="{{ host_name }}/static/ome_seadragon/css/bootstrap.min.css" rel="stylesheet">
+
+        <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon.min.js"></script>
+        <script src="{{ host_name }}/static/ome_seadragon/js/jquery.min.js"></script>
+        <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
+        <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.min.js"></script>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                console.log("Loading images from dataset");
+                $.get("{{ host_name }}/ome_seadragon/get/dataset/{{ dataset_id }}/", {images: true}).done(function(data) {
+                    console.log("Loaded data for dataset {{ dataset_id }}");
+
+                    var add_page_button = function(page_id) {
+                        var page_label = "PAGE_" + page_id;
+                        var $page_button = $(
+                            "<span id='page_" + page_id + "'" +
+                            " class='input-group-addon'>" + page_label + "</span>"
+                        );
+                        $page_button.data("page_id", page_id);
+                        $("#toolbar").append($page_button);
+
+                        $page_button.click( function() {
+                            console.log('Go to page ' + $page_button.data("page_id"));
+                            window.viewer.goToPage($page_button.data("page_id"));
+                        });
+
+                        console.log("Created button for page " + page_id);
+                    };
+
+                    var images_set = [];
+                    for (var image in data.images) {
+                        var image_url = "{{ host_name }}/ome_seadragon/deepzoom/get/" + data.images[image].id + ".dzi";
+                        images_set.push(image_url);
+                        add_page_button(image);
+                    }
+
+                    $("#openseadragon_viewer").height($(window).height() - 20);
+                    $(window).resize(function() {
+                        $('#openseadragon_viewer').height($(window).height() - 20);
+                    });
+
+                    var viewer_config = {
+                        'showNavigator': true,
+                        'showFullPageControl': false,
+                        'showSequenceControl': false
+                    };
+
+                    window.viewer = new ViewerController(
+                        "openseadragon_viewer",
+                        "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                        images_set,
+                        viewer_config
+                    );
+                    viewer.buildViewer();
+
+                    //TODO: check for scalebar
+
+                    viewer.viewer.addHandler('open', function() {
+                        console.log('Open!');
+                        // Ignore lowest-resolution levels in order to improve load times
+                        viewer.setMinDZILevel(8);
+                    });
+                });
+            });
+        </script>
+    </head>
+
+    <body>
+    <div class="container_fluid">
+        <div id="toolbar" style="height: 40px"></div>
+        <div class="col-md-12">
+            <div id="openseadragon_viewer" style="height:1px; padding-top:10px; padding-bottom: 10px;"></div>
+        </div>
+    </div>
+    </body>
+</html>
