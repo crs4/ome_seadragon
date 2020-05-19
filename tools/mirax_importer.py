@@ -22,7 +22,7 @@ from argparse import ArgumentParser
 from os import path, listdir
 from hashlib import sha1
 import sys
-from urlparse import urljoin
+from urllib.parse import urljoin
 import logging
 
 
@@ -62,7 +62,7 @@ class MiraxImporter(object):
     def _get_sha1(self, file_name):
         hasher = sha1()
         if path.isfile(file_name):
-            with open(file_name) as f:
+            with open(file_name, 'rb') as f:
                 hasher.update(f.read())
         elif path.isdir(file_name):
             for f in listdir(file_name):

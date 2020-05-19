@@ -21,7 +21,7 @@ import omero.model as om
 import omero.rtypes as ot
 from omero.model.enums import ChecksumAlgorithmSHA1160
 
-from utils import switch_to_default_search_group
+from .utils import switch_to_default_search_group
 
 import logging
 

@@ -21,10 +21,10 @@ from abc import ABCMeta, abstractmethod
 import os
 import logging
 
-from ome_seadragon.ome_data.original_files import get_original_file
-from ome_seadragon.ome_data.projects_datasets import get_fileset_highest_resolution
+from ..ome_data.original_files import get_original_file
+from ..ome_data.projects_datasets import get_fileset_highest_resolution
 
-from ome_seadragon import settings
+from .. import settings
 
 
 class RenderingEngineInterface(object):

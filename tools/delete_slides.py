@@ -22,7 +22,7 @@ from argparse import ArgumentParser
 import os
 from shutil import rmtree
 import sys
-from urlparse import urljoin
+from urllib.parse import urljoin
 import logging
 
 

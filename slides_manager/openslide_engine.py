@@ -20,11 +20,11 @@
 import openslide
 from openslide import OpenSlide
 from openslide.deepzoom import DeepZoomGenerator
-from cStringIO import StringIO
+from io import BytesIO
 from PIL import Image
 
-from rendering_engine_interface import RenderingEngineInterface
-from ome_seadragon import settings
+from .rendering_engine_interface import RenderingEngineInterface
+from .. import settings
 from ome_seadragon_cache import CacheDriverFactory
 
 
@@ -152,7 +152,7 @@ class OpenSlideEngine(RenderingEngineInterface):
             slide = self._get_deepzoom_wrapper(original_file_source, file_mimetype, tile_size)
             if slide:
                 dzi_tile = slide.get_tile(level, (column, row))
-                tile_buffer = StringIO()
+                tile_buffer = BytesIO()
                 tile_conf = {
                     'format': settings.DEEPZOOM_FORMAT
                 }
