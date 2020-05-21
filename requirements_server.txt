@@ -1,5 +1,6 @@
 openslide-python==1.1.1
 Pillow==7.1.2
 lxml==4.5.1
-django-cors-headers==2.4.1
+django==1.11.29
+django-cors-headers==3.2.1
 https://github.com/crs4/ome_seadragon_cache/archive/v0.2.0.zip
