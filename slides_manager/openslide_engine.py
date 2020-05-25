@@ -97,11 +97,15 @@ class OpenSlideEngine(RenderingEngineInterface):
         else:
             return bounds
 
-    def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None):
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None, limit_bounds=True):
         slide = self._get_openslide_wrapper(original_file_source=True,
                                             file_mimetype=file_mimetype)
         if slide:
-            return self._get_json_description(resource_path, slide.dimensions[1], slide.dimensions[0], tile_size)
+            if limit_bounds:
+                _, _, height, width = self._get_slide_bounds(True, file_mimetype)
+                return self._get_json_description(resource_path, height, width, tile_size)
+            else:
+                return self._get_json_description(resource_path, slide.dimensions[1], slide.dimensions[0], tile_size)
         else:
             return None
 

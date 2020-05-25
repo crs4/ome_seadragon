@@ -119,7 +119,8 @@ class RenderingEngineInterface(object):
             else:
                 return None
         else:
-            return self._get_original_file_json_description(resource_path, file_mimetype, tile_size)
+            return self._get_original_file_json_description(resource_path, file_mimetype, tile_size,
+                                                            settings.DEEPZOOM_LIMIT_BOUNDS)
 
     def get_image_description(self, resource_path, original_file_source=False, file_mimetype=None, tile_size=None):
         return {
