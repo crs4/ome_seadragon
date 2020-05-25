@@ -34,6 +34,8 @@ urlpatterns = patterns(
         name='ome_seadragon_test_viewer'),
     url(r'^examples/viewer_json/(?P<image_id>[\w\-.]+)/$', views.get_example_viewer_json,
         name='ome_seadragon_test_viewer_json'),
+    url(r'^examples/sequence_viewer/(?P<dataset_id>[0-9]+)/$', views.get_example_sequence_viewer,
+        name='ome_seadragon_test_sequence_viewer'),
     url(r'^examples/double_viewer/(?P<image_a_id>[\w\-.]+)_(?P<image_b_id>[\w\-.]+)/$', 
         views.get_example_double_viewer, name='ome_seadragon_test_double_viewer'),
     url(r'^examples/annotations/(?P<image_id>[\w\-.]+)/$', views.get_example_annotations,
