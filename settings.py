@@ -22,6 +22,23 @@ def identity(value):
     return value
 
 
+def int_identity(value):
+    return int(value)
+
+
+def bool_identity(value):
+    if isinstance(value, bool):
+        return value
+    elif isinstance(value, str):
+        if value == 'True':
+            return True
+        elif value == 'False':
+            return False
+        else:
+            raise ValueError('%s can\'t be converted to boolean')
+    else:
+        raise ValueError('Not a bool or a str')
+
 CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.search.default_group': ['DEFAULT_SEARCH_GROUP', None, identity, None],
     # configure this value using OMERO.cli
@@ -42,11 +59,11 @@ CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.thumbnails.secondary_rendering_engine': ['SECONDARY_THUMBNAILS_RENDERING_ENGINE',
                                                                       'openslide', identity, None],
     # deepzoom properties
-    'omero.web.ome_seadragon.deepzoom.overlap': ['DEEPZOOM_OVERLAP', 1, identity, None],
+    'omero.web.ome_seadragon.deepzoom.overlap': ['DEEPZOOM_OVERLAP', 1, int_identity, None],
     'omero.web.ome_seadragon.deepzoom.format': ['DEEPZOOM_FORMAT', 'jpeg', identity, None],
     'omero.web.ome_seadragon.deepzoom.limit_bounds': ['DEEPZOOM_LIMIT_BOUNDS', True, identity, None],
-    'omero.web.ome_seadragon.deepzoom.jpeg_tile_quality': ['DEEPZOOM_JPEG_QUALITY', 90, identity, None],
-    'omero.web.ome_seadragon.deepzoom.tile_size': ['DEEPZOOM_TILE_SIZE', 256, identity, None],
+    'omero.web.ome_seadragon.deepzoom.jpeg_tile_quality': ['DEEPZOOM_JPEG_QUALITY', 90, int_identity, None],
+    'omero.web.ome_seadragon.deepzoom.tile_size': ['DEEPZOOM_TILE_SIZE', 256, int_identity, None],
     # images cache
     'omero.web.ome_seadragon.images_cache.driver': ['IMAGES_CACHE_DRIVER', None, identity, None],
     # expire time must be expressed with a dictionary with keys
