@@ -67,7 +67,7 @@ class MiraxImporter(object):
         elif path.isdir(file_name):
             for f in listdir(file_name):
                 with open(path.join(file_name, f), 'rb') as fp:
-                    for chunk in iter(lambda: fp.read(self.big_files_chunk_size), ''):
+                    for chunk in iter(lambda: fp.read(self.big_files_chunk_size), b''):
                         hasher.update(chunk)
         return hasher.hexdigest()
 
@@ -153,7 +153,7 @@ class MiraxImporter(object):
             self._clear(files_map.keys())
             self.logger.info('Cleanup completed')
         self.logger.info('Saving data')
-        for flabel, files in files_map.iteritems():
+        for flabel, files in files_map.items():
             if len(files) == 2 and flabel is not None:
                 r0 = self._save(files[0])
                 if r0:
