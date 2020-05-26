@@ -34,8 +34,13 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
+            {% if mirax %}
+            $.get("{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}_metadata.json").done(function (data) {
+            {% else %}
             $.get("{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}_metadata.json").done(function (data) {
+            {% endif %}
                 console.log("Loading openseadragon viewer");
+                console.log(data);
                 var image_mpp = data.image_mpp ? data.image_mpp : 0;
 
 

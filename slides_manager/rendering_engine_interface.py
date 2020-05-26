@@ -21,10 +21,10 @@ from abc import ABCMeta, abstractmethod
 import os
 import logging
 
-from ome_seadragon.ome_data.original_files import get_original_file
-from ome_seadragon.ome_data.projects_datasets import get_fileset_highest_resolution
+from ..ome_data.original_files import get_original_file
+from ..ome_data.projects_datasets import get_fileset_highest_resolution
 
-from ome_seadragon import settings
+from .. import settings
 
 
 class RenderingEngineInterface(object):
@@ -119,7 +119,8 @@ class RenderingEngineInterface(object):
             else:
                 return None
         else:
-            return self._get_original_file_json_description(resource_path, file_mimetype, tile_size)
+            return self._get_original_file_json_description(resource_path, file_mimetype, tile_size,
+                                                            settings.DEEPZOOM_LIMIT_BOUNDS)
 
     def get_image_description(self, resource_path, original_file_source=False, file_mimetype=None, tile_size=None):
         return {

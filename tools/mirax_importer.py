@@ -22,7 +22,7 @@ from argparse import ArgumentParser
 from os import path, listdir
 from hashlib import sha1
 import sys
-from urlparse import urljoin
+from urllib.parse import urljoin
 import logging
 
 
@@ -62,12 +62,12 @@ class MiraxImporter(object):
     def _get_sha1(self, file_name):
         hasher = sha1()
         if path.isfile(file_name):
-            with open(file_name) as f:
+            with open(file_name, 'rb') as f:
                 hasher.update(f.read())
         elif path.isdir(file_name):
             for f in listdir(file_name):
                 with open(path.join(file_name, f), 'rb') as fp:
-                    for chunk in iter(lambda: fp.read(self.big_files_chunk_size), ''):
+                    for chunk in iter(lambda: fp.read(self.big_files_chunk_size), b''):
                         hasher.update(chunk)
         return hasher.hexdigest()
 
@@ -153,7 +153,7 @@ class MiraxImporter(object):
             self._clear(files_map.keys())
             self.logger.info('Cleanup completed')
         self.logger.info('Saving data')
-        for flabel, files in files_map.iteritems():
+        for flabel, files in files_map.items():
             if len(files) == 2 and flabel is not None:
                 r0 = self._save(files[0])
                 if r0:

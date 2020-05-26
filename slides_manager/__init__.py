@@ -17,7 +17,7 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ome_seadragon import settings
+from .. import settings
 
 
 class UnknownRenderingEngine(Exception):
@@ -39,12 +39,12 @@ class RenderingEngineFactory(object):
             self.secondary_thumbnails_rendering_engine = None
 
     def _get_openslide_engine(self, image_id, connection):
-        from openslide_engine import OpenSlideEngine
+        from .openslide_engine import OpenSlideEngine
 
         return OpenSlideEngine(image_id, connection)
 
     def _get_omero_engine(self, image_id, connection):
-        from ome_engine import OmeEngine
+        from .ome_engine import OmeEngine
 
         return OmeEngine(image_id, connection)
 

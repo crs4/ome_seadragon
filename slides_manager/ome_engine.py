@@ -20,12 +20,12 @@
 import math
 from lxml import etree
 from PIL import Image
-from cStringIO import StringIO
+from io import BytesIO
 
-from errors import UnsupportedSource
+from .errors import UnsupportedSource
 
-from rendering_engine_interface import RenderingEngineInterface
-from ome_seadragon import settings
+from .rendering_engine_interface import RenderingEngineInterface
+from .. import settings
 from ome_seadragon_cache import CacheDriverFactory
 
 
@@ -51,11 +51,11 @@ class OmeEngine(RenderingEngineInterface):
         if img is None:
             img = self._get_image_object(get_biggest_in_fileset=True)
         tmp_map = img.getZoomLevelScaling()
-        ome_scale_map = dict((len(tmp_map) - k - 1, v) for k, v in tmp_map.iteritems())
+        ome_scale_map = dict((len(tmp_map) - k - 1, v) for k, v in tmp_map.items())
         if not swap_keys:
             return ome_scale_map
         else:
-            return dict((v, k) for k, v in ome_scale_map.iteritems())
+            return dict((v, k) for k, v in ome_scale_map.items())
 
     def _get_ome_scale_factor(self, level, img=None):
         return self._get_ome_scale_map(img)[level]
@@ -63,7 +63,7 @@ class OmeEngine(RenderingEngineInterface):
     def _get_best_downscale_level(self, level, img_obj=None):
         ome_scale_map = self._get_ome_scale_map(img_obj, swap_keys=True)
         dzi_scale_factor = self._get_dzi_scale_factor(level, img_obj)
-        for ome_scale_factor, ome_level in sorted(ome_scale_map.iteritems(), reverse=True):
+        for ome_scale_factor, ome_level in sorted(ome_scale_map.items(), reverse=True):
             if ome_scale_factor < dzi_scale_factor:
                 return ome_level + 1
         return ome_level
@@ -101,9 +101,9 @@ class OmeEngine(RenderingEngineInterface):
         self.logger.debug('Getting tile with settings: X %s Y %s W %s H %s L %s', ome_x, ome_y,
                           ome_tile_size_x, ome_tile_size_y, ome_level)
         try:
-            tile_buffer = StringIO(ome_img.renderJpegRegion(0, 0, ome_x, ome_y, ome_tile_size_x,
-                                                            ome_tile_size_y, level=ome_level,
-                                                            compression=settings.DEEPZOOM_JPEG_QUALITY/100.0))
+            tile_buffer = BytesIO(ome_img.renderJpegRegion(0, 0, ome_x, ome_y, ome_tile_size_x,
+                                                           ome_tile_size_y, level=ome_level,
+                                                           compression=settings.DEEPZOOM_JPEG_QUALITY/100.0))
             ome_tile = Image.open(tile_buffer)
             tile_w, tile_h = ome_tile.size
             if scale_factor != 1:
@@ -186,7 +186,7 @@ class OmeEngine(RenderingEngineInterface):
                 else:
                     th_w = size * (float(ome_img.getSizeX()) / ome_img.getSizeY())
                     th_size = (th_w, size)
-                thumbnail_buffer = StringIO(ome_img.getThumbnail(size=th_size))
+                thumbnail_buffer = BytesIO(ome_img.getThumbnail(size=th_size))
                 thumbnail = Image.open(thumbnail_buffer)
                 cache.thumbnail_to_cache(self.image_id, thumbnail, size, settings.DEEPZOOM_FORMAT, 'omero')
         else:

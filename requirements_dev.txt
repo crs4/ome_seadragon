@@ -1,0 +1,2 @@
+omero-py==5.6.2
+omero-web==5.6.3
