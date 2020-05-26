@@ -17,11 +17,11 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from django.conf.urls import *
-from ome_seadragon import views
+from django.conf.urls import url
+from . import views
 
-urlpatterns = patterns(
-    'django.views.generic.simple',
+urlpatterns = [
+    # 'django.views.generic.simple',
     # INITIALIZE SESSION
     url(r'connect/$', views.start_connection, name='ome_seadragon_connect'),
     # TEST
@@ -119,4 +119,4 @@ urlpatterns = patterns(
     url(r'^mirax/deepzoom/slide_bounds/(?P<image_id>[\w\-.]+).dzi$', views.get_slide_bounds,
         name='ome_seadragon_get_slide_bounds',
         kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'})
-)
+]

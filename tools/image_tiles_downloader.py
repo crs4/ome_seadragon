@@ -17,13 +17,13 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from cStringIO import StringIO
+from io import BytesIO
 from PIL import Image
 from requests import Session
 import xml.etree.ElementTree as ET
 import sys
 import os
-from urlparse import urljoin
+from urllib.parse import urljoin
 import logging
 from argparse import ArgumentParser
 import math
@@ -108,7 +108,7 @@ class ImageTilesDownloader(object):
 
     def _save_tile(self, image_data, output_folder, file_name):
         with open(os.path.join(output_folder, file_name), 'w') as ofile:
-            img = Image.open(StringIO(image_data))
+            img = Image.open(BytesIO(image_data))
             img.save(ofile)
 
     def _get_tiles(self, level, scaled_width, scaled_height, tile_size, tile_format):
@@ -118,8 +118,8 @@ class ImageTilesDownloader(object):
                 os.makedirs(tiles_output_folder)
             except OSError:
                 pass
-        for x in xrange(scaled_width / tile_size):
-            for y in xrange(scaled_height / tile_size):
+        for x in range(scaled_width / tile_size):
+            for y in range(scaled_height / tile_size):
                 tr = self.session.get(self.get_tile_pattern % (level, x, y, tile_format))
                 if self.output_folder:
                     self._save_tile(tr.content, tiles_output_folder, '%d_%d.%s' % (x, y, tile_format))
@@ -128,7 +128,7 @@ class ImageTilesDownloader(object):
         image_infos = self._get_image_infos()
         max_level = self._get_max_zoom_level(image_infos['height'], image_infos['width'])
         self.logger.info('MAX LEVEL: %d' % max_level)
-        for x in xrange(max_level + 1):
+        for x in range(max_level + 1):
             self.logger.info('### Level %d ###' % x)
             scaled_dimensions = self._get_scaled_dimension(image_infos['width'], image_infos['height'],
                                                            x, max_level)

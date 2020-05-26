@@ -20,8 +20,8 @@
 import omero
 from omero.gateway import TagAnnotationWrapper
 
-from projects_datasets import _image_to_json
-from utils import switch_to_default_search_group
+from .projects_datasets import _image_to_json
+from .utils import switch_to_default_search_group
 
 
 def _is_tagset(obj):

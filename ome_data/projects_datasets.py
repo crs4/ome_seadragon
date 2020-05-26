@@ -21,7 +21,7 @@ from time import mktime
 
 from omeroweb.webgateway.marshal import shapeMarshal
 
-from utils import switch_to_default_search_group, adapt_rois_json
+from .utils import switch_to_default_search_group, adapt_rois_json
 
 
 def _date_to_timestamp(date):
@@ -115,7 +115,7 @@ def _reduce_images_series(images):
     for img in images:
         imgs_map.setdefault(img.getFileset().getId(), {})[_get_image_resolution(img)] = img
     filtered_images = []
-    for files in imgs_map.itervalues():
+    for files in imgs_map.values():
         filtered_images.append(files[max(files.keys())])
     return filtered_images
 

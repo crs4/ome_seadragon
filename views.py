@@ -17,10 +17,10 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from ome_seadragon.ome_data import tags_data, projects_datasets, original_files
-from ome_seadragon.ome_data.original_files import DuplicatedEntryError
-from ome_seadragon import settings
-from ome_seadragon.slides_manager import RenderingEngineFactory
+from .ome_data import tags_data, projects_datasets, original_files
+from .ome_data.original_files import DuplicatedEntryError
+from . import settings
+from .slides_manager import RenderingEngineFactory
 
 import logging
 import re
@@ -255,7 +255,7 @@ def get_image_dzi(request, image_id, fetch_original_file=False, file_mimetype=No
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
         dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype, tile_size)
-    except Exception, e:
+    except Exception as e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
             dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype, tile_size)
@@ -279,7 +279,7 @@ def get_image_json(request, image_id, fetch_original_file=False, file_mimetype=N
     try:
         json_metadata = rendering_engine.get_json_description(resource_path, fetch_original_file,
                                                               file_mimetype, tile_size)
-    except Exception, e:
+    except Exception as e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
             json_metadata = rendering_engine.get_json_description(resource_path, fetch_original_file,
@@ -304,7 +304,7 @@ def get_image_metadata(request, image_id, fetch_original_file=False, file_mimety
     try:
         img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file,
                                                               file_mimetype, tile_size)
-    except Exception, e:
+    except Exception as e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
             img_metadata = rendering_engine.get_image_description(resource_path, fetch_original_file,
@@ -325,7 +325,7 @@ def get_image_thumbnail(request, image_id, fetch_original_file=False,
     try:
         thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')),
                                                                  fetch_original_file, file_mimetype)
-    except Exception, e:
+    except Exception as e:
         rendering_engine = rf.get_secondary_thumbnails_rendering_engine(image_id, conn)
         if rendering_engine:
             thumbnail, image_format = rendering_engine.get_thumbnail(int(request.GET.get('size')),
@@ -354,7 +354,7 @@ def get_tile(request, image_id, level, column, row, tile_format,
     try:
         tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
                                                        fetch_original_file, file_mimetype, tile_size)
-    except Exception, e:
+    except Exception as e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
             tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
@@ -375,7 +375,7 @@ def get_image_mpp(request, image_id, fetch_original_file=False, file_mimetype=No
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
         image_mpp = rendering_engine.get_openseadragon_config(fetch_original_file, file_mimetype)['mpp']
-    except Exception, e:
+    except Exception as e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
             image_mpp = rendering_engine.get_openseadragon_config(fetch_original_file, file_mimetype)['mpp']
@@ -390,7 +390,7 @@ def get_slide_bounds(request, image_id, fetch_original_file=False, file_mimetype
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
         slide_bounds = rendering_engine.get_slide_bounds(fetch_original_file, file_mimetype)
-    except Exception, e:
+    except Exception as e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
             slide_bounds = rendering_engine.get_slide_bounds(fetch_original_file, file_mimetype)
@@ -416,8 +416,8 @@ def register_original_file(request, conn=None, **kwargs):
                                                     int(request.GET.get('size', default=-1)),
                                                     request.GET.get('sha1', default='UNKNOWN'))
         return HttpResponse(json.dumps({'omero_id': file_id}), content_type='application/json')
-    except DuplicatedEntryError, dee:
-        return HttpResponseServerError(dee.message)
+    except DuplicatedEntryError as dee:
+        return HttpResponseServerError('%s' % dee)
 
 
 @login_required()
