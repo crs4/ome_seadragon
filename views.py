@@ -22,6 +22,8 @@ from .ome_data.original_files import DuplicatedEntryError
 from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder, ServerConfigError
 from . import settings
 from .slides_manager import RenderingEngineFactory
+from .dzi_adapter import DZIAdapterFactory
+from .dzi_adapter.errors import UnknownDZIAdaperType
 
 import logging
 from distutils.util import strtobool
@@ -477,3 +479,16 @@ def delete_original_files(request, file_name, conn=None, **kwargs):
     status, count = original_files.delete_original_files(conn, file_name)
     return HttpResponse(json.dumps({'success': status, 'deleted_count': count}),
                         content_type='application/json')
+
+
+@login_required()
+def get_array_dataset_dzi(request, dataset_label, conn=None, **kwargs):
+    dataset_type = request.GET.get('dataset_type')
+    if dataset_type is None:
+        return HttpResponseBadRequest('Missing mandatory dataset type value to complete the request')
+    try:
+        dzi_adapter = DZIAdapterFactory(dataset_type.upper()).get_adapter(dataset_label)
+        dzi_metadata = dzi_adapter.get_dzi_description()
+    except UnknownDZIAdaperType as ut_error:
+        return HttpResponseBadRequest(ut_error.message)
+    return HttpResponse(dzi_metadata, content_type='application/xml')

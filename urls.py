@@ -119,5 +119,8 @@ urlpatterns = [
         kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
     url(r'^mirax/deepzoom/slide_bounds/(?P<image_id>[\w\-.]+).dzi$', views.get_slide_bounds,
         name='ome_seadragon_get_slide_bounds',
-        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'})
+        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
+    # ARRAY DATASETS
+    url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+).dzi$', views.get_array_dataset_dzi,
+        name='ome_seadragon_array_datasets_dzi_metadata')
 ]
