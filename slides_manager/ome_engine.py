@@ -148,7 +148,7 @@ class OmeEngine(RenderingEngineInterface):
                 'bounds_width': 0
             }
 
-    def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None):
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None, limit_bounds=None):
         raise NotImplemented()
 
     def get_dzi_description(self, original_file_source=False, file_mimetype=None, tile_size=None):
