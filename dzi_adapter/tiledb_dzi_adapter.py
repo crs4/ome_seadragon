@@ -42,15 +42,6 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         return attributes
 
     def get_dzi_description(self, tile_size=None):
-        """
-        with tiledb.open(os.path.join(TILEDB_REPO, 'prostata_1.ndpi.tissue'), 'w') as A:
-        A.meta['tile_size'] = 256
-        A.meta['original_width'] = tissue_data.shape[0]
-        A.meta['original_height'] = tissue_data.shape[1]
-        A.meta['dzi_sampling_level'] = 19
-        A.meta['rows'] = tissue_probs.shape[0]
-        A.meta['columns'] = tissue_probs.shape[1]
-        """
         attrs = self._get_attributes(['original_width', 'original_height'])
         tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         dzi_root = etree.Element(
