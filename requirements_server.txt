@@ -4,4 +4,5 @@ lxml==4.5.2
 django==1.11.29
 django-cors-headers==3.2.1
 tiledb==0.7.3
+palettable==3.3.0
 https://github.com/crs4/ome_seadragon_cache/archive/v0.2.0.zip

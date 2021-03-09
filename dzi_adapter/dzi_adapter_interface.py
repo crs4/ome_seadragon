@@ -35,5 +35,5 @@ class DZIAdapterInterface(object):
         pass
 
     @abstractmethod
-    def get_tile(self, level, column, row, attribute=None, tile_size=None):
+    def get_tile(self, level, column, row, palette, attribute_label=None, tile_size=None):
         pass

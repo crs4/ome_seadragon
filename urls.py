@@ -53,6 +53,8 @@ urlpatterns = [
         name='ome_seadragon_test_interactive_rulers'),
     url(r'^examples/custom_handlers/freehand/(?P<image_id>[\w\-.]+)/$',
         views.get_example_interactive_freehand),
+    url(r'^examples/array_viewer/(?P<dataset_label>[\w\-.]+)/$', views.get_example_array_viewer,
+        name='ome_seadragon_test_array_viewer'),
     # OMERO PROJECTS, DATASETS AND IMAGES
     url(r'^get/projects/$', views.get_projects, name='ome_seadragon_get_projects'),
     url(r'^get/project/(?P<project_id>[0-9]+)/$', views.get_project,
@@ -122,5 +124,8 @@ urlpatterns = [
         kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
     # ARRAY DATASETS
     url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+).dzi$', views.get_array_dataset_dzi,
-        name='ome_seadragon_array_datasets_dzi_metadata')
+        name='ome_seadragon_array_datasets_dzi_metadata'),
+    url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+)_files/(?P<level>[0-9]+)/'
+        r'(?P<column>[0-9]+)_(?P<row>[0-9]+).png$', views.get_array_dataset_tile,
+        name='ome_seadragon_array_datasets_get_tile')
 ]

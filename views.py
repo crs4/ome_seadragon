@@ -23,10 +23,11 @@ from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder, ServerCo
 from . import settings
 from .slides_manager import RenderingEngineFactory
 from .dzi_adapter import DZIAdapterFactory
-from .dzi_adapter.errors import UnknownDZIAdaperType
+from .dzi_adapter.errors import UnknownDZIAdaperType, InvalidColorPalette, InvalidAttribute
 
 import logging
 from distutils.util import strtobool
+
 try:
     import simplejson as json
 except ImportError:
@@ -135,6 +136,11 @@ def get_example_interactive_freehand(request, image_id):
     mirax = strtobool(request.GET.get('mirax_image', default='false'))
     return render(request, 'ome_seadragon/test/test_freehand_drawing.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
+
+def get_example_array_viewer(request, dataset_label):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    return render(request, 'ome_seadragon/test/test_array_viewer.html',
+                  {'dataset_label': dataset_label, 'host_name': base_url})
 
 
 @login_required()
@@ -492,3 +498,27 @@ def get_array_dataset_dzi(request, dataset_label, conn=None, **kwargs):
     except UnknownDZIAdaperType as ut_error:
         return HttpResponseBadRequest(ut_error.message)
     return HttpResponse(dzi_metadata, content_type='application/xml')
+
+@login_required()
+def get_array_dataset_tile(request, dataset_label, level, row, column, conn=None, **kwargs):
+    color_palette = request.GET.get('palette')
+    dataset_type = request.GET.get('dataset_type')
+    if dataset_type is None:
+        return HttpResponseBadRequest('Missing mandatory dataset type value to complete the request')
+    if color_palette is None:
+        return HttpResponseBadRequest('Missing mandatory palette value to complete the request')
+    try:
+        dzi_adapter = DZIAdapterFactory(dataset_type.upper()).get_adapter(dataset_label)
+        # TODO: handle custom attribute label and tile size
+        tile = dzi_adapter.get_tile(level, int(row), int(column), color_palette)
+        response = HttpResponse(content_type='image/png')
+        tile.save(response, 'png')
+        return response
+    except UnknownDZIAdaperType as ut_error:
+        return HttpResponseBadRequest(ut_error)
+    except InvalidColorPalette as cp_error:
+        return HttpResponseBadRequest(cp_error)
+    except InvalidAttribute as a_error:
+        return HttpResponseBadRequest(a_error)
+    except Exception as e:
+        return HttpResponseBadRequest('GENERIC ERROR: %r' % e)

@@ -20,3 +20,11 @@
 
 class UnknownDZIAdaperType(Exception):
     pass
+
+
+class InvalidAttribute(Exception):
+    pass
+
+
+class InvalidColorPalette(Exception):
+    pass
