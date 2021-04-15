@@ -55,6 +55,8 @@ urlpatterns = [
         views.get_example_interactive_freehand),
     url(r'^examples/array_viewer/(?P<dataset_label>[\w\-.]+)/$', views.get_example_array_viewer,
         name='ome_seadragon_test_array_viewer'),
+    url(r'^examples/overlay_viewer/(?P<image_id>[\w\-.]+)/(?P<dataset_label>[\w\-.]+)/$',
+        views.get_example_overlay_viewer, name='ome_seadragon_test_overlay_viewer'),
     # OMERO PROJECTS, DATASETS AND IMAGES
     url(r'^get/projects/$', views.get_projects, name='ome_seadragon_get_projects'),
     url(r'^get/project/(?P<project_id>[0-9]+)/$', views.get_project,

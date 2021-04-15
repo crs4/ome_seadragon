@@ -137,10 +137,17 @@ def get_example_interactive_freehand(request, image_id):
     return render(request, 'ome_seadragon/test/test_freehand_drawing.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
+
 def get_example_array_viewer(request, dataset_label):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
     return render(request, 'ome_seadragon/test/test_array_viewer.html',
                   {'dataset_label': dataset_label, 'host_name': base_url})
+
+
+def get_example_overlay_viewer(request, image_id, dataset_label):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    return render(request, 'ome_seadragon/test/test_overlay_viewer.html',
+                  {'image_id': image_id, 'dataset_label': dataset_label, 'host_name': base_url})
 
 
 @login_required()
