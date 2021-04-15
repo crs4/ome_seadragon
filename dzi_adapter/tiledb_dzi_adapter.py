@@ -26,7 +26,7 @@ from copy import copy
 import palettable.colorbrewer.sequential as palettes
 
 from .dzi_adapter_interface import DZIAdapterInterface
-from .errors import InvalidAttribute, InvalidColorPalette
+from .errors import InvalidAttribute, InvalidColorPalette, InvalidTileAddress
 from .. import settings
 
 
@@ -64,14 +64,24 @@ class TileDBDZIAdapter(DZIAdapterInterface):
     def _slice_by_attribute(self, attribute, level, row, column):
         attrs = self._get_meta_attributes(['dzi_sampling_level', 'tile_size'])
         with tiledb.open(self.tiledb_resource) as A:
+            max_row, max_col = A.shape
             q = A.query(attrs=(attribute,))
-            zsf = pow(2, int(attrs['dzi_sampling_level']) - int(level))
-            self.logger.info('Required level %d - scale factor %d', level, zsf)
-            slice = q[
-                int(row)*zsf : (int(row)*zsf)+int(zsf),
-                int(column)*zsf : (int(column)*zsf)+int(zsf)
-            ][attribute]
-        return slice
+            zoom_scale_factor = pow(2, int(attrs['dzi_sampling_level']) - level)
+            self.logger.info('Required level %r - scale factor %r', level, zoom_scale_factor)
+            start_row = row*zoom_scale_factor
+            end_row = (row*zoom_scale_factor)+int(zoom_scale_factor)
+            if end_row > max_row:
+                end_row = max_row-1
+            start_col = column*zoom_scale_factor
+            end_col = (column*zoom_scale_factor)+int(zoom_scale_factor)
+            if end_col > max_col:
+                end_col = max_col-1
+            self.logger.info('Slicing row %d:%d and column %d:%d', start_row, end_row, start_col, end_col)
+            try:
+                slice = q[start_row: end_row, start_col : end_col][attribute]
+            except tiledb.TileDBError:
+                raise InvalidTileAddress('Invalid address (%d,%d) for level %d' % (row, column, level))
+        return slice, zoom_scale_factor
 
     def _apply_palette(self, slice, palette):
         try:
@@ -89,23 +99,25 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         self.logger.info(img)
         return img
 
-    def _upscale_tile(self, tile, tile_size):
-        tile = tile.repeat(tile_size/tile.shape[0], axis=0).repeat(tile_size/tile.shape[1], axis=1)
+    def _upscale_tile(self, tile, tile_size, zoom_scale_factor):
+        tile = tile.repeat(tile_size/zoom_scale_factor, axis=0).repeat(tile_size/zoom_scale_factor, axis=1)
         return self._tile_to_img(tile)
 
-    def _downscale_tile(self, tile, tile_size):
+    def _downscale_tile(self, tile, zoom_scale_factor):
         tile_img = self._tile_to_img(tile)
-        return tile_img.resize((tile_size, tile_size), Image.ANTIALIAS)
+        return tile_img.resize(
+            (tile_img.size[0]*zoom_scale_factor, tile_img.size[1]*zoom_scale_factor),
+            Image.ANTIALIAS
+        )
 
-    def _slice_to_tile(self, slice, tile_size, palette):
+    def _slice_to_tile(self, slice, tile_size, zoom_scale_factor, palette):
         tile = self._apply_palette(slice, palette)
-        tile_dim = tile.shape[0]
-        if tile_dim == tile_size:
+        if zoom_scale_factor == 1:
             tile = self._tile_to_img(tile)
-        elif tile_dim < tile_size:
-            tile = self._upscale_tile(tile, tile_size)
+        elif zoom_scale_factor > 1:
+            tile = self._upscale_tile(tile, tile_size, zoom_scale_factor)
         else:
-            tile = self._downscale_tile(tile, tile_size)
+            tile = self._downscale_tile(tile, zoom_scale_factor)
         return tile
 
     def get_dzi_description(self, tile_size=None):
@@ -140,5 +152,5 @@ class TileDBDZIAdapter(DZIAdapterInterface):
             else:
                 raise InvalidAttribute('Dataset has no attribute %s' % attribute_label)
         self.logger.info('Slicing by attribute %s', attribute)
-        slice = self._slice_by_attribute(attribute, level, row, column)
-        return self._slice_to_tile(slice, tile_size, palette)
+        slice, zoom_scale_factor = self._slice_by_attribute(attribute, int(level), int(row), int(column))
+        return self._slice_to_tile(slice, int(tile_size), zoom_scale_factor, palette)

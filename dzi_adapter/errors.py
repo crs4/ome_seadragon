@@ -28,3 +28,7 @@ class InvalidAttribute(Exception):
 
 class InvalidColorPalette(Exception):
     pass
+
+
+class InvalidTileAddress(Exception):
+    pass
