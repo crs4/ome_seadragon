@@ -90,6 +90,7 @@ urlpatterns = [
         name='ome_seadragon_get_slide_bounds'),
     # 3DHISTECH FILES HANDLING --- DATA MANAGEMENT
     url(r'^mirax/register_file/$', views.register_original_file, name='ome_seadragon_mrxs_save'),
+    url(r'mirax/register_slide/$', views.register_mirax_slide, name='ome_seadragon_register_mirax'),
     url(r'^mirax/file_info/(?P<file_name>[\w\-.]+)/$', views.get_original_file_infos,
         name='ome_seadragon_mrxs_file_info'),
     url(r'^mirax/delete_file/(?P<file_name>[\w\-.]+)/$', views.delete_original_file,

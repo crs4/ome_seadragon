@@ -45,6 +45,7 @@ CUSTOM_SETTINGS_MAPPINGS = {
     # <ome_home>/bin/omero config set omero.web.ome_seadragon.repository $(<ome_home>/bin/omero config get omero.data.dir)
     'omero.web.ome_seadragon.repository': ['IMGS_REPOSITORY', None, identity, None],
     'omero.web.ome_seadragon.images_folder': ['IMGS_FOLDER', 'ManagedRepository', identity, None],
+    'omero.web.ome_seadragon.default_mirax_folder': ['MIRAX_FOLDER', None, identity, None],
     # configure this value using OMERO.cli
     # <ome_home>/bin/omero config set omero.web.ome_seadragon.ome_public_user $(<ome_home>/bin/omero config get omero.web.public.user)
     'omero.web.ome_seadragon.ome_public_user': ['OME_PUBLIC_USER', None, identity, None],
