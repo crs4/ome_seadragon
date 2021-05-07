@@ -133,7 +133,7 @@ class MiraxImporter(object):
         self.logger.info('Importing file %s', self.mirax_file)
         mirax_data_folder = self._check_mirax_dataset(self.mirax_file)
         mirax_file_label, mirax_file_details = self._get_file_details(self.mirax_file)
-        mirada_df_label, mirax_df_details = self._get_file_details(mirax_data_folder)
+        mirax_df_label, mirax_df_details = self._get_file_details(mirax_data_folder)
         r0_status, r0_response = self._save(mirax_file_details)
         if r0_status:
             r1_status, r1_response = self._save(mirax_df_details)
