@@ -23,14 +23,18 @@ from omero.model.enums import ChecksumAlgorithmSHA1160
 
 from .utils import switch_to_default_search_group
 
+import re
 import logging
-
 
 logger = logging.getLogger(__name__)
 
 
 class DuplicatedEntryError(Exception):
     pass
+
+
+def is_valid_filename(fname):
+    return re.match(r'^[\w\-.]+$', fname)
 
 
 def save_original_file(connection, name, path, mimetype, size, sha1):

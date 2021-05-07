@@ -23,7 +23,6 @@ from . import settings
 from .slides_manager import RenderingEngineFactory
 
 import logging
-import re
 from distutils.util import strtobool
 try:
     import simplejson as json
@@ -406,8 +405,8 @@ def get_slide_bounds(request, image_id, fetch_original_file=False, file_mimetype
 def register_original_file(request, conn=None, **kwargs):
     try:
         fname = request.GET.get('name')
-        if not re.match(r'^[\w\-.]+$', fname):
-            return HttpResponseServerError('Invalid file name received: %s' % fname)
+        if not original_files.is_valid_filename(fname):
+            return HttpResponseBadRequest('Invalid file name received: %s' % fname)
         fpath = request.GET.get('path')
         fmtype = request.GET.get('mimetype')
         if not all([fname, fpath, fmtype]):
