@@ -17,13 +17,13 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .ome_data import tags_data, projects_datasets, original_files
+from .ome_data import tags_data, projects_datasets, original_files, mirax_files
 from .ome_data.original_files import DuplicatedEntryError
+from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder, ServerConfigError
 from . import settings
 from .slides_manager import RenderingEngineFactory
 
 import logging
-import re
 from distutils.util import strtobool
 try:
     import simplejson as json
@@ -32,7 +32,7 @@ except ImportError:
 
 from omeroweb.webclient.decorators import login_required
 
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, HttpResponseBadRequest
 from django.shortcuts import render
 
 logger = logging.getLogger(__name__)
@@ -406,18 +406,51 @@ def get_slide_bounds(request, image_id, fetch_original_file=False, file_mimetype
 def register_original_file(request, conn=None, **kwargs):
     try:
         fname = request.GET.get('name')
-        if not re.match(r'^[\w\-.]+$', fname):
-            return HttpResponseServerError('Invalid file name received: %s' % fname)
+        if not original_files.is_valid_filename(fname):
+            return HttpResponseBadRequest('Invalid file name received: %s' % fname)
         fpath = request.GET.get('path')
         fmtype = request.GET.get('mimetype')
         if not all([fname, fpath, fmtype]):
-            return HttpResponseServerError('Mandatory field missing')
+            return HttpResponseBadRequest('Mandatory field missing')
         file_id = original_files.save_original_file(conn, fname, fpath, fmtype,
                                                     int(request.GET.get('size', default=-1)),
                                                     request.GET.get('sha1', default='UNKNOWN'))
         return HttpResponse(json.dumps({'omero_id': file_id}), content_type='application/json')
     except DuplicatedEntryError as dee:
         return HttpResponseServerError('%s' % dee)
+
+
+@login_required()
+def register_mirax_slide(request, conn=None, **kwargs):
+    sname = request.GET.get('slide_name')
+    if not original_files.is_valid_filename(sname):
+        return HttpResponseServerError('Invalid slide name received: %s' % sname)
+    try:
+        mirax_paths = mirax_files.get_mirax_files_paths(sname)
+        try:
+            mirax_file_id = original_files.save_original_file(conn, sname, mirax_paths[0], 'mirax/index',
+                                                              -1, 'UNKNOWN')
+            try:
+                mirax_folder_id = original_files.save_original_file(conn, sname, mirax_paths[1],
+                                                                    'mirax/datafolder', -1, 'UNKNOWN')
+                return HttpResponse(
+                json.dumps({
+                    'mirax_index_omero_id': mirax_file_id,
+                    'mirax_folder_omero_id': mirax_folder_id
+                    }),
+                    content_type='application/json'
+                )
+            except DuplicatedEntryError as dee:
+                original_files.delete_original_files(conn, sname, 'mirax/index')
+                return HttpResponseServerError('{0}'.format(dee))
+        except DuplicatedEntryError as dee:
+            return HttpResponseServerError('{0}'.format(dee))
+    except InvalidMiraxFile as imf:
+        return HttpResponseServerError('{0}'.format(imf))
+    except InvalidMiraxFolder as imf:
+        return HttpResponseServerError('{0}'.format(imf))
+    except ServerConfigError as sce:
+        return HttpResponseServerError('{0}'.format(sce))
 
 
 @login_required()

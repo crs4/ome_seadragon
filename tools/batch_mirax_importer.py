@@ -26,7 +26,7 @@ from urllib.parse import urljoin
 import logging
 
 
-class MiraxImporter(object):
+class MiraxBatchImporter(object):
 
     def __init__(self, source_folder, ome_base_url, chunk_size, log_level='INFO', log_file=None):
         self.source_folder = source_folder
@@ -181,8 +181,8 @@ def get_parser():
 def main(argv):
     parser = get_parser()
     args = parser.parse_args(argv)
-    importer = MiraxImporter(args.source_folder, args.ome_base_url, args.chunk_size,
-                             args.log_level, args.log_file)
+    importer = MiraxBatchImporter(args.source_folder, args.ome_base_url, args.chunk_size,
+                                  args.log_level, args.log_file)
     importer.run(args.clear)
 
 if __name__ == '__main__':
