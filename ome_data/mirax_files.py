@@ -25,10 +25,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ServerConfigError(Exception):
-    pass
-
-
 class InvalidMiraxFile(Exception):
     pass
 
@@ -51,4 +47,4 @@ def get_mirax_files_paths(slide_base_name):
         else:
             raise InvalidMiraxFile('File {0} not found'.format(mirax_files[0]))
     else:
-        raise ServerConfigError('MIRAX default folder was not configured properly')
+        raise settings.ServerConfigError('MIRAX default folder was not configured properly')
