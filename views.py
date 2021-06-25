@@ -19,7 +19,7 @@
 
 from .ome_data import tags_data, projects_datasets, original_files, mirax_files
 from .ome_data.original_files import DuplicatedEntryError
-from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder, ServerConfigError
+from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
 from . import settings
 from .slides_manager import RenderingEngineFactory
 from .dzi_adapter import DZIAdapterFactory
@@ -464,7 +464,8 @@ def register_mirax_slide(request, conn=None, **kwargs):
         return HttpResponseServerError('{0}'.format(imf))
     except InvalidMiraxFolder as imf:
         return HttpResponseServerError('{0}'.format(imf))
-    except ServerConfigError as sce:
+    except settings.ServerConfigError as sce:
+        return HttpResponseServerError('{0}'.format(sce))
         return HttpResponseServerError('{0}'.format(sce))
 
 
