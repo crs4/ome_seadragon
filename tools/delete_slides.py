@@ -30,7 +30,7 @@ class SlidesDeleter(object):
 
     def __init__(self, ome_base_url, slides_file_list, log_level='INFO', log_file=None):
         self.ome_delete_url = urljoin(ome_base_url, 'mirax/delete_files/')
-        self.ome_get_file_info_url = urljoin(ome_base_url, 'mirax/file_info/')
+        self.ome_get_file_info_url = urljoin(ome_base_url, 'file/info/')
         self.slides_list = self.get_slides_list(slides_file_list)
         self.logger = self.get_logger(log_level, log_file)
         self.INDEX_FILE_MT = 'mirax/index'

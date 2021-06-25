@@ -92,13 +92,14 @@ urlpatterns = [
         name='ome_seadragon_get_image_mpp'),
     url(r'^deepzoom/slide_bounds/(?P<image_id>[0-9]+).dzi$', views.get_slide_bounds,
         name='ome_seadragon_get_slide_bounds'),
+   # ORIGINAL FILES HANDLING
+    url(r'^file/register/$', views.register_original_file, name='ome_seadragon_file_save'),
+    url(r'^file/info/(?P<file_name>[\w\-.]+)/$', views.get_original_file_infos,
+        name='ome_seadragon_file_info'),
+    url(r'^file/delete/(?P<file_name>[\w\-.]+)/$', views.delete_original_file,
+        name='ome_seadragon_delete_file'),
     # 3DHISTECH FILES HANDLING --- DATA MANAGEMENT
-    url(r'^mirax/register_file/$', views.register_original_file, name='ome_seadragon_mrxs_save'),
     url(r'mirax/register_slide/$', views.register_mirax_slide, name='ome_seadragon_register_mirax'),
-    url(r'^mirax/file_info/(?P<file_name>[\w\-.]+)/$', views.get_original_file_infos,
-        name='ome_seadragon_mrxs_file_info'),
-    url(r'^mirax/delete_file/(?P<file_name>[\w\-.]+)/$', views.delete_original_file,
-        name='ome_seadragon_mrxs_delete_file'),
     url(r'^mirax/delete_files/(?P<file_name>[\w\-.]+)/$', views.delete_original_files,
         name='ome_seadragon_mrxs_delete_files'),
     # 3DHISTECH FILES HANDLING --- DEEPZOOM
