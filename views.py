@@ -17,7 +17,7 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .ome_data import tags_data, projects_datasets, original_files, mirax_files
+from .ome_data import tags_data, projects_datasets, original_files, mirax_files, datasets_files
 from .ome_data.original_files import DuplicatedEntryError
 from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
 from . import settings
@@ -466,6 +466,30 @@ def register_mirax_slide(request, conn=None, **kwargs):
         return HttpResponseServerError('{0}'.format(imf))
     except settings.ServerConfigError as sce:
         return HttpResponseServerError('{0}'.format(sce))
+
+@login_required()
+def register_array_dataset(request, conn=None, **kwargs):
+    dataset_label = request.GET.get('dataset_label')
+    if not original_files.is_valid_filename(dataset_label):
+        return HttpResponseServerError('Invalid dataset name received: {0}'.format(dataset_label))
+    try:
+        dataset_path, is_dir = datasets_files.get_dataset_file_path(dataset_label)
+        if not is_dir:
+            try:
+                dataset_label, dataset_path = datasets_files.extract_archive(dataset_path)
+            except datasets_files.DatasetPathAlreadyExistError as dpe:
+                return HttpResponseServerError('{0}'.format(dpe))
+        try:
+            mtype = datasets_files.check_dataset(dataset_path)
+            dataset_id = original_files.save_original_file(conn, dataset_label, dataset_path, mtype,
+                                                           int(request.GET.get('size', default=-1)),
+                                                           request.GET.get('sha1', default='UNKNOWN'))
+            return HttpResponse(json.dumps({'omero_id': dataset_id}), content_type='application/json')
+        except datasets_files.DatasetFormatError as dfe:
+            return HttpResponseServerError('{0}'.format(dfe))
+        except DuplicatedEntryError as dee:
+            return HttpResponseServerError('{0}'.format(dee))
+    except settings.ServerConfigError as sce:
         return HttpResponseServerError('{0}'.format(sce))
 
 
