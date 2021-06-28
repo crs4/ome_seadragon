@@ -62,13 +62,15 @@ def check_dataset(dataset_path):
 
 
 def extract(archive_handler, out_folder):
-    dataset_label = os.path.splitext(archive_handler.filename)[0]
+    dataset_label = os.path.splitext(os.path.basename(archive_handler.filename))[0]
     if archive_handler.getinfo(archive_handler.infolist()[0].filename).is_dir():
         dest_folder = os.path.join(out_folder, archive_handler.infolist()[0].filename)
     else:
         out_folder = dest_folder = os.path.join(out_folder, dataset_label)
     if not os.path.isdir(dest_folder):
+        logger.info('Extracting archive to folder {0}'.format(out_folder))
         archive_handler.extractall(out_folder)
+        logger.info('Dataset label: {0} -- Destination folder: {1}'.format(dataset_label, dest_folder))
         return dataset_label, dest_folder
     else:
         raise DatasetPathAlreadyExistError('Destination path {0} for archive extraction already exists'.format(dest_folder))
