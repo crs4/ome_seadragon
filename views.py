@@ -484,7 +484,8 @@ def register_array_dataset(request, conn=None, **kwargs):
             dataset_id = original_files.save_original_file(conn, dataset_label, dataset_path, mtype,
                                                            int(request.GET.get('size', default=-1)),
                                                            request.GET.get('sha1', default='UNKNOWN'))
-            return HttpResponse(json.dumps({'omero_id': dataset_id}), content_type='application/json')
+            return HttpResponse(json.dumps({'omero_id': dataset_id, 'mimetype': mtype, 'label': dataset_label}),
+                                content_type='application/json')
         except datasets_files.DatasetFormatError as dfe:
             return HttpResponseServerError('{0}'.format(dfe))
         except DuplicatedEntryError as dee:
