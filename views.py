@@ -467,6 +467,13 @@ def register_mirax_slide(request, conn=None, **kwargs):
     except settings.ServerConfigError as sce:
         return HttpResponseServerError('{0}'.format(sce))
 
+
+@login_required()
+def list_array_datasets(request, conn=None, **kwargs):
+    datasets = datasets_files.get_datasets(conn)
+    return HttpResponse(json.dumps(datasets), content_type='application/json')
+
+
 @login_required()
 def register_array_dataset(request, conn=None, **kwargs):
     dataset_label = request.GET.get('dataset_label')

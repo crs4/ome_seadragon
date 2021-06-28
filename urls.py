@@ -126,6 +126,7 @@ urlpatterns = [
         name='ome_seadragon_get_slide_bounds',
         kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
     # ARRAY DATASETS --- FILES HANDLING
+    url(r'^arrays/list/$', views.list_array_datasets, name='ome_seadragon_list_array_datasets'),
     url(r'^arrays/register_dataset/$', views.register_array_dataset, name='ome_seadragon_register_array_dataset'),
     # ARRAY DATASETS --- DEEPZOOM
     url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+).dzi$', views.get_array_dataset_dzi,

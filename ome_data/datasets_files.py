@@ -22,6 +22,8 @@ from .. import settings
 import os, zipfile, tarfile, tiledb
 import logging
 
+from .utils import switch_to_default_search_group
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,3 +98,17 @@ def extract_archive(archive_file, out_folder=settings.TILEDB_REPOSITORY):
     logger.info('Extraction completed, deleting archive file')
     os.remove(archive_file)
     return ds_label, dest_folder
+
+
+def _dataset_to_json(dataset_obj):
+    return {
+        'id': dataset_obj.getId(),
+        'label': dataset_obj.getName(),
+        'mimetype': dataset_obj.getMimetype()
+    }
+
+def get_datasets(connection):
+    switch_to_default_search_group(connection)
+    query_filter = {'mimetype': 'dataset-folder/tiledb'}
+    datasets = connection.getObjects('OriginalFile', attributes=query_filter)
+    return [_dataset_to_json(d) for d in datasets]
