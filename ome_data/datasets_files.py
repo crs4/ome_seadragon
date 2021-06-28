@@ -88,8 +88,11 @@ def extract_tar_archive(archive_file, out_folder):
 
 def extract_archive(archive_file, out_folder=settings.TILEDB_REPOSITORY):
     if zipfile.is_zipfile(archive_file):
-        return extract_zip_archive(archive_file, out_folder)
+        ds_label, dest_folder = extract_zip_archive(archive_file, out_folder)
     elif tarfile.is_tarfile(archive_file):
-        return extract_tar_archive(archive_file, out_folder)
+        ds_label, dest_folder = extract_tar_archive(archive_file, out_folder)
     else:
         raise ArchiveFormatError('Archive file {0} is nor ZIP or TAR format'.format(archive_file))
+    logger.info('Extraction completed, deleting archive file')
+    os.remove(archive_file)
+    return ds_label, dest_folder
