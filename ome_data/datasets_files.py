@@ -44,8 +44,8 @@ class DatasetPathAlreadyExistError(Exception):
 
 
 def get_dataset_file_path(dataset_file_name):
-    if settings.TILEDB_REPOSITORY is not None:
-        dataset_path = os.path.join(settings.TILEDB_REPOSITORY, dataset_file_name)
+    if settings.DATASETS_REPOSITORY is not None:
+        dataset_path = os.path.join(settings.DATASETS_REPOSITORY, dataset_file_name)
         if os.path.isdir(dataset_path) or os.path.isfile(dataset_path):
             return dataset_path, os.path.isdir(dataset_path)
         else:
@@ -88,7 +88,7 @@ def extract_tar_archive(archive_file, out_folder):
         return extract(f, out_folder)
 
 
-def extract_archive(archive_file, out_folder=settings.TILEDB_REPOSITORY, keep_archive=False):
+def extract_archive(archive_file, out_folder=settings.DATASETS_REPOSITORY, keep_archive=False):
     if zipfile.is_zipfile(archive_file):
         ds_label, dest_folder = extract_zip_archive(archive_file, out_folder)
     elif tarfile.is_tarfile(archive_file):

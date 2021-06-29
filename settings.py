@@ -78,6 +78,6 @@ CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.images_cache.host': ['CACHE_HOST', None, identity, None],
     'omero.web.ome_seadragon.images_cache.port': ['CACHE_PORT', None, identity, None],
     'omero.web.ome_seadragon.images_cache.database': ['CACHE_DB', None, identity, None],
-    # TileDB datasets config
-    'omero.web.ome_seadragon.dzi_adapter.tiledb.repository': ['TILEDB_REPOSITORY', None, identity, None]
+    # arrays datasets config
+    'omero.web.ome_seadragon.dzi_adapter.datasets.repository': ['DATASETS_REPOSITORY', None, identity, None]
 }

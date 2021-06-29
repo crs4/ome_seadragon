@@ -31,10 +31,7 @@ class DZIAdapterFactory(object):
 
     def _get_tiledb_adapter(self, fname):
         from .tiledb_dzi_adapter import TileDBDZIAdapter
-
-        print(fname, settings.TILEDB_REPOSITORY)
-
-        return TileDBDZIAdapter(fname, settings.TILEDB_REPOSITORY)
+        return TileDBDZIAdapter(fname, settings.DATASETS_REPOSITORY)
 
     def get_adapter(self, dataset_label):
         if self.array_dataset_type == 'TILEDB':
