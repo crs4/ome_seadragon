@@ -19,7 +19,7 @@
 
 from .. import settings
 
-import os, zipfile, tarfile, tiledb
+import os, zipfile, tarfile, tiledb, zarr
 import logging
 
 from .utils import switch_to_default_search_group
@@ -54,13 +54,31 @@ def get_dataset_file_path(dataset_file_name):
         raise settings.ServerConfigError('DATASETS default folder was not configured properly')
 
 
-def check_dataset(dataset_path):
+def _check_tiledb_dataset(dataset_path):
+    logger.info('Checking dataset {0} for TILEDB compatibility'.format(dataset_path))
     try:
         x = tiledb.open(dataset_path)
         x.close()
         return 'dataset-folder/tiledb'
     except tiledb.TileDBError:
-        raise DatasetFormatError('Dataset {0} is not a valid TileDB archive'.format(dataset_path))
+        return None
+
+def _check_zarr_dataset(dataset_path):
+    logger.info('Checking dataset {0} for ZARR compatibility'.format(dataset_path))
+    x = zarr.open(dataset_path, 'r')
+    if len(list(x.arrays())) > 0:
+        return 'dataset-folder/zarr'
+    else:
+        return None
+
+
+def check_dataset(dataset_path):
+    mtype = _check_tiledb_dataset(dataset_path)
+    if mtype is None:
+        mtype = _check_zarr_dataset(dataset_path)
+        if mtype is None:
+            raise DatasetFormatError('Dataset {0} is not a valid TileDB or ZARR archive'.format(dataset_path))
+    return mtype
 
 
 def extract(archive_handler, out_folder):
@@ -111,6 +129,9 @@ def _dataset_to_json(dataset_obj):
 
 def get_datasets(connection):
     switch_to_default_search_group(connection)
-    query_filter = {'mimetype': 'dataset-folder/tiledb'}
-    datasets = connection.getObjects('OriginalFile', attributes=query_filter)
+    mtypes_filter = ['dataset-folder/tiledb', 'dataset-folder/zarr']
+    datasets = list()
+    for mf in mtypes_filter:
+        query_filter = {'mimetype': mf}
+        datasets.extend(connection.getObjects('OriginalFile', attributes=query_filter))
     return [_dataset_to_json(d) for d in datasets]
