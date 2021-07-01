@@ -63,6 +63,7 @@ def _check_tiledb_dataset(dataset_path):
     except tiledb.TileDBError:
         return None
 
+
 def _check_zarr_dataset(dataset_path):
     logger.info('Checking dataset {0} for ZARR compatibility'.format(dataset_path))
     x = zarr.open(dataset_path, 'r')
