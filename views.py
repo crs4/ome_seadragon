@@ -498,6 +498,8 @@ def register_array_dataset(request, conn=None, **kwargs):
             return HttpResponseServerError('{0}'.format(dfe))
         except DuplicatedEntryError as dee:
             return HttpResponseServerError('{0}'.format(dee))
+    except datasets_files.InvalidDatasetPath as idp:
+        return HttpResponseServerError('{0}'.format(idp))
     except settings.ServerConfigError as sce:
         return HttpResponseServerError('{0}'.format(sce))
 
