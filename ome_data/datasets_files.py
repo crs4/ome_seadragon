@@ -82,13 +82,13 @@ def check_dataset(dataset_path):
     return mtype
 
 
-def extract(archive_handler, out_folder):
+def extract(archive_handler, out_folder, override):
     dataset_label = os.path.splitext(os.path.basename(archive_handler.filename))[0]
     if archive_handler.getinfo(archive_handler.infolist()[0].filename).is_dir():
         dest_folder = os.path.join(out_folder, archive_handler.infolist()[0].filename)
     else:
         out_folder = dest_folder = os.path.join(out_folder, dataset_label)
-    if not os.path.isdir(dest_folder):
+    if (not override and not os.path.isdir(dest_folder)) or (override):
         logger.info('Extracting archive to folder {0}'.format(out_folder))
         archive_handler.extractall(out_folder)
         logger.info('Dataset label: {0} -- Destination folder: {1}'.format(dataset_label, dest_folder))
@@ -97,21 +97,21 @@ def extract(archive_handler, out_folder):
         raise DatasetPathAlreadyExistError('Destination path {0} for archive extraction already exists'.format(dest_folder))
 
 
-def extract_zip_archive(archive_file, out_folder):
+def extract_zip_archive(archive_file, out_folder, override):
     with zipfile.ZipFile(archive_file, 'r') as f:
-        return extract(f, out_folder)
+        return extract(f, out_folder, override)
 
 
-def extract_tar_archive(archive_file, out_folder):
+def extract_tar_archive(archive_file, out_folder, override):
     with tarfile.TarFile(archive_file, 'r') as f:
-        return extract(f, out_folder)
+        return extract(f, out_folder, override)
 
 
-def extract_archive(archive_file, out_folder=settings.DATASETS_REPOSITORY, keep_archive=False):
+def extract_archive(archive_file, out_folder=settings.DATASETS_REPOSITORY, keep_archive=False, override=False):
     if zipfile.is_zipfile(archive_file):
-        ds_label, dest_folder = extract_zip_archive(archive_file, out_folder)
+        ds_label, dest_folder = extract_zip_archive(archive_file, out_folder, override)
     elif tarfile.is_tarfile(archive_file):
-        ds_label, dest_folder = extract_tar_archive(archive_file, out_folder)
+        ds_label, dest_folder = extract_tar_archive(archive_file, out_folder, override)
     else:
         raise ArchiveFormatError('Archive file {0} is nor ZIP or TAR format'.format(archive_file))
     logger.info('Archive extraction completed')

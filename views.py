@@ -484,7 +484,9 @@ def register_array_dataset(request, conn=None, **kwargs):
         if not is_dir:
             try:
                 keep_archive = strtobool(request.GET.get('keep_archive', default='false'))
-                dataset_label, dataset_path = datasets_files.extract_archive(dataset_path, keep_archive=keep_archive)
+                override = strtobool(request.GET.get('override', default='false'))
+                dataset_label, dataset_path = datasets_files.extract_archive(dataset_path, keep_archive=keep_archive,
+                                                                             override=override)
             except datasets_files.DatasetPathAlreadyExistError as dpe:
                 return HttpResponseServerError('{0}'.format(dpe))
         try:
