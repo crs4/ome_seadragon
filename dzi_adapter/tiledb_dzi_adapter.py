@@ -17,6 +17,7 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+from math import ceil
 import os
 import numpy as np
 import tiledb
@@ -35,7 +36,7 @@ class TileDBDZIAdapter(DZIAdapterInterface):
     def __init__(self, tiledb_file, tiledb_repo):
         super(TileDBDZIAdapter, self).__init__()
         self.tiledb_resource = os.path.join(tiledb_repo, tiledb_file)
-        self.logger.info('TileDB adapter initialized')
+        self.logger.debug('TileDB adapter initialized')
 
     def _get_meta_attributes(self, keys):
         with tiledb.open(self.tiledb_resource) as A:
@@ -44,8 +45,15 @@ class TileDBDZIAdapter(DZIAdapterInterface):
                 try:
                     attributes[k] = A.meta[k]
                 except:
-                    self.logger('Error when loading attribute %s' % k)
+                    self.logger.error('Error when loading attribute %s' % k)
         return attributes
+
+    def _get_meta_attribute(self, key):
+        with tiledb.open(self.tiledb_resource) as A:
+            try:
+                return A.meta[key]
+            except:
+                self.logger.error('Error when loading attribute %s' % key)
 
     def _get_schema(self):
         return tiledb.ArraySchema.load(self.tiledb_resource)
@@ -61,27 +69,54 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         else:
             raise IndexError('Schema has no attribute for index %d' % attribute_index)
 
-    def _slice_by_attribute(self, attribute, level, row, column):
-        attrs = self._get_meta_attributes(['dzi_sampling_level', 'tile_size'])
+    def _get_dzi_tile_coordinates(self, row, column, tile_size):
+        x_min = row*tile_size
+        y_min = column*tile_size
+        x_max = x_min+tile_size
+        y_max = y_min+tile_size
+        return {
+            'x_min': x_min,
+            'x_max': x_max,
+            'y_min': y_min,
+            'y_max': y_max
+        }
+
+    def _get_zoom_scale_factor(self, dzi_zoom_level, dataset_attribute):
+        tiledb_zoom_level = self._get_meta_attribute('{0}.dzi_sampling_level'.format(dataset_attribute))
+        return pow(2, (tiledb_zoom_level-dzi_zoom_level))
+
+    def _get_dataset_tile_coordinates(self, dzi_coordinates, zoom_scale_factor):
+        return {k:(v*zoom_scale_factor) for (k, v) in dzi_coordinates.items()}
+
+    def _get_dataset_tiles(self, coordinates, dataset_attribute):
+        dataset_tile_size = self._get_meta_attribute('{0}.tile_size'.format(dataset_attribute))
+        col_min = int(coordinates['x_min']/dataset_tile_size)
+        row_min = int(coordinates['y_min']/dataset_tile_size)
+        col_max = ceil(coordinates['x_max']/dataset_tile_size)
+        row_max = ceil(coordinates['y_max']/dataset_tile_size)
+        return {
+            'col_min': col_min,
+            'col_max': col_max,
+            'row_min': row_min,
+            'row_max': row_max
+        }
+
+    def _slice_by_attribute(self, attribute, level, row, column, dzi_tile_size):
+        dzi_coordinates = self._get_dzi_tile_coordinates(row, column, dzi_tile_size)
+        zoom_scale_factor = self._get_zoom_scale_factor(level, attribute)
+        dataset_tiles = self._get_dataset_tiles(
+            self._get_dataset_tile_coordinates(dzi_coordinates, zoom_scale_factor),
+            attribute
+        )
         with tiledb.open(self.tiledb_resource) as A:
-            max_row, max_col = A.shape
+            max_col, max_row = A.shape
             q = A.query(attrs=(attribute,))
-            zoom_scale_factor = pow(2, int(attrs['dzi_sampling_level']) - level)
-            self.logger.info('Required level %r - scale factor %r', level, zoom_scale_factor)
-            start_row = row*zoom_scale_factor
-            end_row = (row*zoom_scale_factor)+int(zoom_scale_factor)
-            if end_row > max_row:
-                end_row = max_row-1
-            start_col = column*zoom_scale_factor
-            end_col = (column*zoom_scale_factor)+int(zoom_scale_factor)
-            if end_col > max_col:
-                end_col = max_col-1
-            self.logger.info('Slicing row %d:%d and column %d:%d', start_row, end_row, start_col, end_col)
             try:
-                slice = q[start_row: end_row, start_col : end_col][attribute]
+                data = q[dataset_tiles['col_min']:min(max_col, dataset_tiles['col_max']),
+                         dataset_tiles['row_min']:min(max_row, dataset_tiles['row_max'])][attribute]/100.
             except tiledb.TileDBError:
                 raise InvalidTileAddress('Invalid address (%d,%d) for level %d' % (row, column, level))
-        return slice, zoom_scale_factor
+        return data, zoom_scale_factor
 
     def _apply_palette(self, slice, palette):
         try:
@@ -89,36 +124,29 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         except AttributeError:
             raise InvalidColorPalette('%s is not a valid color palette' % palette)
         p_colors = copy(p_obj.colors)
-        p_colors.insert(0, [255, 255, 255]) # TODO: check if actually necessary
+        p_colors.insert(0, [255, 255, 255]) # TODO: check if actually necessary
         norm_slice = np.asarray(np.uint8(slice*len(p_colors))).reshape(-1)
         colored_slice = [p_colors[int(y)] for y in norm_slice]
         return np.array(colored_slice).reshape(*slice.shape, 3)
 
     def _tile_to_img(self, tile, mode='RGB'):
         img = Image.fromarray(np.uint8(tile), mode)
-        self.logger.info(img)
         return img
+    
+    def _get_expected_tile_size(self, dzi_tile_size, zoom_scale_factor, dataset_tile_size):
+        return int((dzi_tile_size*zoom_scale_factor)/dataset_tile_size)
 
-    def _upscale_tile(self, tile, tile_size, zoom_scale_factor):
-        tile = tile.repeat(tile_size/zoom_scale_factor, axis=0).repeat(tile_size/zoom_scale_factor, axis=1)
-        return self._tile_to_img(tile)
-
-    def _downscale_tile(self, tile, zoom_scale_factor):
-        tile_img = self._tile_to_img(tile)
-        return tile_img.resize(
-            (tile_img.size[0]*zoom_scale_factor, tile_img.size[1]*zoom_scale_factor),
-            Image.ANTIALIAS
-        )
-
-    def _slice_to_tile(self, slice, tile_size, zoom_scale_factor, palette):
+    def _slice_to_tile(self, slice, tile_size, zoom_scale_factor, dataset_tile_size, palette):
+        expected_tile_size = self._get_expected_tile_size(tile_size, zoom_scale_factor, dataset_tile_size)
         tile = self._apply_palette(slice, palette)
-        if zoom_scale_factor == 1:
-            tile = self._tile_to_img(tile)
-        elif zoom_scale_factor > 1:
-            tile = self._upscale_tile(tile, tile_size, zoom_scale_factor)
-        else:
-            tile = self._downscale_tile(tile, zoom_scale_factor)
-        return tile
+        tile = self._tile_to_img(tile)
+        self.logger.debug('Tile width: {0} --- Tile Height: {1}'.format(tile.width, tile.height))
+        self.logger.debug('Expected tile size {0}'.format(expected_tile_size))
+        return tile.resize(
+            (
+                int(tile_size*(tile.width/expected_tile_size)),
+                int(tile_size*(tile.height/expected_tile_size))
+            ), Image.BOX)
 
     def get_dzi_description(self, tile_size=None):
         attrs = self._get_meta_attributes(['original_width', 'original_height'])
@@ -141,9 +169,9 @@ class TileDBDZIAdapter(DZIAdapterInterface):
 
 
     def get_tile(self, level, row, column, palette, attribute_label=None, tile_size=None):
-        self.logger.info('Loading tile')
+        self.logger.debug('Loading tile')
         tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
-        self.logger.info('Setting tile size to %dpx', tile_size)
+        self.logger.debug('Setting tile size to %dpx', tile_size)
         if attribute_label is None:
             attribute = self._get_attribute_by_index(0)
         else:
@@ -151,6 +179,8 @@ class TileDBDZIAdapter(DZIAdapterInterface):
                 attribute = attribute_label
             else:
                 raise InvalidAttribute('Dataset has no attribute %s' % attribute_label)
-        self.logger.info('Slicing by attribute %s', attribute)
-        slice, zoom_scale_factor = self._slice_by_attribute(attribute, int(level), int(row), int(column))
-        return self._slice_to_tile(slice, int(tile_size), zoom_scale_factor, palette)
+        self.logger.debug('Slicing by attribute %s', attribute)
+        slice, zoom_scale_factor = self._slice_by_attribute(attribute, int(level), int(row), int(column), tile_size)
+        return self._slice_to_tile(slice, tile_size, zoom_scale_factor,
+                                   self._get_meta_attribute('{0}.tile_size'.format(attribute)),
+                                   palette)
