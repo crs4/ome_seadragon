@@ -154,7 +154,7 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         return img
     
     def _get_expected_tile_size(self, dzi_tile_size, zoom_scale_factor, dataset_tile_size):
-        return int((dzi_tile_size*zoom_scale_factor)/dataset_tile_size)
+        return max(int((dzi_tile_size*zoom_scale_factor)/dataset_tile_size), 1)
 
     def _slice_to_tile(self, slice, tile_size, zoom_scale_factor, dataset_tile_size, palette):
         expected_tile_size = self._get_expected_tile_size(tile_size, zoom_scale_factor, dataset_tile_size)
