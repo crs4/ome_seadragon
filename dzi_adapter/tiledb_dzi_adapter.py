@@ -130,11 +130,10 @@ class TileDBDZIAdapter(DZIAdapterInterface):
             attribute
         )
         with tiledb.open(self.tiledb_resource) as A:
-            max_col, max_row = A.shape
             q = A.query(attrs=(attribute,))
             try:
-                data = q[dataset_tiles['col_min']:min(max_col, dataset_tiles['col_max']),
-                         dataset_tiles['row_min']:min(max_row, dataset_tiles['row_max'])][attribute]/100.
+                data = q[dataset_tiles['col_min']:dataset_tiles['col_max'],
+                         dataset_tiles['row_min']:dataset_tiles['row_max']][attribute]/100.
             except tiledb.TileDBError:
                 raise InvalidTileAddress('Invalid address (%d,%d) for level %d' % (row, column, level))
         return data, zoom_scale_factor
