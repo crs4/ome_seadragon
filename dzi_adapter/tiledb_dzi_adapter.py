@@ -17,7 +17,7 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from math import ceil
+from math import ceil, log2
 import os
 import numpy as np
 import tiledb
@@ -55,6 +55,10 @@ class TileDBDZIAdapter(DZIAdapterInterface):
             except:
                 self.logger.error('Error when loading attribute %s' % key)
 
+    def _get_dataset_shape(self):
+        with tiledb.open(self.tiledb_resource) as A:
+            return A.shape
+
     def _get_schema(self):
         return tiledb.ArraySchema.load(self.tiledb_resource)
 
@@ -79,6 +83,23 @@ class TileDBDZIAdapter(DZIAdapterInterface):
             'x_max': x_max,
             'y_min': y_min,
             'y_max': y_max
+        }
+
+    def _get_dzi_level(self, shape):
+        return int(ceil(log2(max(*shape))))
+    
+    def _get_dataset_dzi_dimensions(self, attribute):
+        attrs = self._get_meta_attributes([
+            'original_width', 'original_height',
+            '{0}.dzi_sampling_level'.format(attribute),
+            '{0}.tile_size'.format(attribute)
+        ])
+        dzi_max_level = self._get_dzi_level((attrs['original_width'], attrs['original_height']))
+        dataset_shape = self._get_dataset_shape()
+        zoom_scale_factor = pow(2, dzi_max_level-attrs['{0}.dzi_sampling_level'.format(attribute)])
+        return {
+            'width': dataset_shape[1]*attrs['{0}.tile_size'.format(attribute)]*zoom_scale_factor,
+            'height': dataset_shape[0]*attrs['{0}.tile_size'.format(attribute)]*zoom_scale_factor
         }
 
     def _get_zoom_scale_factor(self, dzi_zoom_level, dataset_attribute):
@@ -148,8 +169,15 @@ class TileDBDZIAdapter(DZIAdapterInterface):
                 int(tile_size*(tile.height/expected_tile_size))
             ), Image.BOX)
 
-    def get_dzi_description(self, tile_size=None):
-        attrs = self._get_meta_attributes(['original_width', 'original_height'])
+    def get_dzi_description(self, tile_size=None, attribute_label=None):
+        if attribute_label is None:
+            attribute = self._get_attribute_by_index(0)
+        else:
+            if self._check_attribute(attribute_label):
+                attribute = attribute_label
+            else:
+                raise InvalidAttribute('Dataset has no attribute %s' % attribute_label)
+        dset_dims = self._get_dataset_dzi_dimensions(attribute)
         tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         dzi_root = etree.Element(
             'Image',
@@ -161,10 +189,10 @@ class TileDBDZIAdapter(DZIAdapterInterface):
             nsmap={None: 'http://schemas.microsoft.com/deepzoom/2008'}
         )
         etree.SubElement(dzi_root, 'Size',
-                         attrib={
-                             'Height': str(attrs['original_height']),
-                             'Width': str(attrs['original_width'])
-                         })
+                        attrib={
+                            'Height': str(dset_dims['height']),
+                            'Width': str(dset_dims['width'])
+                        })
         return etree.tostring(dzi_root)
 
 
