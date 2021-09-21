@@ -146,6 +146,8 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         p_colors = copy(p_obj.colors)
         p_colors.insert(0, [255, 255, 255]) # TODO: check if actually necessary
         norm_slice = np.asarray(np.uint8(slice*len(p_colors))).reshape(-1)
+        # extend the p_colors array to avoid an issue related to probabilities with a value of 1.0
+        p_colors.append(p_colors[-1])
         colored_slice = [p_colors[int(y)] for y in norm_slice]
         return np.array(colored_slice).reshape(*slice.shape, 3)
 
