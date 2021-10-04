@@ -67,13 +67,14 @@ def _check_tiledb_dataset(dataset_path):
 
 def _check_zarr_dataset(dataset_path):
     logger.info('Checking dataset {0} for ZARR compatibility'.format(dataset_path))
-    x = zarr.open(dataset_path, 'r')
-    if len(list(x.arrays())) > 0:
-        if os.path.isdir(dataset_path):
-            return 'dataset-folder/zarr'
-        else:
-            return 'dataset-archive/zarr'
-    else:
+    try:
+        x = zarr.open(dataset_path, 'r')
+        if len(list(x.arrays())) > 0:
+            if os.path.isdir(dataset_path):
+                return 'dataset-folder/zarr'
+            else:
+                return 'dataset-archive/zarr'
+    except zarr.errors.PathNotFoundError:
         return None
 
 
