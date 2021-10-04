@@ -482,18 +482,25 @@ def register_array_dataset(request, conn=None, **kwargs):
     try:
         dataset_path, is_dir = datasets_files.get_dataset_file_path(dataset_label)
         if not is_dir:
-            try:
-                keep_archive = strtobool(request.GET.get('keep_archive', default='false'))
-                dataset_label, dataset_path = datasets_files.extract_archive(dataset_path, keep_archive=keep_archive)
-            except datasets_files.DatasetPathAlreadyExistError as dpe:
-                return HttpResponseServerError('{0}'.format(dpe))
+            if strtobool(request.GET.get('extract_archive', default='true')) == False:
+                dataset_label, dataset_path = datasets_files.rename_archive(dataset_path)
+            else:
+                try:
+                    keep_archive = strtobool(request.GET.get('keep_archive', default='false'))
+                    dataset_label, dataset_path = datasets_files.extract_archive(dataset_path,
+                                                                                 keep_archive=keep_archive)
+                    is_dir = True
+                except datasets_files.DatasetPathAlreadyExistError as dpe:
+                    return HttpResponseServerError('{0}'.format(dpe))
         try:
-            mtype = datasets_files.check_dataset(dataset_path)
+            mtype = datasets_files.check_dataset(dataset_path, is_dir)
             dataset_id = original_files.save_original_file(conn, dataset_label, dataset_path, mtype,
                                                            int(request.GET.get('size', default=-1)),
                                                            request.GET.get('sha1', default='UNKNOWN'))
-            return HttpResponse(json.dumps({'omero_id': dataset_id, 'mimetype': mtype, 'label': dataset_label}),
-                                content_type='application/json')
+            return HttpResponse(
+                json.dumps({'omero_id': dataset_id, 'mimetype': mtype, 'label': dataset_label, 'path': dataset_path}),
+                content_type='application/json'
+            )
         except datasets_files.DatasetFormatError as dfe:
             return HttpResponseServerError('{0}'.format(dfe))
         except DuplicatedEntryError as dee:

@@ -69,17 +69,28 @@ def _check_zarr_dataset(dataset_path):
     logger.info('Checking dataset {0} for ZARR compatibility'.format(dataset_path))
     x = zarr.open(dataset_path, 'r')
     if len(list(x.arrays())) > 0:
-        return 'dataset-folder/zarr'
+        if os.path.isdir(dataset_path):
+            return 'dataset-folder/zarr'
+        else:
+            return 'dataset-archive/zarr'
     else:
         return None
 
 
-def check_dataset(dataset_path):
-    mtype = _check_tiledb_dataset(dataset_path)
+def check_dataset(dataset_path, archive_dir):
+    mtype = _check_zarr_dataset(dataset_path)
     if mtype is None:
-        mtype = _check_zarr_dataset(dataset_path)
-        if mtype is None:
-            raise DatasetFormatError('Dataset {0} is not a valid TileDB or ZARR archive'.format(dataset_path))
+        if archive_dir:
+            mtype = _check_tiledb_dataset(dataset_path)
+            if mtype is None:
+                raise DatasetFormatError('Dataset {0} is not a valid TileDB or ZARR archive'.format(dataset_path))
+        else:
+            if zipfile.is_zipfile(dataset_path):
+                mtype = 'application/zip'
+            elif tarfile.is_tarfile(dataset_path):
+                mtype = 'application/x-tar'
+            else:
+                raise DatasetFormatError('Dataset {0} is not a valid ZARR, ZIP or TAR archive'.format(dataset_path))
     return mtype
 
 
@@ -105,6 +116,14 @@ def extract_tar_archive(archive_file, out_folder):
         return extract(f, out_folder)
 
 
+def rename_archive(archive_file, out_folder=settings.DATASETS_REPOSITORY):
+    _, ext = os.path.splitext(archive_file)
+    new_dset_label = str(uuid4())
+    new_fpath = os.path.join(out_folder, "{0}{1}".format(new_dset_label, ext))
+    os.rename(archive_file, new_fpath)
+    return new_dset_label, new_fpath
+
+
 def extract_archive(archive_file, out_folder=settings.DATASETS_REPOSITORY, keep_archive=False):
     if zipfile.is_zipfile(archive_file):
         ds_label, dest_folder = extract_zip_archive(archive_file, out_folder)
@@ -128,7 +147,7 @@ def _dataset_to_json(dataset_obj):
 
 def get_datasets(connection):
     switch_to_default_search_group(connection)
-    mtypes_filter = ['dataset-folder/tiledb', 'dataset-folder/zarr']
+    mtypes_filter = ['dataset-folder/tiledb', 'dataset-folder/zarr', 'dataset-archive/zarr']
     datasets = list()
     for mf in mtypes_filter:
         query_filter = {'mimetype': mf}
