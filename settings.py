@@ -32,15 +32,13 @@ def int_identity(value):
 def bool_identity(value):
     if isinstance(value, bool):
         return value
-    elif isinstance(value, str):
+    if isinstance(value, str):
         if value == 'True':
             return True
-        elif value == 'False':
+        if value == 'False':
             return False
-        else:
-            raise ValueError('%s can\'t be converted to boolean')
-    else:
-        raise ValueError('Not a bool or a str')
+        raise ValueError('%s can\'t be converted to boolean')
+    raise ValueError('Not a bool or a str')
 
 CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.search.default_group': ['DEFAULT_SEARCH_GROUP', None, identity, None],
@@ -69,6 +67,7 @@ CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.deepzoom.jpeg_tile_quality': ['DEEPZOOM_JPEG_QUALITY', 90, int_identity, None],
     'omero.web.ome_seadragon.deepzoom.tile_size': ['DEEPZOOM_TILE_SIZE', 256, int_identity, None],
     # images cache
+    'omero.web.ome_seadragon.images_cache.cache_enabled': ['IMAGES_CACHE_ENABLED', False, bool_identity, None],
     'omero.web.ome_seadragon.images_cache.driver': ['IMAGES_CACHE_DRIVER', None, identity, None],
     # expire time must be expressed with a dictionary with keys
     # days, hours, minutes, seconds

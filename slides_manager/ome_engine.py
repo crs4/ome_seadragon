@@ -173,9 +173,12 @@ class OmeEngine(RenderingEngineInterface):
 
     def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
         self._check_source_type(original_file_source)
-        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
-            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
-        thumbnail = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT, 'omero')
+        if settings.IMAGES_CACHE_ENABLED:
+            cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
+                get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
+            thumbnail = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT, 'omero')
+        else:
+            thumbnail = None
         if thumbnail is None:
             self.logger.debug('No thumbnail loaded from cache, building it')
             # we want the thumbnail of the image, not the one of the highest resolution image in fileset
@@ -188,7 +191,8 @@ class OmeEngine(RenderingEngineInterface):
                     th_size = (th_w, size)
                 thumbnail_buffer = BytesIO(ome_img.getThumbnail(size=th_size))
                 thumbnail = Image.open(thumbnail_buffer)
-                cache.thumbnail_to_cache(self.image_id, thumbnail, size, settings.DEEPZOOM_FORMAT, 'omero')
+                if settings.IMAGES_CACHE_ENABLED:
+                    cache.thumbnail_to_cache(self.image_id, thumbnail, size, settings.DEEPZOOM_FORMAT, 'omero')
         else:
             self.logger.debug('Thumbnail loaded from cache')
         return thumbnail, settings.DEEPZOOM_FORMAT
@@ -196,24 +200,28 @@ class OmeEngine(RenderingEngineInterface):
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None, tile_size=None):
         tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         self._check_source_type(original_file_source)
-        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
-            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
-        cache_params = {
-            'image_id': self.image_id,
-            'level': level,
-            'column': column,
-            'row': row,
-            'tile_size': tile_size,
-            'image_format': settings.DEEPZOOM_FORMAT,
-            'rendering_engine': 'omero'
-        }
-        if cache_params['image_format'].lower() == 'jpeg':
-            cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
-        tile = cache.tile_from_cache(**cache_params)
+        if settings.IMAGES_CACHE_ENABLED:
+            cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
+                get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
+            cache_params = {
+                'image_id': self.image_id,
+                'level': level,
+                'column': column,
+                'row': row,
+                'tile_size': tile_size,
+                'image_format': settings.DEEPZOOM_FORMAT,
+                'rendering_engine': 'omero'
+            }
+            if cache_params['image_format'].lower() == 'jpeg':
+                cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
+            tile = cache.tile_from_cache(**cache_params)
+        else:
+            tile = None
         if tile is None:
             ome_img = self._get_image_object(get_biggest_in_fileset=True)
             ome_level = self._get_best_downscale_level(level, ome_img)
             tile = self._get_ome_tile(ome_img, ome_level, level, row=column, column=row, tile_size=tile_size)
-            cache_params['image_obj'] = tile
-            cache.tile_to_cache(**cache_params)
+            if settings.IMAGES_CACHE_ENABLED:
+                cache_params['image_obj'] = tile
+                cache.tile_to_cache(**cache_params)
         return tile, settings.DEEPZOOM_FORMAT

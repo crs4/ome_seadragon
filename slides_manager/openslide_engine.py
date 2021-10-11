@@ -117,10 +117,13 @@ class OpenSlideEngine(RenderingEngineInterface):
             return None
 
     def get_thumbnail(self, size, original_file_source=False, file_mimeype=None):
-        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
-            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
-        # get thumbnail from cache
-        thumb = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT, 'openslide')
+        if settings.IMAGES_CACHE_ENABLED:
+            cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
+                get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
+            # get thumbnail from cache
+            thumb = cache.thumbnail_from_cache(self.image_id, size, settings.DEEPZOOM_FORMAT, 'openslide')
+        else:
+            thumb = None
         # if thumbnail is not in cache build it ....
         if thumb is None:
             self.logger.debug('No thumbnail loaded from cache, building it')
@@ -128,29 +131,33 @@ class OpenSlideEngine(RenderingEngineInterface):
             if slide:
                 thumb = slide.get_thumbnail((size, size))
                 # ... and store it into the cache
-                cache.thumbnail_to_cache(self.image_id, thumb, size, settings.DEEPZOOM_FORMAT, 'openslide')
+                if settings.IMAGES_CACHE_ENABLED:
+                    cache.thumbnail_to_cache(self.image_id, thumb, size, settings.DEEPZOOM_FORMAT, 'openslide')
         else:
             self.logger.debug('Thumbnail loaded from cache')
         return thumb, settings.DEEPZOOM_FORMAT
 
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None, tile_size=None):
-        cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
-            get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
-        tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
-        self.logger.debug('TILE SIZE IS: %s', tile_size)
-        cache_params = {
-            'image_id': self.image_id,
-            'level': level,
-            'column': column,
-            'row': row,
-            'tile_size': tile_size,
-            'image_format': settings.DEEPZOOM_FORMAT,
-            'rendering_engine': 'openslide'
-        }
-        if cache_params['image_format'].lower() == 'jpeg':
-            cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
-        # get tile from cache
-        tile = cache.tile_from_cache(**cache_params)
+        if settings.IMAGES_CACHE_ENABLED:
+            cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
+                get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
+            tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
+            self.logger.debug('TILE SIZE IS: %s', tile_size)
+            cache_params = {
+                'image_id': self.image_id,
+                'level': level,
+                'column': column,
+                'row': row,
+                'tile_size': tile_size,
+                'image_format': settings.DEEPZOOM_FORMAT,
+                'rendering_engine': 'openslide'
+            }
+            if cache_params['image_format'].lower() == 'jpeg':
+                cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
+            # get tile from cache
+            tile = cache.tile_from_cache(**cache_params)
+        else:
+            tile = None
         # if tile is not in cache build it ...
         if tile is None:
             slide = self._get_deepzoom_wrapper(original_file_source, file_mimetype, tile_size)
@@ -165,6 +172,7 @@ class OpenSlideEngine(RenderingEngineInterface):
                 dzi_tile.save(tile_buffer, **tile_conf)
                 tile = Image.open(tile_buffer)
                 # ... and store it into the cache
-                cache_params['image_obj'] = tile
-                cache.tile_to_cache(**cache_params)
+                if settings.IMAGES_CACHE_ENABLED:
+                    cache_params['image_obj'] = tile
+                    cache.tile_to_cache(**cache_params)
         return tile, settings.DEEPZOOM_FORMAT
