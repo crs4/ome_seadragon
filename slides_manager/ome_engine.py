@@ -151,7 +151,7 @@ class OmeEngine(RenderingEngineInterface):
     def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None, limit_bounds=None):
         raise NotImplemented()
 
-    def get_dzi_description(self, original_file_source=False, file_mimetype=None, tile_size=None):
+    def get_dzi_description(self, original_file_source=False, file_mimetype=None, tile_size=None, limit_bounds=None):
         tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         self._check_source_type(original_file_source)
         img = self._get_image_object(get_biggest_in_fileset=True)
@@ -197,7 +197,8 @@ class OmeEngine(RenderingEngineInterface):
             self.logger.debug('Thumbnail loaded from cache')
         return thumbnail, settings.DEEPZOOM_FORMAT
 
-    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None, tile_size=None):
+    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None,
+                 tile_size=None, limit_bounds=None):
         tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         self._check_source_type(original_file_source)
         if settings.IMAGES_CACHE_ENABLED:

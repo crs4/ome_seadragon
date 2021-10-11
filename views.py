@@ -266,14 +266,20 @@ def get_image_dzi(request, image_id, fetch_original_file=False, file_mimetype=No
         tile_size = int(request.GET.get('tile_size'))
     except TypeError:
         tile_size = None
+    try:
+        limit_bounds = strtobool(request.GET.get('limit_bounds'))
+    except AttributeError:
+        limit_bounds = None
     rf = RenderingEngineFactory()
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
-        dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype, tile_size)
+        dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype,
+                                                            tile_size, limit_bounds)
     except Exception as e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
-            dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype, tile_size)
+            dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype,
+                                                                tile_size, limit_bounds)
         else:
             raise e
     if dzi_metadata:
@@ -362,18 +368,23 @@ def get_tile(request, image_id, level, column, row, tile_format,
         tile_size = int(request.GET.get('tile_size'))
     except TypeError:
         tile_size = None
+    try:
+        limit_bounds = strtobool(request.GET.get('limit_bounds'))
+    except AttributeError:
+        limit_bounds = None
     if tile_format != settings.DEEPZOOM_FORMAT:
         return HttpResponseServerError("Format %s not supported by the server" % tile_format)
     rf = RenderingEngineFactory()
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
-        tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
-                                                       fetch_original_file, file_mimetype, tile_size)
+        tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row), fetch_original_file,
+                                                       file_mimetype, tile_size, limit_bounds)
     except Exception as e:
+        logger.error(e)
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
-            tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
-                                                           fetch_original_file, file_mimetype, tile_size)
+            tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row), fetch_original_file,
+                                                           file_mimetype, tile_size), limit_bounds
         else:
             raise e
     if tile:
