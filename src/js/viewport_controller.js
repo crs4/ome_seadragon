@@ -27,6 +27,9 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
     this.config = viewer_config;
     this.image_mpp = image_mpp;
     this.sequence_mode = undefined;
+    this.overlays = undefined;
+    this.active_overlay = undefined;
+    this.default_overlay_opacity = undefined;
 
     this.buildViewer = function() {
         if (this.viewer === undefined) {
@@ -312,5 +315,24 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
                 actrl.shapesToMarkers(markers_ids);
             }
         });
+    };
+
+    this.initOverlaysLayer = function(overlays, opacity) {
+        this.default_overlay_opacity = opacity;
+        this.overlays = overlays;
+    };
+
+    this.activateOverlay = function(label) {
+        if (label in this.overlays) {
+            console.log("Activating overlay " + label);
+            this.viewer.addTiledImage({
+                tileSource: this.overlays[label],
+                opacity: this.default_overlay_opacity,
+                index: 1,
+                replace: true
+            });
+        } else {
+            console.error("There is no overlay registered with label " + label);
+        }
     };
 }
