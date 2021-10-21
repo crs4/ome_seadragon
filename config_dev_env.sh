@@ -67,7 +67,7 @@ omero config set omero.web.ome_seadragon.images_cache.database $REDISDB
 omero config set omero.web.ome_seadragon.images_cache.expire_time "$CACHE_EXPIRE_TIME"
 
 omero config set omero.web.ome_seadragon.images_folder "$IMAGES_FOLDER"
-omero config set omero.web.ome_seadragon.mirax_folder "$MIRAX_FOLDER"
+omero config set omero.web.ome_seadragon.default_mirax_folder "$MIRAX_FOLDER"
 
 omero config set omero.web.ome_seadragon.tiles.primary_rendering_engine "openslide"
 omero config set omero.web.ome_seadragon.tiles.secondary_rendering_engine "omero"
