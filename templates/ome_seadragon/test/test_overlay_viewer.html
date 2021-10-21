@@ -55,9 +55,9 @@
                         "openseadragon_viewer",
                         "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
                         {% if mirax %}
-                            "{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}.dzi",
+                            "{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}.dzi?limit_bounds=false",
                         {% else %}
-                            "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi",
+                            "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi?limit_bounds=false",
                          {% endif %}
                         viewer_config
                 );
@@ -81,11 +81,15 @@
                     viewer.setMinDZILevel(8);
                 });
 
-                viewer.viewer.addTiledImage({
-                    tileSource: "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi?dataset_type=tiledb&palette=Greens_9",
-                    opacity: 0.5,
-                    index: 1
-                })
+                viewer.initOverlaysLayer(
+                    {
+                        "greens_9": "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi?dataset_type=tiledb&palette=Greens_9",
+                        "blues_9": "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi?dataset_type=tiledb&palette=Blues_9",
+                        "reds_9": "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi?dataset_type=tiledb&palette=Reds_9"
+                    }, 0.5
+                );
+
+                viewer.activateOverlay("greens_9");
             });
         });
     </script>

@@ -146,8 +146,10 @@ def get_example_array_viewer(request, dataset_label):
 
 def get_example_overlay_viewer(request, image_id, dataset_label):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = strtobool(request.GET.get('mirax_image', default='false'))
     return render(request, 'ome_seadragon/test/test_overlay_viewer.html',
-                  {'image_id': image_id, 'dataset_label': dataset_label, 'host_name': base_url})
+                  {'image_id': image_id, 'dataset_label': dataset_label, 'host_name': base_url ,
+                  'mirax': mirax})
 
 
 @login_required()
@@ -581,5 +583,6 @@ def get_array_dataset_tile(request, dataset_label, level, row, column, conn=None
         return HttpResponseBadRequest(cp_error)
     except InvalidAttribute as a_error:
         return HttpResponseBadRequest(a_error)
-    except Exception as e:
-        return HttpResponseBadRequest('GENERIC ERROR: %r' % e)
+    # except Exception as e:
+    #     logger.error(e)
+    #     return HttpResponseBadRequest('GENERIC ERROR: %r' % e)
