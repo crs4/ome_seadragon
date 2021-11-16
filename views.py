@@ -18,7 +18,7 @@
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .ome_data import tags_data, projects_datasets, original_files, mirax_files, datasets_files
-from .ome_data.original_files import DuplicatedEntryError
+from .ome_data.original_files import DuplicatedEntryError, get_original_file_by_id
 from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
 from . import settings
 from .slides_manager import RenderingEngineFactory
@@ -550,17 +550,31 @@ def delete_original_files(request, file_name, conn=None, **kwargs):
                         content_type='application/json')
 
 
+def _get_dataset_dzi_description(dataset_label, dataset_type):
+    dzi_adapter = DZIAdapterFactory(dataset_type).get_adapter(dataset_label)
+    return dzi_adapter.get_dzi_description()
+
 @login_required()
 def get_array_dataset_dzi(request, dataset_label, conn=None, **kwargs):
     dataset_type = request.GET.get('dataset_type')
     if dataset_type is None:
         return HttpResponseBadRequest('Missing mandatory dataset type value to complete the request')
     try:
-        dzi_adapter = DZIAdapterFactory(dataset_type.upper()).get_adapter(dataset_label)
-        dzi_metadata = dzi_adapter.get_dzi_description()
+        dzi_metadata = _get_dataset_dzi_description(dataset_label, dataset_type.upper())
     except UnknownDZIAdaperType as ut_error:
         return HttpResponseBadRequest(ut_error.message)
     return HttpResponse(dzi_metadata, content_type='application/xml')
+
+
+@login_required()
+def get_array_dataset_dzi_by_id(request, dataset_id, conn=None, **kwargs):
+    original_file = get_original_file_by_id(conn, dataset_id)
+    if original_file and original_file.mimetype == 'dataset-folder/tiledb':
+        dzi_metadata = _get_dataset_dzi_description(original_file.name, 'TILEDB')
+    else:
+        return HttpResponseNotFound(f'There is no array dataset with ID {dataset_id}')
+    return HttpResponse(dzi_metadata, content_type='application/xml')
+
 
 @login_required()
 def get_array_dataset_tile(request, dataset_label, level, row, column, conn=None, **kwargs):
@@ -586,3 +600,23 @@ def get_array_dataset_tile(request, dataset_label, level, row, column, conn=None
     # except Exception as e:
     #     logger.error(e)
     #     return HttpResponseBadRequest('GENERIC ERROR: %r' % e)
+
+@login_required()
+def get_array_dataset_tile_by_id(request, dataset_id, level, row, column, conn=None, **kwargs):
+    color_palette = request.GET.get('palette')
+    if color_palette is None:
+        return HttpResponseBadRequest('Missing mandatory palette value to complete the request')
+    try:
+        original_file = get_original_file_by_id(conn, dataset_id)
+        if original_file and original_file.mimetype == 'dataset-folder/tiledb':
+            dzi_adapter = DZIAdapterFactory('TILEDB').get_adapter(original_file.name)
+            tile = dzi_adapter.get_tile(level, int(row), int(column), color_palette)
+            response = HttpResponse(content_type='image/png')
+            tile.save(response, 'png')
+            return response
+        else:
+            return HttpResponseNotFound(f'There is no array dataset with ID {dataset_id}')
+    except InvalidColorPalette as cp_error:
+        return HttpResponseBadRequest(cp_error)
+    except InvalidAttribute as a_error:
+        return HttpResponseBadRequest(a_error)

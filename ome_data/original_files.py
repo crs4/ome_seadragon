@@ -76,6 +76,14 @@ def get_original_file(connection, name, mimetype):
                                    (name, mimetype))
 
 
+def get_original_file_by_id(connection, omero_id, mimetype=None):
+    switch_to_default_search_group(connection)
+    query_filter = {'id': omero_id}
+    if mimetype:
+        query_filter['mimetype'] = mimetype
+    return connection.getObject('OriginalFile', attributes=query_filter)
+
+
 def delete_original_files(connection, name, mimetype=None):
     ofiles = get_original_files(connection, name, mimetype)
     of_ids = []
