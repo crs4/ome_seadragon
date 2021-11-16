@@ -23,11 +23,13 @@ from .. import settings
 from .errors import UnknownDZIAdaperType
 
 
+logger = logging.getLogger(__name__)
+
+
 class DZIAdapterFactory(object):
     
     def __init__(self, array_dataset_type):
         self.array_dataset_type = array_dataset_type
-        self.logger = logging.getLogger(__name__)
 
     def _get_tiledb_adapter(self, fname):
         from .tiledb_dzi_adapter import TileDBDZIAdapter
@@ -35,8 +37,8 @@ class DZIAdapterFactory(object):
 
     def get_adapter(self, dataset_label):
         if self.array_dataset_type == 'TILEDB':
-            self.logger.info('Loading TileDB adapter')
+            logger.info('Loading TileDB adapter')
             return self._get_tiledb_adapter(dataset_label)
         else:
-            self.logger.warning('There is no adapter for array type %s', self.array_dataset_type)
+            logger.warning('There is no adapter for array type %s', self.array_dataset_type)
             raise UnknownDZIAdaperType('%s is not a valid array dataset type' % self.array_dataset_type)
