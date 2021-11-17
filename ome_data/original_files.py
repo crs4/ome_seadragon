@@ -65,7 +65,7 @@ def get_original_files(connection, name, mimetype=None):
     return list(connection.getObjects('OriginalFile', attributes=query_filter))
 
 
-def get_original_file(connection, name, mimetype):
+def get_original_file(connection, name, mimetype=None):
     ofiles = get_original_files(connection, name, mimetype)
     if len(ofiles) == 0:
         return None

@@ -48,7 +48,7 @@
                 window.viewer = new ViewerController(
                         "openseadragon_viewer",
                         "{{ host_name }}/static/ome_seadragon/img/openseadragon/",
-                        "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi?dataset_type=tiledb&palette=Greens_9",
+                        "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi?palette=Greens_9",
                         viewer_config
                 );
                 viewer.buildViewer();
@@ -56,7 +56,7 @@
                 viewer.viewer.addHandler('open', function () {
                     console.log('Open!');
                     // Ignore lowest-resolution levels in order to improve load times
-                    viewer.setMinDZILevel(8);
+                    viewer.setMinDZILevel(11);
                 });
             });
     </script>
