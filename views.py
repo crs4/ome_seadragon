@@ -555,7 +555,7 @@ def _get_dataset_dzi_description(dataset_label, dataset_type):
     return dzi_adapter.get_dzi_description()
 
 @login_required()
-def get_array_dataset_dzi(request, dataset_label, conn=None, **kwargs):
+def get_array_dataset_dzi_by_label(request, dataset_label, conn=None, **kwargs):
     dataset_type = request.GET.get('dataset_type')
     if dataset_type is None:
         return HttpResponseBadRequest('Missing mandatory dataset type value to complete the request')
@@ -577,7 +577,7 @@ def get_array_dataset_dzi_by_id(request, dataset_id, conn=None, **kwargs):
 
 
 @login_required()
-def get_array_dataset_tile(request, dataset_label, level, row, column, conn=None, **kwargs):
+def get_array_dataset_tile_by_label(request, dataset_label, level, row, column, conn=None, **kwargs):
     color_palette = request.GET.get('palette')
     dataset_type = request.GET.get('dataset_type')
     if dataset_type is None:

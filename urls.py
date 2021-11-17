@@ -129,14 +129,14 @@ urlpatterns = [
     url(r'^arrays/list/$', views.list_array_datasets, name='ome_seadragon_list_array_datasets'),
     url(r'^arrays/register_dataset/$', views.register_array_dataset, name='ome_seadragon_register_array_dataset'),
     # ARRAY DATASETS --- DEEPZOOM
-    url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+).dzi$', views.get_array_dataset_dzi,
-        name='ome_seadragon_array_datasets_dzi_metadata'),
-    url(r'^arrays/deepzoom/get_by_id/(?P<dataset_id>[0-9]+).dzi$', views.get_array_dataset_dzi_by_id,
+    url(r'^arrays/deepzoom/get/(?P<dataset_id>[0-9]+).dzi$', views.get_array_dataset_dzi_by_id,
         name='ome_seadragon_array_datasets_dzi_metadata_by_id'),
-    url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+)_files/(?P<level>[0-9]+)/'
-        r'(?P<column>[0-9]+)_(?P<row>[0-9]+).png$', views.get_array_dataset_tile,
-        name='ome_seadragon_array_datasets_get_tile'),
-    url(r'^arrays/deepzoom/get_by_id/(?P<dataset_id>[0-9]+)_files/(?P<level>[0-9]+)/'
+    url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+).dzi$', views.get_array_dataset_dzi_by_label,
+        name='ome_seadragon_array_datasets_dzi_metadata'),
+    url(r'^arrays/deepzoom/get/(?P<dataset_id>[0-9]+)_files/(?P<level>[0-9]+)/'
         r'(?P<column>[0-9]+)_(?P<row>[0-9]+).png$', views.get_array_dataset_tile_by_id,
-        name='ome_seadragon_array_datasets_get_tile_by_id')
+        name='ome_seadragon_array_datasets_get_tile_by_id'),
+    url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+)_files/(?P<level>[0-9]+)/'
+        r'(?P<column>[0-9]+)_(?P<row>[0-9]+).png$', views.get_array_dataset_tile_by_label,
+        name='ome_seadragon_array_datasets_get_tile')
 ]
