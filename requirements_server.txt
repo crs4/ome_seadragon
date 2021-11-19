@@ -1,7 +1,6 @@
 openslide-python==1.1.2
 Pillow==8.3.2
 lxml==4.6.3
-django==1.11.29
 django-cors-headers==3.2.1
 tiledb==0.10.3
 zarr==2.8.3
