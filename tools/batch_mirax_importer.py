@@ -31,7 +31,7 @@ class MiraxBatchImporter(object):
     def __init__(self, source_folder, ome_base_url, chunk_size, log_level='INFO', log_file=None):
         self.source_folder = source_folder
         self.ome_slides_list_url = urljoin(ome_base_url, 'get/images/index/')
-        self.ome_save_url = urljoin(ome_base_url, 'mirax/register_file/')
+        self.ome_save_url = urljoin(ome_base_url, 'file/register/')
         self.ome_delete_url = urljoin(ome_base_url, 'mirax/delete_files/')
         self.INDEX_FILE_MT = 'mirax/index'
         self.DATA_FOLDER_MT = 'mirax/datafolder'

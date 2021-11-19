@@ -17,6 +17,9 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+class ServerConfigError(Exception):
+    pass
+
 
 def identity(value):
     return value
@@ -29,15 +32,13 @@ def int_identity(value):
 def bool_identity(value):
     if isinstance(value, bool):
         return value
-    elif isinstance(value, str):
+    if isinstance(value, str):
         if value == 'True':
             return True
-        elif value == 'False':
+        if value == 'False':
             return False
-        else:
-            raise ValueError('%s can\'t be converted to boolean')
-    else:
-        raise ValueError('Not a bool or a str')
+        raise ValueError('%s can\'t be converted to boolean')
+    raise ValueError('Not a bool or a str')
 
 CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.search.default_group': ['DEFAULT_SEARCH_GROUP', None, identity, None],
@@ -62,10 +63,11 @@ CUSTOM_SETTINGS_MAPPINGS = {
     # deepzoom properties
     'omero.web.ome_seadragon.deepzoom.overlap': ['DEEPZOOM_OVERLAP', 1, int_identity, None],
     'omero.web.ome_seadragon.deepzoom.format': ['DEEPZOOM_FORMAT', 'jpeg', identity, None],
-    'omero.web.ome_seadragon.deepzoom.limit_bounds': ['DEEPZOOM_LIMIT_BOUNDS', True, identity, None],
+    'omero.web.ome_seadragon.deepzoom.limit_bounds': ['DEEPZOOM_LIMIT_BOUNDS', True, bool_identity, None],
     'omero.web.ome_seadragon.deepzoom.jpeg_tile_quality': ['DEEPZOOM_JPEG_QUALITY', 90, int_identity, None],
     'omero.web.ome_seadragon.deepzoom.tile_size': ['DEEPZOOM_TILE_SIZE', 256, int_identity, None],
     # images cache
+    'omero.web.ome_seadragon.images_cache.cache_enabled': ['IMAGES_CACHE_ENABLED', False, bool_identity, None],
     'omero.web.ome_seadragon.images_cache.driver': ['IMAGES_CACHE_DRIVER', None, identity, None],
     # expire time must be expressed with a dictionary with keys
     # days, hours, minutes, seconds
@@ -74,5 +76,7 @@ CUSTOM_SETTINGS_MAPPINGS = {
     # redis config
     'omero.web.ome_seadragon.images_cache.host': ['CACHE_HOST', None, identity, None],
     'omero.web.ome_seadragon.images_cache.port': ['CACHE_PORT', None, identity, None],
-    'omero.web.ome_seadragon.images_cache.database': ['CACHE_DB', None, identity, None]
+    'omero.web.ome_seadragon.images_cache.database': ['CACHE_DB', None, identity, None],
+    # arrays datasets config
+    'omero.web.ome_seadragon.dzi_adapter.datasets.repository': ['DATASETS_REPOSITORY', None, identity, None]
 }

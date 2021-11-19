@@ -87,11 +87,11 @@ class RenderingEngineInterface(object):
         pass
 
     @abstractmethod
-    def get_dzi_description(self, original_file_source=False, file_mimetype=None, tile_size=None):
+    def get_dzi_description(self, original_file_source=False, file_mimetype=None, tile_size=None, limit_bounds=None):
         pass
 
     @abstractmethod
-    def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None):
+    def _get_original_file_json_description(self, resource_path, file_mimetype=None, tile_size=None, limit_bounds=None):
         pass
 
     def _get_json_description(self, resource_path, img_height, img_width, tile_size=None):
@@ -135,5 +135,6 @@ class RenderingEngineInterface(object):
         pass
 
     @abstractmethod
-    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None, tile_size=None):
+    def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None,
+                 tile_size=None, limit_bounds=None):
         pass

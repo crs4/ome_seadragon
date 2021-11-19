@@ -1,6 +1,9 @@
-openslide-python==1.1.1
-Pillow==7.1.2
-lxml==4.5.1
+openslide-python==1.1.2
+Pillow==8.3.2
+lxml==4.6.3
 django==1.11.29
 django-cors-headers==3.2.1
-https://github.com/crs4/ome_seadragon_cache/archive/v0.2.0.zip
+tiledb==0.10.3
+zarr==2.8.3
+palettable==3.3.0
+https://github.com/crs4/ome_seadragon_cache/archive/v0.2.2.zip
