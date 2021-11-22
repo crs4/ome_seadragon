@@ -17,34 +17,23 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .. import settings
-
-import os
+from abc import ABCMeta, abstractmethod
 import logging
 
-logger = logging.getLogger(__name__)
+from .. import settings
 
 
-class InvalidMiraxFile(Exception):
-    pass
+class DZIAdapterInterface(object):
 
+    __metaclass__ = ABCMeta
 
-class InvalidMiraxFolder(Exception):
-    pass
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
 
+    @abstractmethod
+    def get_dzi_description(self):
+        pass
 
-def get_mirax_files_paths(slide_base_name):
-    if settings.MIRAX_FOLDER is not None:
-        mirax_files = (
-            os.path.join(settings.MIRAX_FOLDER, '{0}.mrxs'.format(slide_base_name)),
-            os.path.join(settings.MIRAX_FOLDER, slide_base_name)
-        )
-        if os.path.isfile(mirax_files[0]):
-            if os.path.isdir(mirax_files[1]):
-                return mirax_files
-            else:
-                raise InvalidMiraxFolder('Path {0} not found'.format(mirax_files[1]))
-        else:
-            raise InvalidMiraxFile('File {0} not found'.format(mirax_files[0]))
-    else:
-        raise settings.ServerConfigError('MIRAX default folder was not configured properly')
+    @abstractmethod
+    def get_tile(self, level, column, row, palette, attribute_label=None, tile_size=None):
+        pass

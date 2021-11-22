@@ -53,6 +53,10 @@ urlpatterns = [
         name='ome_seadragon_test_interactive_rulers'),
     url(r'^examples/custom_handlers/freehand/(?P<image_id>[\w\-.]+)/$',
         views.get_example_interactive_freehand),
+    url(r'^examples/array_viewer/(?P<dataset_label>[\w\-.]+)/$', views.get_example_array_viewer,
+        name='ome_seadragon_test_array_viewer'),
+    url(r'^examples/overlay_viewer/(?P<image_id>[\w\-.]+)/(?P<dataset_label>[\w\-.]+)/$',
+        views.get_example_overlay_viewer, name='ome_seadragon_test_overlay_viewer'),
     # OMERO PROJECTS, DATASETS AND IMAGES
     url(r'^get/projects/$', views.get_projects, name='ome_seadragon_get_projects'),
     url(r'^get/project/(?P<project_id>[0-9]+)/$', views.get_project,
@@ -88,13 +92,14 @@ urlpatterns = [
         name='ome_seadragon_get_image_mpp'),
     url(r'^deepzoom/slide_bounds/(?P<image_id>[0-9]+).dzi$', views.get_slide_bounds,
         name='ome_seadragon_get_slide_bounds'),
+   # ORIGINAL FILES HANDLING
+    url(r'^file/register/$', views.register_original_file, name='ome_seadragon_file_save'),
+    url(r'^file/info/(?P<file_name>[\w\-.]+)/$', views.get_original_file_infos,
+        name='ome_seadragon_file_info'),
+    url(r'^file/delete/(?P<file_name>[\w\-.]+)/$', views.delete_original_file,
+        name='ome_seadragon_delete_file'),
     # 3DHISTECH FILES HANDLING --- DATA MANAGEMENT
-    url(r'^mirax/register_file/$', views.register_original_file, name='ome_seadragon_mrxs_save'),
     url(r'mirax/register_slide/$', views.register_mirax_slide, name='ome_seadragon_register_mirax'),
-    url(r'^mirax/file_info/(?P<file_name>[\w\-.]+)/$', views.get_original_file_infos,
-        name='ome_seadragon_mrxs_file_info'),
-    url(r'^mirax/delete_file/(?P<file_name>[\w\-.]+)/$', views.delete_original_file,
-        name='ome_seadragon_mrxs_delete_file'),
     url(r'^mirax/delete_files/(?P<file_name>[\w\-.]+)/$', views.delete_original_files,
         name='ome_seadragon_mrxs_delete_files'),
     # 3DHISTECH FILES HANDLING --- DEEPZOOM
@@ -119,5 +124,19 @@ urlpatterns = [
         kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
     url(r'^mirax/deepzoom/slide_bounds/(?P<image_id>[\w\-.]+).dzi$', views.get_slide_bounds,
         name='ome_seadragon_get_slide_bounds',
-        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'})
+        kwargs={'fetch_original_file': True, 'file_mimetype': 'mirax/index'}),
+    # ARRAY DATASETS --- FILES HANDLING
+    url(r'^arrays/list/$', views.list_array_datasets, name='ome_seadragon_list_array_datasets'),
+    url(r'^arrays/register_dataset/$', views.register_array_dataset, name='ome_seadragon_register_array_dataset'),
+    # ARRAY DATASETS --- DEEPZOOM
+    url(r'^arrays/deepzoom/get/(?P<dataset_id>[0-9]+).dzi$', views.get_array_dataset_dzi_by_id,
+        name='ome_seadragon_array_datasets_dzi_metadata_by_id'),
+    url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+).dzi$', views.get_array_dataset_dzi_by_label,
+        name='ome_seadragon_array_datasets_dzi_metadata'),
+    url(r'^arrays/deepzoom/get/(?P<dataset_id>[0-9]+)_files/(?P<level>[0-9]+)/'
+        r'(?P<column>[0-9]+)_(?P<row>[0-9]+).png$', views.get_array_dataset_tile_by_id,
+        name='ome_seadragon_array_datasets_get_tile_by_id'),
+    url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+)_files/(?P<level>[0-9]+)/'
+        r'(?P<column>[0-9]+)_(?P<row>[0-9]+).png$', views.get_array_dataset_tile_by_label,
+        name='ome_seadragon_array_datasets_get_tile')
 ]

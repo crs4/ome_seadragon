@@ -59,11 +59,12 @@ target/
 # PyCharm
 .idea
 
-# Visual Studio code
+# Visual Studio code
 .vscode
 
 # Grunt
 node_modules
+package-lock.json
 
 # JS file built using grunt
 static/ome_seadragon/js/ome_seadragon.min.js

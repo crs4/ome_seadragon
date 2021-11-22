@@ -17,14 +17,17 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .ome_data import tags_data, projects_datasets, original_files, mirax_files
-from .ome_data.original_files import DuplicatedEntryError
-from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder, ServerConfigError
+from .ome_data import tags_data, projects_datasets, original_files, mirax_files, datasets_files
+from .ome_data.original_files import DuplicatedEntryError, get_original_file_by_id, get_original_file
+from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
 from . import settings
 from .slides_manager import RenderingEngineFactory
+from .dzi_adapter import DZIAdapterFactory
+from .dzi_adapter.errors import InvalidColorPalette, InvalidAttribute
 
 import logging
 from distutils.util import strtobool
+
 try:
     import simplejson as json
 except ImportError:
@@ -133,6 +136,20 @@ def get_example_interactive_freehand(request, image_id):
     mirax = strtobool(request.GET.get('mirax_image', default='false'))
     return render(request, 'ome_seadragon/test/test_freehand_drawing.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
+
+
+def get_example_array_viewer(request, dataset_label):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    return render(request, 'ome_seadragon/test/test_array_viewer.html',
+                  {'dataset_label': dataset_label, 'host_name': base_url})
+
+
+def get_example_overlay_viewer(request, image_id, dataset_label):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    return render(request, 'ome_seadragon/test/test_overlay_viewer.html',
+                  {'image_id': image_id, 'dataset_label': dataset_label, 'host_name': base_url ,
+                  'mirax': mirax})
 
 
 @login_required()
@@ -251,14 +268,20 @@ def get_image_dzi(request, image_id, fetch_original_file=False, file_mimetype=No
         tile_size = int(request.GET.get('tile_size'))
     except TypeError:
         tile_size = None
+    try:
+        limit_bounds = strtobool(request.GET.get('limit_bounds'))
+    except AttributeError:
+        limit_bounds = None
     rf = RenderingEngineFactory()
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
-        dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype, tile_size)
+        dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype,
+                                                            tile_size, limit_bounds)
     except Exception as e:
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
-            dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype, tile_size)
+            dzi_metadata = rendering_engine.get_dzi_description(fetch_original_file, file_mimetype,
+                                                                tile_size, limit_bounds)
         else:
             raise e
     if dzi_metadata:
@@ -347,18 +370,23 @@ def get_tile(request, image_id, level, column, row, tile_format,
         tile_size = int(request.GET.get('tile_size'))
     except TypeError:
         tile_size = None
+    try:
+        limit_bounds = strtobool(request.GET.get('limit_bounds'))
+    except AttributeError:
+        limit_bounds = None
     if tile_format != settings.DEEPZOOM_FORMAT:
         return HttpResponseServerError("Format %s not supported by the server" % tile_format)
     rf = RenderingEngineFactory()
     rendering_engine = rf.get_primary_tiles_rendering_engine(image_id, conn)
     try:
-        tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
-                                                       fetch_original_file, file_mimetype, tile_size)
+        tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row), fetch_original_file,
+                                                       file_mimetype, tile_size, limit_bounds)
     except Exception as e:
+        logger.error(e)
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
-            tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row),
-                                                           fetch_original_file, file_mimetype, tile_size)
+            tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row), fetch_original_file,
+                                                           file_mimetype, tile_size), limit_bounds
         else:
             raise e
     if tile:
@@ -449,7 +477,50 @@ def register_mirax_slide(request, conn=None, **kwargs):
         return HttpResponseServerError('{0}'.format(imf))
     except InvalidMiraxFolder as imf:
         return HttpResponseServerError('{0}'.format(imf))
-    except ServerConfigError as sce:
+    except settings.ServerConfigError as sce:
+        return HttpResponseServerError('{0}'.format(sce))
+
+
+@login_required()
+def list_array_datasets(request, conn=None, **kwargs):
+    datasets = datasets_files.get_datasets(conn)
+    return HttpResponse(json.dumps(datasets), content_type='application/json')
+
+
+@login_required()
+def register_array_dataset(request, conn=None, **kwargs):
+    dataset_label = request.GET.get('dataset_label')
+    if not original_files.is_valid_filename(dataset_label):
+        return HttpResponseServerError('Invalid dataset name received: {0}'.format(dataset_label))
+    try:
+        dataset_path, is_dir = datasets_files.get_dataset_file_path(dataset_label)
+        if not is_dir:
+            if strtobool(request.GET.get('extract_archive', default='true')) == False:
+                dataset_label, dataset_path = datasets_files.rename_archive(dataset_path)
+            else:
+                try:
+                    keep_archive = strtobool(request.GET.get('keep_archive', default='false'))
+                    dataset_label, dataset_path = datasets_files.extract_archive(dataset_path,
+                                                                                 keep_archive=keep_archive)
+                    is_dir = True
+                except datasets_files.DatasetPathAlreadyExistError as dpe:
+                    return HttpResponseServerError('{0}'.format(dpe))
+        try:
+            mtype = datasets_files.check_dataset(dataset_path, is_dir)
+            dataset_id = original_files.save_original_file(conn, dataset_label, dataset_path, mtype,
+                                                           int(request.GET.get('size', default=-1)),
+                                                           request.GET.get('sha1', default='UNKNOWN'))
+            return HttpResponse(
+                json.dumps({'omero_id': dataset_id, 'mimetype': mtype, 'label': dataset_label, 'path': dataset_path}),
+                content_type='application/json'
+            )
+        except datasets_files.DatasetFormatError as dfe:
+            return HttpResponseServerError('{0}'.format(dfe))
+        except DuplicatedEntryError as dee:
+            return HttpResponseServerError('{0}'.format(dee))
+    except datasets_files.InvalidDatasetPath as idp:
+        return HttpResponseServerError('{0}'.format(idp))
+    except settings.ServerConfigError as sce:
         return HttpResponseServerError('{0}'.format(sce))
 
 
@@ -477,3 +548,83 @@ def delete_original_files(request, file_name, conn=None, **kwargs):
     status, count = original_files.delete_original_files(conn, file_name)
     return HttpResponse(json.dumps({'success': status, 'deleted_count': count}),
                         content_type='application/json')
+
+
+def _get_dataset_dzi_description(original_file):
+    if original_file and original_file.mimetype == 'dataset-folder/tiledb':
+        dzi_adapter = DZIAdapterFactory('TILEDB').get_adapter(original_file.name)
+        return dzi_adapter.get_dzi_description()
+    else:
+        return None
+
+@login_required()
+def get_array_dataset_dzi_by_label(request, dataset_label, conn=None, **kwargs):
+    try:
+        original_file = get_original_file(conn, dataset_label)
+    except DuplicatedEntryError as de_err:
+        return HttpResponseServerError(str(de_err))
+    dzi_metadata = _get_dataset_dzi_description(original_file)
+    if dzi_metadata is not None:
+        return HttpResponse(dzi_metadata, content_type='application/xml')
+    else:
+        return HttpResponseNotFound(f'There is not a valid array dataset with label {dataset_label}')
+
+
+@login_required()
+def get_array_dataset_dzi_by_id(request, dataset_id, conn=None, **kwargs):
+    original_file = get_original_file_by_id(conn, dataset_id)
+    dzi_metadata = _get_dataset_dzi_description(original_file)
+    if dzi_metadata is not None:
+        return HttpResponse(dzi_metadata, content_type='application/xml')
+    else:
+        return HttpResponseNotFound(f'There is not a valid array dataset with ID {dataset_id}')
+
+
+def _get_tile_from_dataset(original_file, level, row, column, color_palette):
+    if original_file and original_file.mimetype == 'dataset-folder/tiledb':
+        dzi_adapter = DZIAdapterFactory('TILEDB').get_adapter(original_file.name)
+        return dzi_adapter.get_tile(level, int(row), int(column), color_palette)
+    else:
+        return None
+
+
+@login_required()
+def get_array_dataset_tile_by_label(request, dataset_label, level, row, column, conn=None, **kwargs):
+    color_palette = request.GET.get('palette')
+    if color_palette is None:
+        return HttpResponseBadRequest('Missing mandatory palette value to complete the request')
+    try:
+        original_file = get_original_file(conn, dataset_label)
+        tile = _get_tile_from_dataset(original_file, level, row, column, color_palette)
+        if tile:
+            response = HttpResponse(content_type='image/png')
+            tile.save(response, 'png')
+            return response
+        else:
+            return HttpResponseNotFound(f'There is not a valid array dataset with label {dataset_label}')
+    except DuplicatedEntryError as de_err:
+        return HttpResponseServerError(str(de_err))
+    except InvalidColorPalette as cp_error:
+        return HttpResponseBadRequest(cp_error)
+    except InvalidAttribute as a_error:
+        return HttpResponseBadRequest(a_error)
+
+
+@login_required()
+def get_array_dataset_tile_by_id(request, dataset_id, level, row, column, conn=None, **kwargs):
+    color_palette = request.GET.get('palette')
+    if color_palette is None:
+        return HttpResponseBadRequest('Missing mandatory palette value to complete the request')
+    try:
+        original_file = get_original_file_by_id(conn, dataset_id)
+        tile = _get_tile_from_dataset(original_file, level, row, column, color_palette)
+        if tile:
+            response = HttpResponse(content_type='image/png')
+            tile.save(response, 'png')
+            return response
+        else:
+            return HttpResponseNotFound(f'There is not a valid array dataset with ID {dataset_id}')
+    except InvalidColorPalette as cp_error:
+        return HttpResponseBadRequest(cp_error)
+    except InvalidAttribute as a_error:
+        return HttpResponseBadRequest(a_error)

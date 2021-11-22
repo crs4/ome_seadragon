@@ -65,7 +65,7 @@ def get_original_files(connection, name, mimetype=None):
     return list(connection.getObjects('OriginalFile', attributes=query_filter))
 
 
-def get_original_file(connection, name, mimetype):
+def get_original_file(connection, name, mimetype=None):
     ofiles = get_original_files(connection, name, mimetype)
     if len(ofiles) == 0:
         return None
@@ -74,6 +74,14 @@ def get_original_file(connection, name, mimetype):
     else:
         raise DuplicatedEntryError('File %s with mimetype %s is not unique' %
                                    (name, mimetype))
+
+
+def get_original_file_by_id(connection, omero_id, mimetype=None):
+    switch_to_default_search_group(connection)
+    query_filter = {'id': omero_id}
+    if mimetype:
+        query_filter['mimetype'] = mimetype
+    return connection.getObject('OriginalFile', attributes=query_filter)
 
 
 def delete_original_files(connection, name, mimetype=None):
