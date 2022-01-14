@@ -386,7 +386,7 @@ def get_tile(request, image_id, level, column, row, tile_format,
         rendering_engine = rf.get_secondary_tiles_rendering_engine(image_id, conn)
         if rendering_engine:
             tile, image_format = rendering_engine.get_tile(int(level), int(column), int(row), fetch_original_file,
-                                                           file_mimetype, tile_size), limit_bounds
+                                                           file_mimetype, tile_size, limit_bounds)
         else:
             raise e
     if tile:
