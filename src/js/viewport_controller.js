@@ -319,6 +319,7 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
 
     this.initOverlaysLayer = function(overlays, opacity) {
         this.default_overlay_opacity = opacity;
+        this.current_overlay_opacity = this.default_overlay_opacity;
         this.overlays = overlays;
     };
 
@@ -327,7 +328,7 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
             console.log("Activating overlay " + label);
             this.viewer.addTiledImage({
                 tileSource: this.overlays[label],
-                opacity: this.default_overlay_opacity,
+                opacity: this.current_overlay_opacity,
                 index: 1,
                 replace: true
             });
@@ -335,4 +336,13 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
             console.error("There is no overlay registered with label " + label);
         }
     };
+
+    this.setOverlayOpacity = function(opacity) {
+        this.current_overlay_opacity = opacity;
+        this.viewer.world.getItemAt(1).setOpacity(this.current_overlay_opacity);
+    }
+
+    this.setOverlayDefaultOpacity = function(opacity) {
+        this.setOverlayOpacity(this.default_overlay_opacity);
+    }
 }
