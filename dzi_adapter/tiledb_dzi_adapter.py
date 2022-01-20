@@ -183,21 +183,33 @@ class TileDBDZIAdapter(DZIAdapterInterface):
             raise InvalidColorPalette('%s is not a valid color palette' % palette)
         p_colors = copy(p_obj.colors)
         p_colors.insert(0, [255, 255, 255]) # TODO: check if actually necessary
-        norm_slice = np.asarray(np.uint8(slice*len(p_colors))).reshape(-1)
+        colored_slice = np.full((*slice.shape, 4), [0, 0, 0, 0]).reshape(-1, 4)
+        norm_slice = np.asarray(np.float16(slice*len(p_colors))).reshape(-1)
         # extend the p_colors array to avoid an issue related to probabilities with a value of 1.0
         p_colors.append(p_colors[-1])
-        colored_slice = [p_colors[int(y)] for y in norm_slice]
-        return np.array(colored_slice).reshape(*slice.shape, 3)
+        for i, prob in enumerate(norm_slice):
+            try:
+                colored_slice[i] = [*p_colors[int(prob)], 255]
+            except ValueError:
+                pass
+        colored_tile = colored_slice.reshape(*slice.shape, 4)
+        return colored_tile
 
-    def _tile_to_img(self, tile, mode='RGB'):
+    def _tile_to_img(self, tile, mode='RGBA'):
         img = Image.fromarray(np.uint8(tile), mode)
         return img
 
     def _get_expected_tile_size(self, dzi_tile_size, zoom_scale_factor, dataset_tile_size):
         return max(int((dzi_tile_size*zoom_scale_factor)/dataset_tile_size), 1)
+    
+    def _apply_threshold(self, slice, threshold):
+        slice[slice<threshold] = np.nan
+        return slice
 
-    def _slice_to_tile(self, slice, tile_size, zoom_scale_factor, dataset_tile_size, palette):
+    def _slice_to_tile(self, slice, tile_size, zoom_scale_factor, dataset_tile_size, palette, threshold):
         expected_tile_size = self._get_expected_tile_size(tile_size, zoom_scale_factor, dataset_tile_size)
+        if threshold:
+            slice = self._apply_threshold(slice, float(threshold))
         tile = self._apply_palette(slice, palette)
         tile = self._tile_to_img(tile)
         # self.logger.debug(f'Tile width: {tile.width} --- Tile Height: {tile.height}')
@@ -235,7 +247,7 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         return etree.tostring(dzi_root)
 
 
-    def get_tile(self, level, row, column, palette, attribute_label=None, tile_size=None):
+    def get_tile(self, level, row, column, palette, threshold=None, attribute_label=None, tile_size=None):
         self.logger.debug('Loading tile')
         tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
         self.logger.debug('Setting tile size to %dpx', tile_size)
@@ -250,4 +262,4 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         slice, zoom_scale_factor = self._slice_by_attribute(attribute, int(level), int(row), int(column), tile_size)
         return self._slice_to_tile(slice, tile_size, zoom_scale_factor,
                                    self._get_meta_attribute('{0}.tile_size'.format(attribute)),
-                                   palette)
+                                   palette, threshold)
