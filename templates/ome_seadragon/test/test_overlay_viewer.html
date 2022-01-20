@@ -81,11 +81,15 @@
                     viewer.setMinDZILevel(8);
                 });
 
+                window.overlay_base_url = "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi";
+                window.overlay_default_palette = 'Greens_9';
+                window.overlay_default_threshold = '0.6';
+
                 viewer.initOverlaysLayer(
                     {
-                        "greens_9": "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi?palette=Greens_9",
-                        "blues_9": "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi?palette=Blues_9",
-                        "reds_9": "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_label }}.dzi?palette=Reds_9"
+                        "greens_9": overlay_base_url + "?palette=Greens_9&threshold=0.6",
+                        "blues_9": overlay_base_url + "?palette=Blues_9&threshold=0.6",
+                        "reds_9": overlay_base_url + "?palette=Reds_9&threshold=0.6"
                     }, 0.5
                 );
 
@@ -96,6 +100,10 @@
         function changeOverlayOpacity(value) {
             window.viewer.setOverlayOpacity(value);
         }
+
+        function changeOverlayThreshold(value) {
+            window.viewer.setOverlay(window.overlay_base_url, window.overlay_default_palette, value);
+        }
     </script>
 </head>
     <body>
@@ -103,9 +111,30 @@
             <div class="col-md-2">
                 <div class="row">
                     <label for="overlay_opacity">Overlay opacity</label>
-                    <input type="range" id="overlay_opacity" min="0.0" max="1.0" step="0.01" default="0.5"
-                        oninput="changeOverlayOpacity(this.value)" list="tickmarks">
-                        <datalist id="tickmarks">
+                    <input type="range" id="overlay_opacity" min="0.0" max="1.0" step="0.01" value="0.5"
+                        oninput="changeOverlayOpacity(this.value)" list="op_tickmarks">
+                        <datalist id="op_tickmarks">
+                            <option value="0" label="0%"></option>
+                            <option value="0.1"></option>
+                            <option value="0.2"></option>
+                            <option value="0.3"></option>
+                            <option value="0.4"></option>
+                            <option value="0.5" label="50%"></option>
+                            <option value="0.6"></option>
+                            <option value="0.7"></option>
+                            <option value="0.8"></option>
+                            <option value="0.9"></option>
+                            <option value="1" label="100%"></option>
+                        </datalist>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-2">
+                <div class="row">
+                    <label for="overlay_threshold">Overlay threshold</label>
+                    <input type="range" id="overlay_threshold" min="0.0" max="1.0" step="0.1" value="0.6"
+                        onchange="changeOverlayThreshold(this.value)" list="th_tickmarks">
+                        <datalist id="th_tickmarks">
                             <option value="0" label="0%"></option>
                             <option value="0.1"></option>
                             <option value="0.2"></option>
