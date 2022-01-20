@@ -323,19 +323,34 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
         this.overlays = overlays;
     };
 
+    this.addOverlayToViewer = function(overlay_url, opacity) {
+        this.viewer.addTiledImage({
+            tileSource: overlay_url,
+            opacity: opacity,
+            index: 1,
+            replace: true
+        });
+    };
+
     this.activateOverlay = function(label) {
         if (label in this.overlays) {
             console.log("Activating overlay " + label);
-            this.viewer.addTiledImage({
-                tileSource: this.overlays[label],
-                opacity: this.current_overlay_opacity,
-                index: 1,
-                replace: true
-            });
+            this.addOverlayToViewer(this.overlays[label], this.current_overlay_opacity);
         } else {
             console.error("There is no overlay registered with label " + label);
         }
     };
+
+    this.setOverlay = function(overlay_base_url, palette, threshold) {
+        if (overlay_base_url !== undefined && palette !== undefined) {
+            var th = (threshold === undefined) ? 0 : threshold;
+            var overlay_url = overlay_base_url + "?palette=" + palette + "&threshold=" + th;
+            console.log("Setting overlay URL to " + overlay_url);
+            this.addOverlayToViewer(overlay_url, this.current_overlay_opacity);
+        } else {
+            console.error("Missing mandatory parameter");
+        }
+    }
 
     this.setOverlayOpacity = function(opacity) {
         this.current_overlay_opacity = opacity;
