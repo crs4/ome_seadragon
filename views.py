@@ -580,10 +580,10 @@ def get_array_dataset_dzi_by_id(request, dataset_id, conn=None, **kwargs):
         return HttpResponseNotFound(f'There is not a valid array dataset with ID {dataset_id}')
 
 
-def _get_tile_from_dataset(original_file, level, row, column, color_palette):
+def _get_tile_from_dataset(original_file, level, row, column, color_palette, threshold):
     if original_file and original_file.mimetype == 'dataset-folder/tiledb':
         dzi_adapter = DZIAdapterFactory('TILEDB').get_adapter(original_file.name)
-        return dzi_adapter.get_tile(level, int(row), int(column), color_palette)
+        return dzi_adapter.get_tile(level, int(row), int(column), color_palette, threshold)
     else:
         return None
 
@@ -591,11 +591,12 @@ def _get_tile_from_dataset(original_file, level, row, column, color_palette):
 @login_required()
 def get_array_dataset_tile_by_label(request, dataset_label, level, row, column, conn=None, **kwargs):
     color_palette = request.GET.get('palette')
+    threshold = request.GET.get('threshold')
     if color_palette is None:
         return HttpResponseBadRequest('Missing mandatory palette value to complete the request')
     try:
         original_file = get_original_file(conn, dataset_label)
-        tile = _get_tile_from_dataset(original_file, level, row, column, color_palette)
+        tile = _get_tile_from_dataset(original_file, level, row, column, color_palette, threshold)
         if tile:
             response = HttpResponse(content_type='image/png')
             tile.save(response, 'png')
@@ -613,11 +614,12 @@ def get_array_dataset_tile_by_label(request, dataset_label, level, row, column, 
 @login_required()
 def get_array_dataset_tile_by_id(request, dataset_id, level, row, column, conn=None, **kwargs):
     color_palette = request.GET.get('palette')
+    threshold = request.GET.get('threshold')
     if color_palette is None:
         return HttpResponseBadRequest('Missing mandatory palette value to complete the request')
     try:
         original_file = get_original_file_by_id(conn, dataset_id)
-        tile = _get_tile_from_dataset(original_file, level, row, column, color_palette)
+        tile = _get_tile_from_dataset(original_file, level, row, column, color_palette, threshold)
         if tile:
             response = HttpResponse(content_type='image/png')
             tile.save(response, 'png')
