@@ -482,6 +482,28 @@ def register_mirax_slide(request, conn=None, **kwargs):
 
 
 @login_required()
+def get_mirax_slide_details(request, slide_id, conn=None, **kwargs):
+    mirax_data_folder = get_original_file(conn, slide_id, 'mirax/datafolder')
+    mirax_index_file = get_original_file(conn, slide_id, 'mirax/index')
+    slide_details = {
+        'slide_label': slide_id,
+        'index_file': {
+            'omero_id': mirax_index_file.getId(),
+            'label': mirax_index_file.getName(),
+            'mimetype': mirax_index_file.getMimetype(),
+            'hash': mirax_index_file.getHash()
+        },
+        'data_folder': {
+            'omero_id': mirax_data_folder.getId(),
+            'label': mirax_data_folder.getName(),
+            'mimetype': mirax_data_folder.getMimetype(),
+            'hash': mirax_data_folder.getHash()
+        }
+    }
+    return HttpResponse(json.dumps(slide_details), content_type='application/json')
+
+
+@login_required()
 def list_array_datasets(request, conn=None, **kwargs):
     datasets = datasets_files.get_datasets(conn)
     return HttpResponse(json.dumps(datasets), content_type='application/json')
