@@ -200,6 +200,7 @@ class OmeEngine(RenderingEngineInterface):
     def get_tile(self, level, column, row, original_file_source=False, file_mimetype=None,
                  tile_size=None, limit_bounds=None):
         tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
+        limit_bounds = limit_bounds if limit_bounds is not None else settings.DEEPZOOM_LIMIT_BOUNDS
         self._check_source_type(original_file_source)
         if settings.IMAGES_CACHE_ENABLED:
             cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER). \
@@ -211,7 +212,8 @@ class OmeEngine(RenderingEngineInterface):
                 'row': row,
                 'tile_size': tile_size,
                 'image_format': settings.DEEPZOOM_FORMAT,
-                'rendering_engine': 'omero'
+                'rendering_engine': 'omero',
+                'limit_bounds': limit_bounds
             }
             if cache_params['image_format'].lower() == 'jpeg':
                 cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
