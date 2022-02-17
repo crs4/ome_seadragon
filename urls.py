@@ -102,6 +102,8 @@ urlpatterns = [
     url(r'mirax/register_slide/$', views.register_mirax_slide, name='ome_seadragon_register_mirax'),
     url(r'^mirax/delete_files/(?P<file_name>[\w\-.]+)/$', views.delete_original_files,
         name='ome_seadragon_mrxs_delete_files'),
+    url(r'mirax/details/(?P<slide_id>[\w\-.]+).json$', views.get_mirax_slide_details,
+        name='ome_seadragon_mirax_details'),
     # 3DHISTECH FILES HANDLING --- DEEPZOOM
     url(r'^mirax/deepzoom/get/(?P<image_id>[\w\-.]+).dzi$', views.get_image_dzi,
         name='ome_seadragon_image_dzi_metadata_mrxs',

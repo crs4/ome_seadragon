@@ -142,6 +142,7 @@ class OpenSlideEngine(RenderingEngineInterface):
             cache = CacheDriverFactory(settings.IMAGES_CACHE_DRIVER).\
                 get_cache(settings.CACHE_HOST, settings.CACHE_PORT, settings.CACHE_DB, settings.CACHE_EXPIRE_TIME)
             tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
+            limit_bounds = limit_bounds if limit_bounds is not None else settings.DEEPZOOM_LIMIT_BOUNDS
             self.logger.debug('TILE SIZE IS: %s', tile_size)
             cache_params = {
                 'image_id': self.image_id,
@@ -150,7 +151,8 @@ class OpenSlideEngine(RenderingEngineInterface):
                 'row': row,
                 'tile_size': tile_size,
                 'image_format': settings.DEEPZOOM_FORMAT,
-                'rendering_engine': 'openslide'
+                'rendering_engine': 'openslide',
+                'limit_bounds': limit_bounds
             }
             if cache_params['image_format'].lower() == 'jpeg':
                 cache_params['image_quality'] = settings.DEEPZOOM_JPEG_QUALITY
