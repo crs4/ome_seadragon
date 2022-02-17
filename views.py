@@ -54,7 +54,7 @@ def check_repository(request):
 
 @login_required()
 def start_connection(request, conn=None, **kwargs):
-    public_user_allowed = strtobool(request.GET.get('allow_public_user', default='true'))
+    public_user_allowed = bool(strtobool(request.GET.get('allow_public_user', default='true')))
     if not public_user_allowed:
         if settings.OME_PUBLIC_USER is None:
             return HttpResponseServerError('"omero.web.ome_seadragon.ome_public_user" property was not configured on the server')
@@ -71,14 +71,14 @@ def check_image_path(request, image_id, conn=None, **kwargs):
 
 def get_example_viewer(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
-    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
     return render(request, 'ome_seadragon/test/test_viewer.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
 def get_example_viewer_json(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
-    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
     return render(request, 'ome_seadragon/test/test_viewer_json.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
@@ -99,7 +99,7 @@ def get_example_double_viewer(request, image_a_id, image_b_id):
 
 def get_example_annotations(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
-    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
     return render(request, 'ome_seadragon/test/test_annotations.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
@@ -112,28 +112,28 @@ def get_example_ome_rois(request, image_id):
 
 def get_example_interactive_markers(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
-    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
     return render(request, 'ome_seadragon/test/test_markers.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
 def get_example_interactive_polygons(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
-    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
     return render(request, 'ome_seadragon/test/test_polygons.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
 def get_example_interactive_rulers(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
-    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
     return render(request, 'ome_seadragon/test/test_rulers.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
 
 def get_example_interactive_freehand(request, image_id):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
-    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
     return render(request, 'ome_seadragon/test/test_freehand_drawing.html',
                   {'image_id': image_id, 'host_name': base_url, 'mirax': mirax})
 
@@ -146,7 +146,7 @@ def get_example_array_viewer(request, dataset_label):
 
 def get_example_overlay_viewer(request, image_id, dataset_label):
     base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
-    mirax = strtobool(request.GET.get('mirax_image', default='false'))
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
     return render(request, 'ome_seadragon/test/test_overlay_viewer.html',
                   {'image_id': image_id, 'dataset_label': dataset_label, 'host_name': base_url ,
                   'mirax': mirax})
@@ -155,7 +155,7 @@ def get_example_overlay_viewer(request, image_id, dataset_label):
 @login_required()
 def get_projects(request, conn=None, **kwargs):
     try:
-        fetch_datasets = strtobool(request.GET.get('datasets'))
+        fetch_datasets = bool(strtobool(request.GET.get('datasets')))
     except (ValueError, AttributeError):
         fetch_datasets = False
     projects = projects_datasets.get_projects(conn, fetch_datasets)
@@ -165,15 +165,15 @@ def get_projects(request, conn=None, **kwargs):
 @login_required()
 def get_project(request, project_id, conn=None, **kwargs):
     try:
-        fetch_datasets = strtobool(request.GET.get('datasets'))
+        fetch_datasets = bool(strtobool(request.GET.get('datasets')))
     except (ValueError, AttributeError):
         fetch_datasets = False
     try:
-        fetch_images = strtobool(request.GET.get('images'))
+        fetch_images = bool(strtobool(request.GET.get('images')))
     except (ValueError, AttributeError):
         fetch_images = False
     try:
-        expand_series = strtobool(request.GET.get('full_series'))
+        expand_series = bool(strtobool(request.GET.get('full_series')))
     except (ValueError, AttributeError):
         expand_series = False
     project = projects_datasets.get_project(conn, project_id, fetch_datasets, fetch_images,
@@ -184,11 +184,11 @@ def get_project(request, project_id, conn=None, **kwargs):
 @login_required()
 def get_dataset(request, dataset_id, conn=None, **kwargs):
     try:
-        fetch_images = strtobool(request.GET.get('images'))
+        fetch_images = bool(strtobool(request.GET.get('images')))
     except (ValueError, AttributeError):
         fetch_images = False
     try:
-        expand_series = strtobool(request.GET.get('full_series'))
+        expand_series = bool(strtobool(request.GET.get('full_series')))
     except (ValueError, AttributeError):
         expand_series = False
     dataset = projects_datasets.get_dataset(conn, dataset_id, fetch_images,
@@ -199,7 +199,7 @@ def get_dataset(request, dataset_id, conn=None, **kwargs):
 @login_required()
 def get_image(request, image_id, conn=None, **kwargs):
     try:
-        fetch_rois = strtobool(request.GET.get('rois'))
+        fetch_rois = bool(strtobool(request.GET.get('rois')))
     except (ValueError, AttributeError):
         fetch_rois = False
     image = projects_datasets.get_image(conn, image_id, fetch_rois)
@@ -209,7 +209,7 @@ def get_image(request, image_id, conn=None, **kwargs):
 @login_required()
 def get_images_quick_list(request, conn=None, **kwargs):
     try:
-        expand_series = strtobool(request.GET.get('full_series'))
+        expand_series = bool(strtobool(request.GET.get('full_series')))
     except (ValueError, AttributeError):
         expand_series = False
     images_list = projects_datasets.get_images_quick_list(conn, expand_series)
@@ -219,7 +219,7 @@ def get_images_quick_list(request, conn=None, **kwargs):
 @login_required()
 def get_annotations(request, conn=None, **kwargs):
     try:
-        fetch_images = strtobool(request.GET.get('fetch_imgs'))
+        fetch_images = bool(strtobool(request.GET.get('fetch_imgs')))
     except (ValueError, AttributeError):
         fetch_images = False
     annotations = tags_data.get_annotations_list(conn, fetch_images)
@@ -229,11 +229,11 @@ def get_annotations(request, conn=None, **kwargs):
 @login_required()
 def get_tagset(request, tagset_id, conn=None, **kwargs):
     try:
-        fetch_tags = strtobool(request.GET.get('tags'))
+        fetch_tags = bool(strtobool(request.GET.get('tags')))
     except (ValueError, AttributeError):
         fetch_tags = False
     try:
-        fetch_images = strtobool(request.GET.get('images'))
+        fetch_images = bool(strtobool(request.GET.get('images')))
     except (ValueError, AttributeError):
         fetch_images = False
     tagset = tags_data.get_tagset(conn, tagset_id, fetch_tags, fetch_images)
@@ -243,7 +243,7 @@ def get_tagset(request, tagset_id, conn=None, **kwargs):
 @login_required()
 def get_tag(request, tag_id, conn=None, **kwargs):
     try:
-        fetch_images = strtobool(request.GET.get('images'))
+        fetch_images = bool(strtobool(request.GET.get('images')))
     except (ValueError, AttributeError):
         fetch_images = False
     tag = tags_data.get_tag(conn, tag_id, fetch_images)
@@ -254,7 +254,7 @@ def get_tag(request, tag_id, conn=None, **kwargs):
 def find_annotations(request, conn=None, **kwargs):
     search_pattern = request.GET.get('query')
     try:
-        fetch_images = strtobool(request.GET.get('fetch_imgs'))
+        fetch_images = bool(strtobool(request.GET.get('fetch_imgs')))
     except (ValueError, AttributeError):
         fetch_images = False
     logger.debug('"fetch_imgs" value %r', fetch_images)
@@ -269,7 +269,7 @@ def get_image_dzi(request, image_id, fetch_original_file=False, file_mimetype=No
     except TypeError:
         tile_size = None
     try:
-        limit_bounds = strtobool(request.GET.get('limit_bounds'))
+        limit_bounds = bool(strtobool(request.GET.get('limit_bounds')))
     except AttributeError:
         limit_bounds = None
     rf = RenderingEngineFactory()
@@ -371,7 +371,7 @@ def get_tile(request, image_id, level, column, row, tile_format,
     except TypeError:
         tile_size = None
     try:
-        limit_bounds = strtobool(request.GET.get('limit_bounds'))
+        limit_bounds = bool(strtobool(request.GET.get('limit_bounds')))
     except AttributeError:
         limit_bounds = None
     if tile_format != settings.DEEPZOOM_FORMAT:
@@ -517,11 +517,11 @@ def register_array_dataset(request, conn=None, **kwargs):
     try:
         dataset_path, is_dir = datasets_files.get_dataset_file_path(dataset_label)
         if not is_dir:
-            if strtobool(request.GET.get('extract_archive', default='true')) == False:
+            if bool(strtobool(request.GET.get('extract_archive', default='true'))) == False:
                 dataset_label, dataset_path = datasets_files.rename_archive(dataset_path)
             else:
                 try:
-                    keep_archive = strtobool(request.GET.get('keep_archive', default='false'))
+                    keep_archive = bool(strtobool(request.GET.get('keep_archive', default='false')))
                     dataset_label, dataset_path = datasets_files.extract_archive(dataset_path,
                                                                                  keep_archive=keep_archive)
                     is_dir = True
