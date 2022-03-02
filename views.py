@@ -465,20 +465,26 @@ def register_original_file(request, conn=None, **kwargs):
 @login_required()
 def register_mirax_slide(request, conn=None, **kwargs):
     sname = request.GET.get('slide_name')
+    error_on_duplicated = bool(strtobool(request.GET.get('error_on_duplicated', default='false')))
     if not original_files.is_valid_filename(sname):
         return HttpResponseServerError('Invalid slide name received: %s' % sname)
     try:
         mirax_paths = mirax_files.get_mirax_files_paths(sname)
         try:
-            mirax_file_id = original_files.save_original_file(conn, sname, mirax_paths[0], 'mirax/index',
-                                                              -1, 'UNKNOWN')
+            mirax_file_id, mirax_file_created = original_files.save_original_file(conn, sname, mirax_paths[0], 
+                                                                                  'mirax/index', -1, 'UNKNOWN',
+                                                                                  error_on_duplicated)
             try:
-                mirax_folder_id = original_files.save_original_file(conn, sname, mirax_paths[1],
-                                                                    'mirax/datafolder', -1, 'UNKNOWN')
+                mirax_folder_id, mirax_folder_created = original_files.save_original_file(conn, sname, mirax_paths[1],
+                                                                                          'mirax/datafolder',
+                                                                                          -1, 'UNKNOWN',
+                                                                                          error_on_duplicated)
                 return HttpResponse(
                 json.dumps({
                     'mirax_index_omero_id': mirax_file_id,
-                    'mirax_folder_omero_id': mirax_folder_id
+                    'mirax_index_created': mirax_file_created,
+                    'mirax_folder_omero_id': mirax_folder_id,
+                    'mirax_folder_created': mirax_folder_created
                     }),
                     content_type='application/json'
                 )
