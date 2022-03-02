@@ -446,6 +446,7 @@ def get_slide_bounds(request, image_id, fetch_original_file=False, file_mimetype
 
 @login_required()
 def register_original_file(request, conn=None, **kwargs):
+    error_on_duplicated = bool(strtobool(request.GET.get('error_on_duplicated', default='false')))
     try:
         fname = request.GET.get('name')
         if not original_files.is_valid_filename(fname):
@@ -454,10 +455,12 @@ def register_original_file(request, conn=None, **kwargs):
         fmtype = request.GET.get('mimetype')
         if not all([fname, fpath, fmtype]):
             return HttpResponseBadRequest('Mandatory field missing')
-        file_id = original_files.save_original_file(conn, fname, fpath, fmtype,
-                                                    int(request.GET.get('size', default=-1)),
-                                                    request.GET.get('sha1', default='UNKNOWN'))
-        return HttpResponse(json.dumps({'omero_id': file_id}), content_type='application/json')
+        file_id, file_created = original_files.save_original_file(conn, fname, fpath, fmtype,
+                                                                  int(request.GET.get('size', default=-1)),
+                                                                  request.GET.get('sha1', default='UNKNOWN'),
+                                                                  error_on_duplicated)
+        return HttpResponse(json.dumps({'omero_id': file_id, 'file_created': file_created}),
+                            content_type='application/json')
     except DuplicatedEntryError as dee:
         return HttpResponseServerError('%s' % dee)
 
@@ -532,6 +535,7 @@ def list_array_datasets(request, conn=None, **kwargs):
 @login_required()
 def register_array_dataset(request, conn=None, **kwargs):
     dataset_label = request.GET.get('dataset_label')
+    error_on_duplicated = bool(strtobool(request.GET.get('error_on_duplicated', default='false')))
     if not original_files.is_valid_filename(dataset_label):
         return HttpResponseServerError('Invalid dataset name received: {0}'.format(dataset_label))
     try:
@@ -549,11 +553,18 @@ def register_array_dataset(request, conn=None, **kwargs):
                     return HttpResponseServerError('{0}'.format(dpe))
         try:
             mtype = datasets_files.check_dataset(dataset_path, is_dir)
-            dataset_id = original_files.save_original_file(conn, dataset_label, dataset_path, mtype,
-                                                           int(request.GET.get('size', default=-1)),
-                                                           request.GET.get('sha1', default='UNKNOWN'))
+            dataset_id, dataset_created = original_files.save_original_file(conn, dataset_label, dataset_path, mtype,
+                                                                            int(request.GET.get('size', default=-1)),
+                                                                            request.GET.get('sha1', default='UNKNOWN'),
+                                                                            error_on_duplicated)
             return HttpResponse(
-                json.dumps({'omero_id': dataset_id, 'mimetype': mtype, 'label': dataset_label, 'path': dataset_path}),
+                json.dumps({
+                    'omero_id': dataset_id,
+                    'created': dataset_created, 
+                    'mimetype': mtype,
+                    'label': dataset_label,
+                    'path': dataset_path
+                }),
                 content_type='application/json'
             )
         except datasets_files.DatasetFormatError as dfe:
