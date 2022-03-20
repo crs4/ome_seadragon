@@ -148,8 +148,9 @@ class MiraxImporter(object):
                 'Unable to save MIRAX file, server returned error code %s', r0_response)
         self.logger.info('Job completed')
 
+
 def get_parser():
-    parser = ArgumentParser('Import a dingle MIRAX file and related data folder to OMERO')
+    parser = ArgumentParser('Import a single MIRAX file and related data folder to OMERO')
     parser.add_argument('--mirax-file', type=str, required=True,
                         help='the path to MIRAX file to be imported, MIRAX data folder with the same name must be in the same path')
     parser.add_argument('--ome-base-url', type=str, required=True,
