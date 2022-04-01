@@ -19,9 +19,7 @@
 
 import logging
 
-from .. import settings
 from .errors import UnknownDZIAdaperType
-
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +31,7 @@ class DZIAdapterFactory(object):
 
     def _get_tiledb_adapter(self, fname):
         from .tiledb_dzi_adapter import TileDBDZIAdapter
+        from .. import settings
         return TileDBDZIAdapter(fname, settings.DATASETS_REPOSITORY)
 
     def get_adapter(self, dataset_label):
