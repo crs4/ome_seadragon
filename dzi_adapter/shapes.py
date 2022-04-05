@@ -126,15 +126,10 @@ class OpenCVShapeConverter(ShapeConverter):
         contours, _ = cv2.findContours(
             mask, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE
         )
-        logger.debug("contours %s", contours)
         factor = dataset.slide_resolution[0] / dataset.shape[0]
-        points = [
-            tuple(map(tuple, np.squeeze(c))) for c in contours
-        ]
+        points = [tuple(map(tuple, np.squeeze(c))) for c in contours if c.size >= 3]
         points = [p + (p[0],) for p in points]
-        shapes = [
-            Shape(point).rescale(factor) for point in points
-        ]
+        shapes = [Shape(point).rescale(factor) for point in points]
         return shapes
 
 
