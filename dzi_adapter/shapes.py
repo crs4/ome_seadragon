@@ -3,14 +3,14 @@
 
 import abc
 import logging
+import os
 from dataclasses import dataclass
-from functools import cached_property
 from typing import List, Tuple, Union
+import json
 
 import cv2
 import numpy as np
 import tiledb
-
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +71,21 @@ class TileDBDataset(Dataset):
     def slide_resolution(self) -> Tuple[int, int]:
         return (self._array.meta["original_width"], self._array.meta["original_height"])
 
-    @cached_property
+    @property
     def array(self) -> np.ndarray:
         return np.array(self._array)
+
+
+def get_dataset(path):
+    ext = os.path.splitext(path)[1]
+    if ext == ".tiledb":
+        return TileDBDataset(tiledb.open(path))
+    else:
+        raise UnsupportedDataset(path)
+
+
+class UnsupportedDataset(Exception):
+    pass
 
 
 Coord = Union[int, float]
@@ -89,6 +101,14 @@ class Shape:
 
     def __eq__(self, other):
         return set(self.points) == set(other.points)
+
+    def as_points(self) -> List:
+        points = [{"point": {"x": p[0], "y": p[1]}} for p in self.points]
+        return points
+
+
+def shapes_to_json(shapes: List[Shape]) -> str:
+    return json.dumps({"shapes": shapes}, default=lambda s: s.as_points())
 
 
 class ShapeConverter(abc.ABC):
@@ -108,7 +128,18 @@ class OpenCVShapeConverter(ShapeConverter):
         )
         logger.debug("contours %s", contours)
         factor = dataset.slide_resolution[0] / dataset.shape[0]
+        points = [
+            tuple(map(tuple, np.squeeze(c))) for c in contours
+        ]
+        points = [p + (p[0],) for p in points]
         shapes = [
-            Shape(tuple(map(tuple, np.squeeze(c)))).rescale(factor) for c in contours
+            Shape(point).rescale(factor) for point in points
         ]
         return shapes
+
+
+def get_shape_converter(cls: str):
+    if cls == "opencv":
+        return OpenCVShapeConverter()
+    else:
+        raise KeyError(f"shape converter {cls} does not exist")

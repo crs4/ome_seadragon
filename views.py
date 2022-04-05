@@ -17,26 +17,31 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .ome_data import tags_data, projects_datasets, original_files, mirax_files, datasets_files
-from .ome_data.original_files import DuplicatedEntryError, get_original_file_by_id, get_original_file
-from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
-from . import settings
-from .slides_manager import RenderingEngineFactory
-from .dzi_adapter import DZIAdapterFactory
-from .dzi_adapter.errors import InvalidColorPalette, InvalidAttribute
-
 import logging
 from distutils.util import strtobool
+
+from django.conf import settings
+
+from .dzi_adapter import DZIAdapterFactory
+from .dzi_adapter.errors import InvalidAttribute, InvalidColorPalette
+from .dzi_adapter.shapes import get_dataset as get_ds
+from .dzi_adapter.shapes import get_shape_converter, shapes_to_json
+from .ome_data import (datasets_files, mirax_files, original_files,
+                       projects_datasets, tags_data)
+from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
+from .ome_data.original_files import (DuplicatedEntryError, get_original_file,
+                                      get_original_file_by_id)
+from .slides_manager import RenderingEngineFactory
 
 try:
     import simplejson as json
 except ImportError:
     import json
 
-from omeroweb.webclient.decorators import login_required
-
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, HttpResponseBadRequest
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseNotFound, HttpResponseServerError)
 from django.shortcuts import render
+from omeroweb.webclient.decorators import login_required
 
 logger = logging.getLogger(__name__)
 
@@ -652,3 +657,21 @@ def get_array_dataset_tile_by_id(request, dataset_id, level, row, column, conn=N
         return HttpResponseBadRequest(cp_error)
     except InvalidAttribute as a_error:
         return HttpResponseBadRequest(a_error)
+
+
+@login_required()
+def get_array_dataset_shapes(
+    request,
+    dataset_id,
+    threshold=0.0,
+    conn=None,
+):
+    original_file = get_original_file_by_id(conn, dataset_id)
+    dataset = get_ds(original_file.name)
+    shape_converter = get_shape_converter("opencv")
+    shapes = shape_converter.convert(dataset, threshold)
+
+    return HttpResponse(
+        shapes_to_json(shapes),
+        content_type="application/json",
+    )

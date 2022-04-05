@@ -140,5 +140,7 @@ urlpatterns = [
         name='ome_seadragon_array_datasets_get_tile_by_id'),
     url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+)_files/(?P<level>[0-9]+)/'
         r'(?P<column>[0-9]+)_(?P<row>[0-9]+).png$', views.get_array_dataset_tile_by_label,
+        name='ome_seadragon_array_datasets_get_tile'),
+    url(r'^arrays/shapes/get/(?P<dataset_id>[\w\-.]+)/$', views.get_array_dataset_shapes,
         name='ome_seadragon_array_datasets_get_tile')
 ]
