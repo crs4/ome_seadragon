@@ -665,6 +665,7 @@ def get_array_dataset_shapes(
     dataset_id,
     threshold=0.0,
     conn=None,
+    **kwargs
 ):
     original_file = get_original_file_by_id(conn, dataset_id)
     dataset = get_ds(original_file.name)
