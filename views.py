@@ -668,7 +668,8 @@ def get_array_dataset_shapes(
     **kwargs
 ):
     original_file = get_original_file_by_id(conn, dataset_id)
-    dataset = get_ds(original_file.name)
+    logger.info("retrieving shapes for dataset %s", original_file.name)
+    dataset = get_ds(os.path.join(settings.DATASETS_REPOSITORY, original_file.name))
     shape_converter = get_shape_converter("opencv")
     shapes = shape_converter.convert(dataset, threshold)
 
