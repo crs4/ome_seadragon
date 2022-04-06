@@ -2,17 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import abc
+import json
 import logging
 import os
 from dataclasses import dataclass
 from typing import List, Tuple, Union
-import json
 
 import cv2
 import numpy as np
 import tiledb
 
 logger = logging.getLogger(__name__)
+MASK_FALSE = 0
+MASK_TRUE = 255
 
 
 class Dataset(abc.ABC):
@@ -120,8 +122,8 @@ class ShapeConverter(abc.ABC):
 class OpenCVShapeConverter(ShapeConverter):
     def convert(self, dataset: Dataset, threshold: float) -> List[Shape]:
         mask = dataset.array
-        mask[mask <= threshold] = 0
-        mask[mask > threshold] = 255
+        mask[mask < threshold] = MASK_FALSE
+        mask[mask >= threshold] = MASK_TRUE
 
         contours, _ = cv2.findContours(
             mask, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE
