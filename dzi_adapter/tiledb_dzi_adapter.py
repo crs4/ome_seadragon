@@ -268,19 +268,6 @@ class TileDBDZIAdapter(DZIAdapterInterface):
                                    self._get_meta_attribute('{0}.tile_size'.format(attribute)),
                                    palette, threshold)
 
-    def get_shapes(self)->List["Shape"]:
-        ...
-
-
-@dataclass
-class TileDBDZIFactory:
-    array: np.array
-    zoom_level: int
-
-
-    def get(self):
-        ...
-
 
 
 
