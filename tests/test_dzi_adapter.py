@@ -8,22 +8,23 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 import tiledb
+from django.conf import settings as django_settings
 from django.test import Client
 
-from dzi_adapter.shapes import (
+from ome_seadragon.dzi_adapter.shapes import (
     OpenCVShapeConverter,
     Shape,
     TileDBDataset,
     shapes_to_json,
 )
 
-os.environ["DJANGO_SETTINGS_MODULE"] = "tests.settings"
+django_settings.configure(
+    STATIC_URL="", ROOT_URLCONF="ome_seadragon.urls", DEBUG=True, ALLOWED_HOSTS=["*"]
+)
+#  os.environ["DJANGO_SETTINGS_MODULE"] = "tests.settings"
 import django
 
 django.setup()
-
-cwd = Path(os.path.dirname(os.path.realpath(__file__)))
-parent_package = cwd.parent.name
 
 
 @pytest.fixture
@@ -136,21 +137,32 @@ def test_shape_converter(
     assert {s.points for s in shapes} == {s.points for s in expected_shapes}
 
 
-@pytest.mark.parametrize("dataset_id", ["dataset_id"])
+from ome_seadragon import views
+@pytest.mark.parametrize("dataset_id", [1])
 @pytest.mark.parametrize("backend", ["tiledb"])
 @pytest.mark.parametrize("threshold", [0])
 @pytest.mark.parametrize("factor", [2])
 @pytest.mark.parametrize("tile_size", [2])
-@patch(f"{parent_package}.views.get_original_file_by_id")
+@patch("ome_seadragon.views.get_original_file_by_id")
+@patch.object(
+    views,
+    "settings",
+)
 def test_get_array_dataset_shapes(
-    mock_get_original_file_by_id, dataset_id, dataset, threshold, tmp_path
+    mock_settings,
+    mock_get_original_file_by_id,
+    dataset_id,
+    dataset,
+    threshold,
+    tmp_path,
 ):
-    mock_get_original_file_by_id.return_value.name = os.path.join(
-        tmp_path, "test.tiledb"
-    )
+    mock_get_original_file_by_id.return_value.name = "test.tiledb"
+    mock_settings.DATASETS_REPOSITORY = tmp_path
+
     client = Client()
     resp = client.get(f"/arrays/shapes/get/{dataset_id}/")
 
+    print(resp)
     shapes = resp.json()
     assert isinstance(shapes, dict)
     assert list(shapes.keys()) == ["shapes"]

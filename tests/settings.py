@@ -21,6 +21,7 @@ DEBUG = True
 DATASETS_REPOSITORY = None
 SECRET_KEY = "test"
 
+STATIC_URL = ""
 ROOT_URLCONF="ome_seadragon.urls"
 DEFAULT_SEARCH_GROUP=None
 ALLOWED_HOSTS= ['*']

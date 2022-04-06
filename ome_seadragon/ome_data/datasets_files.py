@@ -117,7 +117,8 @@ def extract_tar_archive(archive_file, out_folder):
         return extract(f, out_folder)
 
 
-def rename_archive(archive_file, out_folder=settings.DATASETS_REPOSITORY):
+def rename_archive(archive_file, out_folder=None):
+    out_folder = out_folder or settings.DATASETS_REPOSITORY
     _, ext = os.path.splitext(archive_file)
     new_dset_label = str(uuid4())
     new_fpath = os.path.join(out_folder, "{0}{1}".format(new_dset_label, ext))
@@ -125,7 +126,8 @@ def rename_archive(archive_file, out_folder=settings.DATASETS_REPOSITORY):
     return new_dset_label, new_fpath
 
 
-def extract_archive(archive_file, out_folder=settings.DATASETS_REPOSITORY, keep_archive=False):
+def extract_archive(archive_file, out_folder=None, keep_archive=False):
+    out_folder = out_folder or settings.DATASETS_REPOSITORY
     if zipfile.is_zipfile(archive_file):
         ds_label, dest_folder = extract_zip_archive(archive_file, out_folder)
     elif tarfile.is_tarfile(archive_file):
