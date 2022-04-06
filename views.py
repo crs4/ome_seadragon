@@ -18,10 +18,10 @@
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
+import os
 from distutils.util import strtobool
 
-from django.conf import settings
-
+from . import settings
 from .dzi_adapter import DZIAdapterFactory
 from .dzi_adapter.errors import InvalidAttribute, InvalidColorPalette
 from .dzi_adapter.shapes import get_dataset as get_ds
