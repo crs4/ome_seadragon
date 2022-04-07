@@ -81,4 +81,3 @@ CUSTOM_SETTINGS_MAPPINGS = {
     'omero.web.ome_seadragon.dzi_adapter.datasets.repository': ['DATASETS_REPOSITORY', None, identity, None]
 }
 
-DEBUG= True
