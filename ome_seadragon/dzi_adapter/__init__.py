@@ -20,20 +20,21 @@
 import abc
 import logging
 
+from ome_seadragon import Configuration
+
 from .errors import UnknownDZIAdaperType
 
 logger = logging.getLogger(__name__)
 
 
 class DZIAdapterFactory(object):
-    
-    def __init__(self, array_dataset_type):
+    def __init__(self, array_dataset_type, conf: Configuration = None):
         self.array_dataset_type = array_dataset_type
+        self.conf = conf
 
     def _get_tiledb_adapter(self, fname):
         from .tiledb_dzi_adapter import TileDBDZIAdapter
-        from .. import settings
-        return TileDBDZIAdapter(fname, settings.DATASETS_REPOSITORY)
+        return TileDBDZIAdapter(fname, self.conf)
 
     def get_adapter(self, dataset_label):
         if self.array_dataset_type == 'TILEDB':

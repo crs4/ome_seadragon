@@ -25,6 +25,11 @@ MASK_TRUE = 255
 class Dataset(abc.ABC):
     @property
     @abc.abstractmethod
+    def path(self) -> str:
+        ...
+
+    @property
+    @abc.abstractmethod
     def shape(self) -> Tuple[int, int]:
         ...
 
@@ -61,6 +66,10 @@ class Dataset(abc.ABC):
 class TileDBDataset(Dataset):
     def __init__(self, array: tiledb.Array):
         self._array = tiledb.open(array.uri, mode="r")
+
+    @property
+    def path(self):
+        return self._array.uri
 
     @property
     def shape(self):

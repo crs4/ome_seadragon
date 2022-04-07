@@ -29,7 +29,7 @@ import tiledb
 from lxml import etree
 from PIL import Image
 
-from .. import settings
+from ome_seadragon import Configuration
 from .dzi_adapter_interface import DZIAdapterInterface
 from .errors import InvalidAttribute, InvalidColorPalette, InvalidTileAddress
 
@@ -37,9 +37,10 @@ from .errors import InvalidAttribute, InvalidColorPalette, InvalidTileAddress
 
 class TileDBDZIAdapter(DZIAdapterInterface):
 
-    def __init__(self, tiledb_file, tiledb_repo):
+    def __init__(self, tiledb_file, conf: Configuration=None):
         super(TileDBDZIAdapter, self).__init__()
-        self.tiledb_resource = os.path.join(tiledb_repo, tiledb_file)
+        self.tiledb_resource = tiledb_file
+        self.conf = conf or Configuration()
         self.logger.debug('TileDB adapter initialized')
 
     def _get_meta_attributes(self, keys):
@@ -142,6 +143,9 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         }
 
     def _slice_by_attribute(self, attribute, level, column, row, dzi_tile_size):
+
+        import pudb
+        pudb.set_trace()
         dzi_coordinates = self._get_dzi_tile_coordinates(row, column, dzi_tile_size, level)
         # self.logger.debug(f'### TILE COORDINATES {dzi_coordinates}')
         zoom_scale_factor = self._get_zoom_scale_factor(level, attribute)
@@ -233,7 +237,7 @@ class TileDBDZIAdapter(DZIAdapterInterface):
             else:
                 raise InvalidAttribute('Dataset has no attribute %s' % attribute_label)
         dset_dims = self._get_dataset_dzi_dimensions(attribute)
-        tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
+        tile_size = tile_size or self.conf.DEEPZOOM_TILE_SIZE
         dzi_root = etree.Element(
             'Image',
             attrib={
@@ -248,12 +252,12 @@ class TileDBDZIAdapter(DZIAdapterInterface):
                             'Height': str(dset_dims['height']),
                             'Width': str(dset_dims['width'])
                         })
-        return etree.tostring(dzi_root)
+        return etree.tostring(dzi_root).decode("utf-8")
 
 
     def get_tile(self, level, row, column, palette, threshold=None, attribute_label=None, tile_size=None):
         self.logger.debug('Loading tile')
-        tile_size = tile_size if tile_size is not None else settings.DEEPZOOM_TILE_SIZE
+        tile_size = tile_size or self.conf.DEEPZOOM_TILE_SIZE
         self.logger.debug('Setting tile size to %dpx', tile_size)
         if attribute_label is None:
             attribute = self._get_attribute_by_index(0)
