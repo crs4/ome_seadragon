@@ -6,6 +6,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
+from math import ceil, log2
 from typing import List, Tuple, Union
 
 import cv2
@@ -48,6 +49,10 @@ class Dataset(abc.ABC):
     def array(self) -> np.ndarray:
         ...
 
+    @abc.abstractmethod
+    def zoom_factor(self):
+        ...
+
 
 class TileDBDataset(Dataset):
     def __init__(self, array: tiledb.Array):
@@ -76,6 +81,19 @@ class TileDBDataset(Dataset):
     @property
     def array(self) -> np.ndarray:
         return np.array(self._array)
+
+    def zoom_factor(self):
+        def _get_dzi_level( shape):
+            return int(ceil(log2(max(*shape))))
+
+        def _get_dzi_max_level(slide_res):
+            return _get_dzi_level(slide_res)
+
+        dzi_max_level = _get_dzi_max_level(self.slide_resolution)
+        level_diff = dzi_max_level - self.dzi_sampling_level
+        tile_level = log2(self.tile_size)
+        return 2**(level_diff + tile_level)
+
 
 
 def get_dataset(path):
