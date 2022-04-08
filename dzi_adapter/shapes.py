@@ -83,7 +83,7 @@ class TileDBDataset(Dataset):
         return np.array(self._array)
 
     def zoom_factor(self):
-        def _get_dzi_level( shape):
+        def _get_dzi_level(shape):
             return int(ceil(log2(max(*shape))))
 
         def _get_dzi_max_level(slide_res):
@@ -92,8 +92,7 @@ class TileDBDataset(Dataset):
         dzi_max_level = _get_dzi_max_level(self.slide_resolution)
         level_diff = dzi_max_level - self.dzi_sampling_level
         tile_level = log2(self.tile_size)
-        return 2**(level_diff + tile_level)
-
+        return 2 ** (level_diff + tile_level)
 
 
 def get_dataset(path):
@@ -146,8 +145,25 @@ class OpenCVShapeConverter(ShapeConverter):
         contours, _ = cv2.findContours(
             mask, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE
         )
-        factor = dataset.slide_resolution[0] / dataset.shape[0]
-        points = [tuple(map(tuple, np.squeeze(c))) for c in contours if c.size >= 3]
+        factor = dataset.zoom_factor()
+        logger.info("shape conversion with factor %s", factor)
+
+        bounding_boxes = []
+        for contour in contours:
+            tmp_polygon = cv2.approxPolyDP(contour, 0.1, True)
+            bounding_boxes.append(cv2.boundingRect(tmp_polygon))
+
+        points = list(
+            map(
+                lambda b: (
+                    (b[0], b[1]),
+                    (b[0] + b[2], b[1]),
+                    (b[0] + b[2], b[1] + b[3]),
+                    (b[0], b[1] + b[3]),
+                ),
+                bounding_boxes,
+            )
+        )
         points = [p + (p[0],) for p in points]
         shapes = [Shape(point).rescale(factor) for point in points]
         return shapes
