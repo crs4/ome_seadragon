@@ -101,7 +101,7 @@
                     viewer.addAnnotationsController(annotations_canvas, true);
                     // get ROIs from array dataset
                     var request = $.ajax({
-                        url: "{{ host_name }}/ome_seadragon/arrays/shapes/get/{{ dataset_id }}/?threshold=60",
+                        url: "{{ host_name }}/ome_seadragon/arrays/shapes/get/{{ dataset_id }}/?threshold=0.6",
                         dataType: "json"
                     });
                     request.success(function (data) {
@@ -140,7 +140,7 @@
 
             annotations_canvas.clear(false);
             var request = $.ajax({
-                url: "{{ host_name }}/ome_seadragon/arrays/shapes/get/{{ dataset_id }}/?threshold=" + value*100,
+                url: "{{ host_name }}/ome_seadragon/arrays/shapes/get/{{ dataset_id }}/?threshold=" + value,
                 dataType: "json"
             });
             request.success(function (data) {

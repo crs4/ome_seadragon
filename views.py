@@ -674,12 +674,12 @@ def get_array_dataset_shapes(
     conn=None,
     **kwargs
 ):
-    threshold = float(request.GET.get("threshold", 10))
+    threshold = float(request.GET.get("threshold", 0.6))
     original_file = get_original_file_by_id(conn, dataset_id)
     logger.info("retrieving shapes for dataset %s", original_file.name)
     dataset = get_ds(os.path.join(settings.DATASETS_REPOSITORY, original_file.name))
     shape_converter = get_shape_converter("opencv")
-    shapes = shape_converter.convert(dataset, threshold)
+    shapes = shape_converter.convert(dataset, threshold* 100)
 
     return HttpResponse(
         shapes_to_json(shapes),
