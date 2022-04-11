@@ -192,7 +192,6 @@ class DBScanClusterizer(Clusterizer):
     min_element: int = 1
 
     def cluster(self, shapes: List[Shape])->List[Shape]:
-        #  EPS_DISTANCE = dataset.slide_resolution[0] // 50
         df = gpd.GeoDataFrame(geometry=[Polygon(s.points) for s in shapes])
         df["x"] = df["geometry"].centroid.x
         df["y"] = df["geometry"].centroid.y
