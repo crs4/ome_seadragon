@@ -24,6 +24,7 @@ from distutils.util import strtobool
 from . import settings
 from .dzi_adapter import DZIAdapterFactory
 from .dzi_adapter.errors import InvalidAttribute, InvalidColorPalette
+from .dzi_adapter.shapes import DBScanClusterizer
 from .dzi_adapter.shapes import get_dataset as get_ds
 from .dzi_adapter.shapes import get_shape_converter, shapes_to_json
 from .ome_data import (datasets_files, mirax_files, original_files,
@@ -675,12 +676,16 @@ def get_array_dataset_shapes(
     **kwargs
 ):
     threshold = float(request.GET.get("threshold", 0.6))
+    cluster_size = float(request.GET.get("cluster_size_percent", 2))
+
     original_file = get_original_file_by_id(conn, dataset_id)
     logger.info("retrieving shapes for dataset %s", original_file.name)
     dataset = get_ds(os.path.join(settings.DATASETS_REPOSITORY, original_file.name))
     shape_converter = get_shape_converter("opencv")
     shapes = shape_converter.convert(dataset, threshold* 100)
-
+    if cluster_size:
+        clusterizer = DBScanClusterizer(cluster_size / 100 *dataset.slide_resolution[0])
+        shapes = clusterizer.cluster(shapes)
     return HttpResponse(
         shapes_to_json(shapes),
         content_type="application/json",

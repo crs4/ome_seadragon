@@ -10,8 +10,12 @@ from math import ceil, log2
 from typing import List, Tuple, Union
 
 import cv2
+import geopandas as gpd
 import numpy as np
+import pandas as pd
 import tiledb
+from shapely.geometry import MultiPolygon, Polygon, box
+from sklearn.cluster import DBSCAN
 
 logger = logging.getLogger(__name__)
 MASK_FALSE = 0
@@ -174,3 +178,37 @@ def get_shape_converter(cls: str):
         return OpenCVShapeConverter()
     else:
         raise KeyError(f"shape converter {cls} does not exist")
+
+
+class Clusterizer(abc.ABC):
+    @abc.abstractmethod
+    def cluster(self, shapes: List[Shape])->List[Shape]:
+        ...
+
+
+@dataclass
+class DBScanClusterizer(Clusterizer):
+    max_distance: float
+    min_element: int = 1
+
+    def cluster(self, shapes: List[Shape])->List[Shape]:
+        #  EPS_DISTANCE = dataset.slide_resolution[0] // 50
+        df = gpd.GeoDataFrame(geometry=[Polygon(s.points) for s in shapes])
+        df["x"] = df["geometry"].centroid.x
+        df["y"] = df["geometry"].centroid.y
+        coords = df[["x", "y"]].to_numpy()
+
+        dbscan = DBSCAN(eps=self.max_distance, min_samples=self.min_element)
+        clusters = dbscan.fit(coords)
+
+        labels = pd.Series(clusters.labels_).rename("cluster")
+        df = pd.concat([df, labels], axis=1)
+        logger.info(df)
+
+        clusters = []
+        for cluster in df.groupby("cluster"):
+            clusters.append(MultiPolygon(list(cluster[1]["geometry"])))
+
+        cluster_shapes = [Shape(box(*c.bounds).exterior.coords) for c in clusters]
+        return cluster_shapes
+

@@ -7,3 +7,6 @@ zarr==2.8.3
 palettable==3.3.0
 https://github.com/crs4/ome_seadragon_cache/archive/v0.2.3.zip
 opencv-python==4.2.0.32
+geopandas==0.10.2
+shapely=1.8.1.post1
+scikit-learn=1.0.2
