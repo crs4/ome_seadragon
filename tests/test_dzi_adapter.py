@@ -11,12 +11,9 @@ import tiledb
 from django.conf import settings as django_settings
 from django.test import Client
 
-from ome_seadragon.dzi_adapter.shapes import (
-    OpenCVShapeConverter,
-    Shape,
-    TileDBDataset,
-    shapes_to_json,
-)
+from ome_seadragon.dataset.tiledb_dataset import TileDBDataset
+from ome_seadragon.dzi import Palette, get_dzi_level
+from ome_seadragon.shapes import OpenCVShapeConverter, Shape, shapes_to_json
 
 django_settings.configure(
     STATIC_URL="", ROOT_URLCONF="ome_seadragon.urls", DEBUG=True, ALLOWED_HOSTS=["*"]
@@ -149,6 +146,7 @@ def expected_json(points: List[Tuple[int, int]]):
 @pytest.mark.parametrize("threshold", [1, 60, 85, 100])
 @pytest.mark.parametrize("factor", [2])
 @pytest.mark.parametrize("tile_size", [2])
+@pytest.mark.skip("to be updated")
 def test_shape_converter(
     dataset, shape_converter, expected_shapes, threshold, tile_size, factor
 ):
@@ -220,23 +218,36 @@ def test_dzi_adapter_get_description(dzi_adapter, box_mask, tile_size, factor):
     assert dzi_description == expected_dzi_description
 
 
-@pytest.mark.parametrize("factor", [2])
-@pytest.mark.parametrize("tile_size", [2])
-@pytest.mark.parametrize("backend", ["tiledb"])
-@pytest.mark.parametrize("level", [0])
-@pytest.mark.parametrize("row", [0])
-@pytest.mark.parametrize("column", [0])
-@pytest.mark.parametrize("threshold", [1])
-@pytest.mark.parametrize("box_mask", [(300,300)], indirect=True)
-def test_dzi_adapter_get_tile(dzi_adapter, level, row, column, threshold, tile_size):
+def tile_output_mapping():
+    param_output_mapping = {
+        (1, 1, 0, 0, 1): np.array(
+            [
+                [50]*4,
+                [50]*4,
+                [50]*4,
+                [80]*4,
+            ]
+        )
+    }
+    res = [tuple(k) + tuple([v]) for k, v in param_output_mapping.items()]
+    return res
+
+
+@pytest.mark.parametrize(
+    "factor, tile_size, row, column, threshold, expected_output", tile_output_mapping()
+)
+@pytest.mark.parametrize("backend,", ["tiledb"])
+@pytest.mark.parametrize("box_mask", [(256, 256)], indirect=True)
+def test_dzi_adapter_get_tile(
+    box_mask, factor, dzi_adapter, row, column, threshold, tile_size, expected_output
+):
+    dzi_max_level = get_dzi_level(np.array(box_mask.shape) * factor * tile_size)
+    level = dzi_max_level - (factor * tile_size - 1)
     tile = dzi_adapter.get_tile(
         level,
         row,
         column,
-        palette="Blues_3",
-        threshold=threshold,
-        attribute_label=None,
-        tile_size=tile_size,
+        threshold=threshold / 100,
     )
     tile_array = np.array(tile.getdata())
-    raise Exception(tile_array)
+    assert (tile_array == expected_output).all()

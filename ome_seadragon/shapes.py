@@ -17,107 +17,12 @@ import tiledb
 from shapely.geometry import MultiPolygon, Polygon, box
 from sklearn.cluster import DBSCAN
 
+from ome_seadragon.dataset import Dataset
+
 logger = logging.getLogger(__name__)
 MASK_FALSE = 0
 MASK_TRUE = 255
 
-
-class Dataset(abc.ABC):
-    @property
-    @abc.abstractmethod
-    def path(self) -> str:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def shape(self) -> Tuple[int, int]:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def tile_size(self) -> Tuple[int, int]:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def dzi_sampling_level(self) -> int:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def slide_path(self) -> str:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def slide_resolution(self) -> Tuple[int, int]:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def array(self) -> np.ndarray:
-        ...
-
-    @abc.abstractmethod
-    def zoom_factor(self):
-        ...
-
-
-class TileDBDataset(Dataset):
-    def __init__(self, array: tiledb.Array):
-        self._array = tiledb.open(array.uri, mode="r")
-
-    @property
-    def path(self):
-        return self._array.uri
-
-    @property
-    def shape(self):
-        return self._array.shape
-
-    @property
-    def tile_size(self) -> Tuple[int, int]:
-        return self._array.meta["tumor.tile_size"]
-
-    @property
-    def dzi_sampling_level(self) -> int:
-        return self._array.meta["tumor.dzi_sampling_level"]
-
-    @property
-    def slide_path(self) -> str:
-        return self._array.meta["slide_path"]
-
-    @property
-    def slide_resolution(self) -> Tuple[int, int]:
-        return (self._array.meta["original_width"], self._array.meta["original_height"])
-
-    @property
-    def array(self) -> np.ndarray:
-        return np.array(self._array)
-
-    def zoom_factor(self):
-        def _get_dzi_level(shape):
-            return int(ceil(log2(max(*shape))))
-
-        def _get_dzi_max_level(slide_res):
-            return _get_dzi_level(slide_res)
-
-        dzi_max_level = _get_dzi_max_level(self.slide_resolution)
-        level_diff = dzi_max_level - self.dzi_sampling_level
-        tile_level = log2(self.tile_size)
-        return 2 ** (level_diff + tile_level)
-
-
-def get_dataset(path):
-    ext = os.path.splitext(path)[1]
-    if ext == ".tiledb":
-        return TileDBDataset(tiledb.open(path))
-    else:
-        raise UnsupportedDataset(path)
-
-
-class UnsupportedDataset(Exception):
-    pass
 
 
 Coord = Union[int, float]
@@ -191,7 +96,7 @@ def get_shape_converter(cls: str):
 
 class Clusterizer(abc.ABC):
     @abc.abstractmethod
-    def cluster(self, shapes: List[Shape])->List[Shape]:
+    def cluster(self, shapes: List[Shape]) -> List[Shape]:
         ...
 
 
@@ -200,7 +105,7 @@ class DBScanClusterizer(Clusterizer):
     max_distance: float
     min_element: int = 1
 
-    def cluster(self, shapes: List[Shape])->List[Shape]:
+    def cluster(self, shapes: List[Shape]) -> List[Shape]:
         df = gpd.GeoDataFrame(geometry=[Polygon(s.points) for s in shapes])
         df["x"] = df["geometry"].centroid.x
         df["y"] = df["geometry"].centroid.y
@@ -219,4 +124,3 @@ class DBScanClusterizer(Clusterizer):
 
         cluster_shapes = [Shape(box(*c.bounds).exterior.coords) for c in clusters]
         return cluster_shapes
-

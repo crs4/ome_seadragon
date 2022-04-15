@@ -22,11 +22,11 @@ import os
 from distutils.util import strtobool
 
 from . import settings
-from .dzi_adapter import DZIAdapterFactory
-from .dzi_adapter.errors import InvalidAttribute, InvalidColorPalette
-from .dzi_adapter.shapes import DBScanClusterizer
-from .dzi_adapter.shapes import get_dataset as get_ds
-from .dzi_adapter.shapes import get_shape_converter, shapes_to_json
+from .dzi import DZIAdapterFactory
+from .errors import InvalidAttribute, InvalidColorPalette
+from .shapes import DBScanClusterizer
+from .dataset import get_dataset as get_ds
+from .shapes import get_shape_converter, shapes_to_json
 from .ome_data import (datasets_files, mirax_files, original_files,
                        projects_datasets, tags_data)
 from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
