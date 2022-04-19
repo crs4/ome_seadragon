@@ -54,28 +54,44 @@ def expected_shapes(threshold, tile_size, factor):
     """
     if threshold < 50:
         shapes = [
-            [(7.0, 6.0), (7.0, 8.0), (8.0, 8.0), (8.0, 6.0), (7.0, 6.0)],
-            [
+           (
+                (7.0, 6.0),
+                (7.0, 8.0 + 1),
+                (8.0 + 1, 8.0 + 1),
+                (8.0 + 1, 6.0),
+                (7.0, 6.0),
+            ), 
+            (
                 (0.0, 0.0),
-                (0.0, 1.0),
-                (1.0, 2.0),
-                (1.0, 3.0),
-                (4.0, 3.0),
-                (4.0, 1.0),
-                (2.0, 1.0),
-                (1.0, 0.0),
+                (4 +1, 0),
+                (4.0 + 1, 3.0 + 1),
+                (0 , 3.0 + 1),
                 (0.0, 0.0),
-            ],
+            ),
         ]
 
     elif threshold < 80:
         shapes = [
-            ((7.0, 6.0), (7.0, 8.0), (8.0, 8.0), (8.0, 6.0), (7.0, 6.0)),
-            ((1.0, 1.0), (1.0, 3.0), (4.0, 3.0), (4.0, 1.0), (1.0, 1.0)),
+            (
+                (7.0, 6.0),
+                (7.0, 8.0 + 1),
+                (8.0 + 1, 8.0 + 1),
+                (8.0 + 1, 6.0),
+                (7.0, 6.0),
+            ),
+            (
+                (1.0, 1.0),
+                (1.0, 3.0 + 1),
+                (4.0 + 1, 3.0 + 1),
+                (4.0 + 1, 1.0),
+                (1.0, 1.0),
+            ),
         ]
 
     elif threshold < 90:
-        shapes = [((7.0, 6.0), (7.0, 8.0), (8.0, 8.0), (8.0, 6.0), (7.0, 6.0))]
+        shapes = [
+            ((7.0, 6.0), (7.0, 8.0 + 1), (8.0 + 1, 8.0 + 1), (8.0 + 1, 6.0), (7.0, 6.0))
+        ]
     else:
         shapes = []
 
@@ -144,14 +160,15 @@ def expected_json(points: List[Tuple[int, int]]):
 @pytest.mark.parametrize("backend", ["tiledb"])
 @pytest.mark.parametrize("shape_converter_imp", ["opencv"])
 @pytest.mark.parametrize("threshold", [1, 60, 85, 100])
-@pytest.mark.parametrize("factor", [2])
-@pytest.mark.parametrize("tile_size", [2])
-@pytest.mark.skip("to be updated")
+@pytest.mark.parametrize("factor", [1, 2])
+@pytest.mark.parametrize("tile_size", [1, 2])
 def test_shape_converter(
     dataset, shape_converter, expected_shapes, threshold, tile_size, factor
 ):
     shapes = shape_converter.convert(dataset, threshold)
-    assert {s.points for s in shapes} == {s.points for s in expected_shapes}
+    assert {frozenset(s.points) for s in shapes} == {
+        frozenset(s.points) for s in expected_shapes
+    }
 
 
 from ome_seadragon import views
@@ -222,10 +239,10 @@ def tile_output_mapping():
     param_output_mapping = {
         (1, 1, 0, 0, 1): np.array(
             [
-                [50]*4,
-                [50]*4,
-                [50]*4,
-                [80]*4,
+                [50] * 4,
+                [50] * 4,
+                [50] * 4,
+                [80] * 4,
             ]
         )
     }
