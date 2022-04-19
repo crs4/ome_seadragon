@@ -222,11 +222,11 @@ class HeatmapDZIAdapter(DZIAdapter):
 
 class DZIAdapterFactory:
     def __init__(
-        self, array_dataset_type, palette: "Palette", conf: Configuration = None
+        self, array_dataset_type, palette: "Palette" = None, conf: Configuration = None
     ):
         self.array_dataset_type = array_dataset_type
         self.conf = conf
-        self.palette = palette
+        self.palette = palette or Palettable()
 
     def get_adapter(self, fname) -> DZIAdapter:
         if self.array_dataset_type == "TILEDB":
@@ -246,7 +246,7 @@ class Palette(abc.ABC):
 
 
 class Palettable(Palette):
-    def __init__(self, name: str):
+    def __init__(self, name: str = "Blues_3"):
         try:
             self._palette = getattr(palettes, name)
         except AttributeError:
