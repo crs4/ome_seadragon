@@ -9,7 +9,7 @@ from lxml import etree
 from PIL import Image
 
 from ome_seadragon import Configuration
-from ome_seadragon.dataset import Dataset, get_dataset
+from ome_seadragon.dataset import Dataset, DatasetFactory
 from ome_seadragon.errors import InvalidColorPalette, UnknownDZIAdaperType
 
 logger = logging.getLogger(__name__)
@@ -229,9 +229,8 @@ class DZIAdapterFactory:
         self.palette = palette or Palettable()
 
     def get_adapter(self, fname) -> DZIAdapter:
-        if self.array_dataset_type == "TILEDB":
-            logger.info("Loading TileDB adapter")
-            return HeatmapDZIAdapter(get_dataset(fname), self.palette, self.conf)
+        logger.info("Loading TileDB adapter")
+        return HeatmapDZIAdapter(DatasetFactory().get(fname), self.palette, self.conf)
 
         logger.warning("There is no adapter for array type %s", self.array_dataset_type)
         raise UnknownDZIAdaperType(

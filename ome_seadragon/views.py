@@ -22,16 +22,15 @@ import os
 from distutils.util import strtobool
 
 from . import settings
+from .dataset import DatasetFactory
 from .dzi import DZIAdapterFactory
 from .errors import InvalidAttribute, InvalidColorPalette
-from .shapes import DBScanClusterizer
-from .dataset import get_dataset as get_ds
-from .shapes import get_shape_converter, shapes_to_json
 from .ome_data import (datasets_files, mirax_files, original_files,
                        projects_datasets, tags_data)
 from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
 from .ome_data.original_files import (DuplicatedEntryError, get_original_file,
                                       get_original_file_by_id)
+from .shapes import DBScanClusterizer, get_shape_converter, shapes_to_json
 from .slides_manager import RenderingEngineFactory
 
 try:
@@ -680,7 +679,7 @@ def get_array_dataset_shapes(
 
     original_file = get_original_file_by_id(conn, dataset_id)
     logger.info("retrieving shapes for dataset %s", original_file.name)
-    dataset = get_ds(os.path.join(settings.DATASETS_REPOSITORY, original_file.name))
+    dataset = DatasetFactory().get(os.path.join(settings.DATASETS_REPOSITORY, original_file.name))
     shape_converter = get_shape_converter("opencv")
     shapes = shape_converter.convert(dataset, threshold* 100)
     if cluster_size:

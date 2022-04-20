@@ -8,10 +8,12 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 import tiledb
+import zarr
 from django.conf import settings as django_settings
 from django.test import Client
 
 from ome_seadragon.dataset.tiledb_dataset import TileDBDataset
+from ome_seadragon.dataset.zarr_dataset import GroupDataset
 from ome_seadragon.dzi import Palette, get_dzi_level
 from ome_seadragon.shapes import OpenCVShapeConverter, Shape, shapes_to_json
 
@@ -54,18 +56,18 @@ def expected_shapes(threshold, tile_size, factor):
     """
     if threshold < 50:
         shapes = [
-           (
+            (
                 (7.0, 6.0),
                 (7.0, 8.0 + 1),
                 (8.0 + 1, 8.0 + 1),
                 (8.0 + 1, 6.0),
                 (7.0, 6.0),
-            ), 
+            ),
             (
                 (0.0, 0.0),
-                (4 +1, 0),
+                (4 + 1, 0),
                 (4.0 + 1, 3.0 + 1),
-                (0 , 3.0 + 1),
+                (0, 3.0 + 1),
                 (0.0, 0.0),
             ),
         ]
@@ -103,9 +105,17 @@ def expected_shapes(threshold, tile_size, factor):
 
 
 @pytest.fixture
-def dataset(box_mask, backend, tmp_path, factor, tile_size):
-    if backend == "tiledb":
-        uri = os.path.join(tmp_path, "test.tiledb")
+def dataset_path(tmp_path, backend):
+    return os.path.join(tmp_path, f"test.{backend}")
+
+
+@pytest.fixture
+def dataset(box_mask, dataset_path, factor, tile_size):
+
+    original_height = box_mask.shape[1] * factor * tile_size
+    original_width = box_mask.shape[0] * factor * tile_size
+
+    def tiledb_dataset():
         rows = tiledb.Dim(
             name="rows",
             domain=(0, box_mask.shape[0] - 1),
@@ -121,14 +131,14 @@ def dataset(box_mask, backend, tmp_path, factor, tile_size):
         domain = tiledb.Domain(rows, columns)
         attributes = [tiledb.Attr("tumor", dtype="uint8")]
         schema = tiledb.ArraySchema(domain=domain, sparse=False, attrs=attributes)
-        tiledb.DenseArray.create(uri, schema)
-        #  tiledb.DenseArray.from_numpy(uri, box_mask)
-        with tiledb.open(uri, mode="w") as array:
+        tiledb.DenseArray.create(dataset_path, schema)
+        with tiledb.open(dataset_path, mode="w") as array:
             array[:] = {"tumor": box_mask}
             original_height = box_mask.shape[1] * factor * tile_size
             original_width = box_mask.shape[0] * factor * tile_size
 
-            array.meta["slide_path"] = os.path.join(tmp_path, "slide_path.ndpi")
+            dirname = os.path.dirname(dataset_path)
+            array.meta["slide_path"] = os.path.join(dirname, "slide_path.ndpi")
             array.meta["original_height"] = original_height
             array.meta["original_width"] = original_width
             array.meta["tumor.tile_size"] = tile_size
@@ -137,8 +147,29 @@ def dataset(box_mask, backend, tmp_path, factor, tile_size):
             array.meta["tumor.dzi_sampling_level"] = math.ceil(
                 math.log2(max(*[original_height / factor, original_width / factor]))
             )
-        assert (np.array(tiledb.open(uri, mode="r")) == box_mask).all()
+        assert (np.array(tiledb.open(dataset_path, mode="r")) == box_mask).all()
         return TileDBDataset(array)
+
+    def zarr_dataset():
+        store = zarr.storage.ZipStore(dataset_path)
+        group = zarr.group(store=store)
+        group["tumor"] = box_mask
+
+        dirname = os.path.dirname(dataset_path)
+        group.attrs["slide_path"] = os.path.join(dirname, "slide_path.ndpi")
+        group.attrs["resolution"] = [original_width, original_height]
+
+        array = group["tumor"]
+        array.attrs["tile_size"] = tile_size
+        store.close()
+        dataset = GroupDataset(zarr.open(dataset_path))
+        return dataset
+
+    dataset_ext = os.path.splitext(dataset_path)[1]
+    if dataset_ext == ".tiledb":
+        return tiledb_dataset()
+    elif dataset_ext == ".zip":
+        return zarr_dataset()
 
 
 @pytest.fixture
@@ -157,7 +188,7 @@ def expected_json(points: List[Tuple[int, int]]):
     return [{"point": {"x": p[0], "y": p[1]}} for p in points]
 
 
-@pytest.mark.parametrize("backend", ["tiledb"])
+@pytest.mark.parametrize("backend", ["tiledb", "zip"])
 @pytest.mark.parametrize("shape_converter_imp", ["opencv"])
 @pytest.mark.parametrize("threshold", [1, 60, 85, 100])
 @pytest.mark.parametrize("factor", [1, 2])
@@ -222,7 +253,7 @@ def test_shapes_to_json(shape, expected_json):
 
 @pytest.mark.parametrize("factor", [2])
 @pytest.mark.parametrize("tile_size", [2])
-@pytest.mark.parametrize("backend", ["tiledb"])
+@pytest.mark.parametrize("backend", ["tiledb", "zip"])
 @pytest.mark.parametrize("box_mask", [(10, 20)], indirect=True)
 def test_dzi_adapter_get_description(dzi_adapter, box_mask, tile_size, factor):
     dzi_description = dzi_adapter.get_dzi_description()

@@ -40,5 +40,5 @@ def palette():
 
 
 @pytest.fixture
-def dzi_adapter(backend, dataset, palette, conf):
-    return DZIAdapterFactory(backend.upper(), palette, conf).get_adapter(dataset.path)
+def dzi_adapter(backend, dataset, dataset_path, palette, conf):
+    return DZIAdapterFactory(backend.upper(), palette, conf).get_adapter(dataset_path)
