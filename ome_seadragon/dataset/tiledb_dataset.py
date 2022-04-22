@@ -7,8 +7,9 @@ from ome_seadragon.dataset import Dataset, DatasetFactory
 
 
 class TileDBDataset(Dataset):
-    def __init__(self, array: tiledb.Array):
+    def __init__(self, array: tiledb.Array, label="tumor"):
         self._array = tiledb.open(array.uri, mode="r")
+        self._label = label
 
 
     @property
@@ -17,11 +18,11 @@ class TileDBDataset(Dataset):
 
     @property
     def tile_size(self) -> Tuple[int, int]:
-        return self._array.meta["tumor.tile_size"]
+        return self._array.meta[f"{self._label}.tile_size"]
 
     @property
     def dzi_sampling_level(self) -> int:
-        return self._array.meta["tumor.dzi_sampling_level"]
+        return self._array.meta[f"{self._label}.dzi_sampling_level"]
 
     @property
     def slide_path(self) -> str:

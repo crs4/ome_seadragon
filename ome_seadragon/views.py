@@ -586,8 +586,9 @@ def delete_original_files(request, file_name, conn=None, **kwargs):
 
 
 def _get_dataset_dzi_description(original_file):
-    if original_file and original_file.mimetype == 'dataset-folder/tiledb':
-        dzi_adapter = DZIAdapterFactory('TILEDB').get_adapter(original_file.name)
+    if original_file:
+        path = os.path.join(settings.DATASETS_REPOSITORY, original_file.name)
+        dzi_adapter = DZIAdapterFactory().get_adapter(path)
         return dzi_adapter.get_dzi_description()
     else:
         return None
@@ -616,8 +617,9 @@ def get_array_dataset_dzi_by_id(request, dataset_id, conn=None, **kwargs):
 
 
 def _get_tile_from_dataset(original_file, level, row, column, color_palette, threshold):
-    if original_file and original_file.mimetype == 'dataset-folder/tiledb':
-        dzi_adapter = DZIAdapterFactory('TILEDB').get_adapter(original_file.name)
+    if original_file:
+        path = os.path.join(settings.DATASETS_REPOSITORY, original_file.name)
+        dzi_adapter = DZIAdapterFactory().get_adapter(path)
         return dzi_adapter.get_tile(level, int(row), int(column), color_palette, threshold)
     else:
         return None

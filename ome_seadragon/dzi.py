@@ -206,7 +206,7 @@ class HeatmapDZIAdapter(DZIAdapter):
     ):
         self.logger.debug("Loading tile")
         tile_size = tile_size or self.conf.DEEPZOOM_TILE_SIZE
-        self.logger.debug("Setting tile size to %dpx", tile_size)
+        self.logger.debug("Setting tile size to %spx", tile_size)
         slice, zoom_scale_factor = self._slice_by_attribute(
             int(level), int(row), int(column), tile_size
         )
@@ -222,9 +222,8 @@ class HeatmapDZIAdapter(DZIAdapter):
 
 class DZIAdapterFactory:
     def __init__(
-        self, array_dataset_type, palette: "Palette" = None, conf: Configuration = None
+        self,  palette: "Palette" = None, conf: Configuration = None
     ):
-        self.array_dataset_type = array_dataset_type
         self.conf = conf
         self.palette = palette or Palettable()
 
@@ -232,10 +231,6 @@ class DZIAdapterFactory:
         logger.info("Loading TileDB adapter")
         return HeatmapDZIAdapter(DatasetFactory().get(fname), self.palette, self.conf)
 
-        logger.warning("There is no adapter for array type %s", self.array_dataset_type)
-        raise UnknownDZIAdaperType(
-            "%s is not a valid array dataset type" % self.array_dataset_type
-        )
 
 
 class Palette(abc.ABC):

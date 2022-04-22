@@ -21,7 +21,7 @@ class GroupDataset(Dataset):
 
     @property
     def dzi_sampling_level(self) -> int:
-        return get_dzi_level([dim * self.tile_size for dim in self.shape])
+        return self._array.attrs["dzi_sampling_level"]
 
     @property
     def slide_path(self) -> str:
