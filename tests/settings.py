@@ -1,4 +1,4 @@
-#  Copyright (c) 2021, CRS4
+#  Copyright (c) 2019, CRS4
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy of
 #  this software and associated documentation files (the "Software"), to deal in
@@ -17,28 +17,11 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import logging
+DEBUG = True
+DATASETS_REPOSITORY = None
+SECRET_KEY = "test"
 
-from .. import settings
-from .errors import UnknownDZIAdaperType
-
-
-logger = logging.getLogger(__name__)
-
-
-class DZIAdapterFactory(object):
-    
-    def __init__(self, array_dataset_type):
-        self.array_dataset_type = array_dataset_type
-
-    def _get_tiledb_adapter(self, fname):
-        from .tiledb_dzi_adapter import TileDBDZIAdapter
-        return TileDBDZIAdapter(fname, settings.DATASETS_REPOSITORY)
-
-    def get_adapter(self, dataset_label):
-        if self.array_dataset_type == 'TILEDB':
-            logger.info('Loading TileDB adapter')
-            return self._get_tiledb_adapter(dataset_label)
-        else:
-            logger.warning('There is no adapter for array type %s', self.array_dataset_type)
-            raise UnknownDZIAdaperType('%s is not a valid array dataset type' % self.array_dataset_type)
+STATIC_URL = ""
+ROOT_URLCONF="ome_seadragon.urls"
+DEFAULT_SEARCH_GROUP=None
+ALLOWED_HOSTS= ['*']
