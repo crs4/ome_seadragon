@@ -17,18 +17,22 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from math import ceil, log2, pow
 import os
+from copy import copy
+from dataclasses import dataclass
+from math import ceil, log2, pow
+from typing import List
+
 import numpy as np
+import palettable.colorbrewer.sequential as palettes
 import tiledb
 from lxml import etree
 from PIL import Image
-from copy import copy
-import palettable.colorbrewer.sequential as palettes
 
+from .. import settings
 from .dzi_adapter_interface import DZIAdapterInterface
 from .errors import InvalidAttribute, InvalidColorPalette, InvalidTileAddress
-from .. import settings
+
 
 
 class TileDBDZIAdapter(DZIAdapterInterface):
@@ -263,3 +267,7 @@ class TileDBDZIAdapter(DZIAdapterInterface):
         return self._slice_to_tile(slice, tile_size, zoom_scale_factor,
                                    self._get_meta_attribute('{0}.tile_size'.format(attribute)),
                                    palette, threshold)
+
+
+
+

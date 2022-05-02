@@ -17,26 +17,32 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .ome_data import tags_data, projects_datasets, original_files, mirax_files, datasets_files
-from .ome_data.original_files import DuplicatedEntryError, get_original_file_by_id, get_original_file
-from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
-from . import settings
-from .slides_manager import RenderingEngineFactory
-from .dzi_adapter import DZIAdapterFactory
-from .dzi_adapter.errors import InvalidColorPalette, InvalidAttribute
-
 import logging
+import os
 from distutils.util import strtobool
+
+from . import settings
+from .dzi_adapter import DZIAdapterFactory
+from .dzi_adapter.errors import InvalidAttribute, InvalidColorPalette
+from .dzi_adapter.shapes import DBScanClusterizer
+from .dzi_adapter.shapes import get_dataset as get_ds
+from .dzi_adapter.shapes import get_shape_converter, shapes_to_json
+from .ome_data import (datasets_files, mirax_files, original_files,
+                       projects_datasets, tags_data)
+from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
+from .ome_data.original_files import (DuplicatedEntryError, get_original_file,
+                                      get_original_file_by_id)
+from .slides_manager import RenderingEngineFactory
 
 try:
     import simplejson as json
 except ImportError:
     import json
 
-from omeroweb.webclient.decorators import login_required
-
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, HttpResponseBadRequest
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseNotFound, HttpResponseServerError)
 from django.shortcuts import render
+from omeroweb.webclient.decorators import login_required
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +156,14 @@ def get_example_overlay_viewer(request, image_id, dataset_label):
     return render(request, 'ome_seadragon/test/test_overlay_viewer.html',
                   {'image_id': image_id, 'dataset_label': dataset_label, 'host_name': base_url ,
                   'mirax': mirax})
+
+
+def get_example_dataset_shapes_viewer(request, image_id, dataset_id):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
+    return render(request, 'ome_seadragon/test/test_dataset_shapes.html',
+                  {'image_id': image_id, 'dataset_id': dataset_id, 'host_name': base_url,
+                   'mirax': mirax})
 
 
 @login_required()
@@ -652,3 +666,27 @@ def get_array_dataset_tile_by_id(request, dataset_id, level, row, column, conn=N
         return HttpResponseBadRequest(cp_error)
     except InvalidAttribute as a_error:
         return HttpResponseBadRequest(a_error)
+
+
+@login_required()
+def get_array_dataset_shapes(
+    request,
+    dataset_id,
+    conn=None,
+    **kwargs
+):
+    threshold = float(request.GET.get("threshold", 0.6))
+    cluster_size = float(request.GET.get("cluster_size_percent", 2))
+
+    original_file = get_original_file_by_id(conn, dataset_id)
+    logger.info("retrieving shapes for dataset %s", original_file.name)
+    dataset = get_ds(os.path.join(settings.DATASETS_REPOSITORY, original_file.name))
+    shape_converter = get_shape_converter("opencv")
+    shapes = shape_converter.convert(dataset, threshold* 100)
+    if cluster_size:
+        clusterizer = DBScanClusterizer(cluster_size / 100 *dataset.slide_resolution[0])
+        shapes = clusterizer.cluster(shapes)
+    return HttpResponse(
+        shapes_to_json(shapes),
+        content_type="application/json",
+    )
