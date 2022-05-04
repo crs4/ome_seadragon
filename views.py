@@ -18,6 +18,7 @@
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import logging
+import math
 import os
 from distutils.util import strtobool
 
@@ -686,22 +687,18 @@ def get_array_dataset_tile_by_id(request, dataset_id, level, row, column, conn=N
 
 
 @login_required()
-def get_array_dataset_shapes(
-    request,
-    dataset_id,
-    conn=None,
-    **kwargs
-):
+def get_array_dataset_shapes(request, dataset_id, conn=None, **kwargs):
     threshold = float(request.GET.get("threshold", 0.6))
-    cluster_size = float(request.GET.get("cluster_size_percent", 2))
+    cluster_min_distance = float(request.GET.get("cluster_min_distance", 0))
 
     original_file = get_original_file_by_id(conn, dataset_id)
     logger.info("retrieving shapes for dataset %s", original_file.name)
     dataset = get_ds(os.path.join(settings.DATASETS_REPOSITORY, original_file.name))
     shape_converter = get_shape_converter("opencv")
-    shapes = shape_converter.convert(dataset, threshold* 100)
-    if cluster_size:
-        clusterizer = DBScanClusterizer(cluster_size / 100 *dataset.slide_resolution[0])
+    shapes = shape_converter.convert(dataset, threshold * 100)
+    if cluster_min_distance:
+        diagonal = math.sqrt(2) * dataset.zoom_factor
+        clusterizer = DBScanClusterizer(cluster_min_distance * diagonal)
         shapes = clusterizer.cluster(shapes)
     return HttpResponse(
         shapes_to_json(shapes),
