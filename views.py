@@ -698,12 +698,12 @@ def get_array_dataset_shapes(request, dataset_id, conn=None, **kwargs):
     shape_converter = get_shape_converter("opencv")
     shapes = shape_converter.convert(dataset, threshold * 100)
     if cluster_min_distance:
-        diagonal = math.sqrt(2) * dataset.zoom_factor
+        diagonal = math.sqrt(2) * dataset.zoom_factor()
         clusterizer = DBScanClusterizer(cluster_min_distance * diagonal)
         shapes = clusterizer.cluster(shapes)
         if cluster_min_area > 1:
-            min_area = cluster_min_area * ( dataset.zoom_factor ** 2)
-            shapes = list(filter(lambda s: s.area > min_area, shapes))
+            min_area = cluster_min_area * ( dataset.zoom_factor() ** 2)
+            shapes = list(filter(lambda s: s.area >= min_area, shapes))
 
     return HttpResponse(
         shapes_to_json(shapes),
