@@ -187,7 +187,7 @@ def get_shape_converter(cls: str):
 
 class Clusterizer(abc.ABC):
     @abc.abstractmethod
-    def cluster(self, shapes: List[Shape])->List[Shape]:
+    def cluster(self, shapes: List[Shape]) -> List[Shape]:
         ...
 
 
@@ -196,7 +196,7 @@ class DBScanClusterizer(Clusterizer):
     max_distance: float
     min_element: int = 1
 
-    def cluster(self, shapes: List[Shape])->List[Shape]:
+    def cluster(self, shapes: List[Shape]) -> List[Shape]:
         df = gpd.GeoDataFrame(geometry=[Polygon(s.points) for s in shapes])
         df["x"] = df["geometry"].centroid.x
         df["y"] = df["geometry"].centroid.y
@@ -215,4 +215,3 @@ class DBScanClusterizer(Clusterizer):
 
         cluster_shapes = [Shape(box(*c.bounds).exterior.coords) for c in clusters]
         return cluster_shapes
-
