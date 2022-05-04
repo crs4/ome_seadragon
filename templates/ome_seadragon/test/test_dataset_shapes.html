@@ -99,9 +99,17 @@
                     window.annotations_canvas = new AnnotationsController('annotations_canvas');
                     annotations_canvas.buildAnnotationsCanvas(viewer);
                     viewer.addAnnotationsController(annotations_canvas, true);
+
+                    let global_url = new URL(window.location.href)
+                    let params = new URLSearchParams(global_url.search);
+                    let cluster_min_distance = params.get("cluster_min_distance");
+                    let cluster_min_area = params.get("cluster_min_area");
+                    let url = "{{ host_name }}/ome_seadragon/arrays/shapes/get/{{ dataset_id }}/?threshold=0.6";
+                    url = url + "&cluster_min_distance=" + cluster_min_distance;
+                    url = url + "&cluster_min_area=" + cluster_min_area;
                     // get ROIs from array dataset
                     var request = $.ajax({
-                        url: "{{ host_name }}/ome_seadragon/arrays/shapes/get/{{ dataset_id }}/?threshold=0.6",
+                        url: url,
                         dataType: "json"
                     });
                     request.success(function (data) {
