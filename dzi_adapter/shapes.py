@@ -129,6 +129,11 @@ class Shape:
         points = [{"point": {"x": p[0], "y": p[1]}} for p in self.points]
         return points
 
+    @property
+    def area(self):
+        polygon = Polygon(self.points)
+        return polygon.area
+
 
 def shapes_to_json(shapes: List[Shape]) -> str:
     return json.dumps({"shapes": shapes}, default=lambda s: s.as_points())

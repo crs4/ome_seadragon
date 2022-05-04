@@ -690,6 +690,7 @@ def get_array_dataset_tile_by_id(request, dataset_id, level, row, column, conn=N
 def get_array_dataset_shapes(request, dataset_id, conn=None, **kwargs):
     threshold = float(request.GET.get("threshold", 0.6))
     cluster_min_distance = float(request.GET.get("cluster_min_distance", 0))
+    cluster_min_area = float(request.GET.get("cluster_min_area", 1))
 
     original_file = get_original_file_by_id(conn, dataset_id)
     logger.info("retrieving shapes for dataset %s", original_file.name)
@@ -700,6 +701,10 @@ def get_array_dataset_shapes(request, dataset_id, conn=None, **kwargs):
         diagonal = math.sqrt(2) * dataset.zoom_factor
         clusterizer = DBScanClusterizer(cluster_min_distance * diagonal)
         shapes = clusterizer.cluster(shapes)
+        if cluster_min_area > 1:
+            min_area = cluster_min_area * ( dataset.zoom_factor ** 2)
+            shapes = list(filter(lambda s: s.area > min_area, shapes))
+
     return HttpResponse(
         shapes_to_json(shapes),
         content_type="application/json",
