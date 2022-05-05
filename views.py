@@ -691,11 +691,12 @@ def get_array_dataset_shapes(request, dataset_id, conn=None, **kwargs):
     threshold = float(request.GET.get("threshold", 0.6))
     cluster_min_distance = float(request.GET.get("cluster_min_distance", 0))
     cluster_min_area = float(request.GET.get("cluster_min_area", 1))
+    shape_mode = request.GET.get("shape_mode", "contour")
 
     original_file = get_original_file_by_id(conn, dataset_id)
     logger.info("retrieving shapes for dataset %s", original_file.name)
     dataset = get_ds(os.path.join(settings.DATASETS_REPOSITORY, original_file.name))
-    shape_converter = get_shape_converter("opencv")
+    shape_converter = get_shape_converter(shape_mode)
     shapes = shape_converter.convert(dataset, threshold * 100)
     if cluster_min_distance:
         diagonal = math.sqrt(2) * dataset.zoom_factor()

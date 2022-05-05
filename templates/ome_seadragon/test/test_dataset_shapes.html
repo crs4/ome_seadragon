@@ -104,9 +104,11 @@
                     let params = new URLSearchParams(global_url.search);
                     let cluster_min_distance = params.get("cluster_min_distance");
                     let cluster_min_area = params.get("cluster_min_area");
+                    let shape_mode = params.get("shape_mode");
                     let url = "{{ host_name }}/ome_seadragon/arrays/shapes/get/{{ dataset_id }}/?threshold=0.6";
                     url = url + "&cluster_min_distance=" + cluster_min_distance;
                     url = url + "&cluster_min_area=" + cluster_min_area;
+                    url = url + "&shape_mode=" + shape_mode;
                     // get ROIs from array dataset
                     var request = $.ajax({
                         url: url,

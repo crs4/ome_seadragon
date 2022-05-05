@@ -178,9 +178,33 @@ class OpenCVShapeConverter(ShapeConverter):
         return shapes
 
 
+class PatchToShapeConverter(ShapeConverter):
+    def convert(self, dataset: Dataset, threshold: float) -> List[Shape]:
+        mask = dataset.array
+        patch_indices = np.argwhere(mask >= threshold)
+        shapes = list(
+            map(
+                lambda index: Shape(
+                    [
+                        (index[1], index[0]),
+                        (index[1] + 1, index[0]),
+                        (index[1] + 1, index[0] + 1),
+                        (index[1], index[0] + 1),
+                        (index[1], index[0]),
+                    ]
+                ).rescale(dataset.zoom_factor()),
+                patch_indices,
+            )
+        )
+
+        return shapes
+
+
 def get_shape_converter(cls: str):
-    if cls == "opencv":
+    if cls == "contour":
         return OpenCVShapeConverter()
+    elif cls == "patch":
+        return PatchToShapeConverter()
     else:
         raise KeyError(f"shape converter {cls} does not exist")
 
