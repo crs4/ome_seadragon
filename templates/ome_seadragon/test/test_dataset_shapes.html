@@ -1,0 +1,220 @@
+<!--
+  ~ Copyright (c) 2019, CRS4
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy of
+  ~ this software and associated documentation files (the "Software"), to deal in
+  ~ the Software without restriction, including without limitation the rights to
+  ~ use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+  ~ the Software, and to permit persons to whom the Software is furnished to do so,
+  ~ subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all
+  ~ copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+  ~ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+  ~ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+  ~ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  ~ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>OPENSEADRAGON TEST DATASETS SHAPES</title>
+
+    <link href="{{ host_name }}/static/ome_seadragon/css/bootstrap.min.css" rel="stylesheet">
+
+    <style type="text/css">
+        #graphic_container {
+            position: relative;
+            padding: 0;
+        }
+
+        .graphic_element {
+            width:100%;
+            height: 10px;
+            position: absolute;
+            padding: inherit;
+        }
+    </style>
+
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/jquery.min.js"></script>
+    <script src="{{ host_name }}/static/ome_seadragon/js/paper-full.min.js"></script>
+
+    <script src="{{ host_name }}/static/ome_seadragon/js/ome_seadragon.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            {% if mirax %}
+                $.get("{{ host_name }}/ome_seadragon/mirax/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+            {% else %}
+                $.get("{{ host_name }}/ome_seadragon/deepzoom/image_mpp/{{ image_id }}.dzi").done(function(data) {
+            {% endif %}
+                console.log("Loading openseadragon viewer");
+
+                $("#openseadragon_viewer").height($(window).height() - 60);
+                $(window).resize(function() {
+                    $('#openseadragon_viewer').height($(window).height() - 60);
+                });
+
+                var viewer_config = {
+                    'showNavigator': true,
+                    'showFullPageControl': false,
+                    'animationTime': 0.01,
+                    'toolbar': 'toolbar'
+                };
+
+                window.viewer = new ViewerController(
+                        "openseadragon_viewer",
+                        "{{ host_name}}/static/ome_seadragon/img/openseadragon/",
+                        {% if mirax %}
+                            "{{ host_name }}/ome_seadragon/mirax/deepzoom/get/{{ image_id }}.dzi?limit_bounds=false",
+                        {% else %}
+                            "{{ host_name }}/ome_seadragon/deepzoom/get/{{ image_id }}.dzi?limit_bounds=false",
+                         {% endif %}
+                        viewer_config
+                );
+                viewer.buildViewer();
+
+                // Scalebar setup
+                var image_mpp = data.image_mpp ? data.image_mpp : 0;
+                var scalebar_config = {
+                    "xOffset": 10,
+                    "yOffset": 10,
+                    "barThickness": 5,
+                    "color": "#777777",
+                    "fontColor": "#000000",
+                    "backgroundColor": 'rgba(255, 255, 255, 0.5)'
+                };
+                viewer.enableScalebar(image_mpp, scalebar_config);
+
+                viewer.viewer.addHandler('open', function () {
+                    viewer.setMinDZILevel(8);
+
+                    window.annotations_canvas = new AnnotationsController('annotations_canvas');
+                    annotations_canvas.buildAnnotationsCanvas(viewer);
+                    viewer.addAnnotationsController(annotations_canvas, true);
+
+                    let global_url = new URL(window.location.href)
+                    let params = new URLSearchParams(global_url.search);
+                    let cluster_min_distance = params.get("cluster_min_distance");
+                    let cluster_min_area = params.get("cluster_min_area");
+                    let shape_mode = params.get("shape_mode");
+                    let url = "{{ host_name }}/ome_seadragon/arrays/shapes/get/{{ dataset_id }}/?threshold=0.6";
+                    url = url + "&cluster_min_distance=" + cluster_min_distance;
+                    url = url + "&cluster_min_area=" + cluster_min_area;
+                    url = url + "&shape_mode=" + shape_mode;
+                    // get ROIs from array dataset
+                    var request = $.ajax({
+                        url: url,
+                        dataType: "json"
+                    });
+                    request.success(function (data) {
+                        console.log(data);
+                        for (var roi in data.shapes) {
+                            annotations_canvas.drawPolygon('poly_'+roi, data.shapes[roi], null,
+                            {'stroke_color': '#0000ff', 'fill_color': '#0000ff', fill_alpha: 0.2,
+                            'stroke_width': 15});
+                        }
+                        annotations_canvas.refreshView();
+                    });
+                });
+
+                window.overlay_base_url = "{{ host_name }}/ome_seadragon/arrays/deepzoom/get/{{ dataset_id }}.dzi";
+                window.overlay_default_palette = 'Greens_9';
+                window.overlay_default_threshold = '0.6';
+
+                viewer.initOverlaysLayer(
+                    {
+                        "greens_9": overlay_base_url + "?palette=Greens_9&threshold=0.6",
+                        "blues_9": overlay_base_url + "?palette=Blues_9&threshold=0.6",
+                        "reds_9": overlay_base_url + "?palette=Reds_9&threshold=0.6"
+                    }, 0.5
+                );
+
+                viewer.activateOverlay("greens_9");
+            });
+        });
+
+        function changeOverlayOpacity(value) {
+            window.viewer.setOverlayOpacity(value);
+        }
+
+        function changeOverlayThreshold(value) {
+            window.viewer.setOverlay(window.overlay_base_url, window.overlay_default_palette, value);
+
+            annotations_canvas.clear(false);
+            var request = $.ajax({
+                url: "{{ host_name }}/ome_seadragon/arrays/shapes/get/{{ dataset_id }}/?threshold=" + value,
+                dataType: "json"
+            });
+            request.success(function (data) {
+                console.log(data);
+                for (var roi in data.shapes) {
+                    annotations_canvas.drawPolygon('poly_'+roi, data.shapes[roi], null,
+                    {'stroke_color': '#0000ff', 'fill_color': '#0000ff', fill_alpha: 0.2,
+                    'stroke_width': 15});
+                }
+                annotations_canvas.refreshView();
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="container-fluid" id="overlay_controls" style="padding-top: 50px;">
+            <div class="col-md-2">
+                <div class="row">
+                    <label for="overlay_opacity">Overlay opacity</label>
+                    <input type="range" id="overlay_opacity" min="0.0" max="1.0" step="0.01" value="0.5"
+                        oninput="changeOverlayOpacity(this.value)" list="op_tickmarks">
+                        <datalist id="op_tickmarks">
+                            <option value="0" label="0%"></option>
+                            <option value="0.1"></option>
+                            <option value="0.2"></option>
+                            <option value="0.3"></option>
+                            <option value="0.4"></option>
+                            <option value="0.5" label="50%"></option>
+                            <option value="0.6"></option>
+                            <option value="0.7"></option>
+                            <option value="0.8"></option>
+                            <option value="0.9"></option>
+                            <option value="1" label="100%"></option>
+                        </datalist>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-2">
+                <div class="row">
+                    <label for="overlay_threshold">Overlay threshold</label>
+                    <input type="range" id="overlay_threshold" min="0.0" max="1.0" step="0.1" value="0.6"
+                        onchange="changeOverlayThreshold(this.value)" list="th_tickmarks">
+                        <datalist id="th_tickmarks">
+                            <option value="0" label="0%"></option>
+                            <option value="0.1"></option>
+                            <option value="0.2"></option>
+                            <option value="0.3"></option>
+                            <option value="0.4"></option>
+                            <option value="0.5" label="50%"></option>
+                            <option value="0.6"></option>
+                            <option value="0.7"></option>
+                            <option value="0.8"></option>
+                            <option value="0.9"></option>
+                            <option value="1" label="100%"></option>
+                        </datalist>
+                </div>
+            </div>
+        </div>
+        <div id="toolbar" style="height: 40px"></div>
+        <div id="graphic_container" class="col-md-12">
+            <div id="openseadragon_viewer" class="graphic_element"></div>
+            <canvas id="annotations_canvas" class="graphic_element"></canvas>
+        </div>
+    </div>
+</body>
+</html>

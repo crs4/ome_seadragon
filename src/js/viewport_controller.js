@@ -332,10 +332,11 @@ function ViewerController(div_id, prefix_url, tile_sources, viewer_config, image
         });
     };
 
-    this.activateOverlay = function(label) {
+    this.activateOverlay = function(label, threshold) {
         if (label in this.overlays) {
-            console.log("Activating overlay " + label);
-            this.addOverlayToViewer(this.overlays[label], this.current_overlay_opacity);
+            var th = (threshold === undefined) ? 0 : threshold;
+            var overlay_url = this.overlays[label] + "&threshold=" + th;
+            this.addOverlayToViewer(overlay_url, this.current_overlay_opacity);
         } else {
             console.error("There is no overlay registered with label " + label);
         }

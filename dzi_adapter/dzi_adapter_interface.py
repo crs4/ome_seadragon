@@ -20,7 +20,6 @@
 from abc import ABCMeta, abstractmethod
 import logging
 
-from .. import settings
 
 
 class DZIAdapterInterface(object):

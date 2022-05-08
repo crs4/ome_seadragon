@@ -17,26 +17,33 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .ome_data import tags_data, projects_datasets, original_files, mirax_files, datasets_files
-from .ome_data.original_files import DuplicatedEntryError, get_original_file_by_id, get_original_file
-from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
-from . import settings
-from .slides_manager import RenderingEngineFactory
-from .dzi_adapter import DZIAdapterFactory
-from .dzi_adapter.errors import InvalidColorPalette, InvalidAttribute
-
 import logging
+import math
+import os
 from distutils.util import strtobool
+
+from . import settings
+from .dzi_adapter import DZIAdapterFactory
+from .dzi_adapter.errors import InvalidAttribute, InvalidColorPalette
+from .dzi_adapter.shapes import DBScanClusterizer
+from .dzi_adapter.shapes import get_dataset as get_ds
+from .dzi_adapter.shapes import get_shape_converter, shapes_to_json
+from .ome_data import (datasets_files, mirax_files, original_files,
+                       projects_datasets, tags_data)
+from .ome_data.mirax_files import InvalidMiraxFile, InvalidMiraxFolder
+from .ome_data.original_files import (DuplicatedEntryError, get_original_file,
+                                      get_original_file_by_id)
+from .slides_manager import RenderingEngineFactory
 
 try:
     import simplejson as json
 except ImportError:
     import json
 
-from omeroweb.webclient.decorators import login_required
-
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, HttpResponseBadRequest
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseNotFound, HttpResponseServerError)
 from django.shortcuts import render
+from omeroweb.webclient.decorators import login_required
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +157,14 @@ def get_example_overlay_viewer(request, image_id, dataset_label):
     return render(request, 'ome_seadragon/test/test_overlay_viewer.html',
                   {'image_id': image_id, 'dataset_label': dataset_label, 'host_name': base_url ,
                   'mirax': mirax})
+
+
+def get_example_dataset_shapes_viewer(request, image_id, dataset_id):
+    base_url = '%s://%s' % (request.META['wsgi.url_scheme'], request.META['HTTP_HOST'])
+    mirax = bool(strtobool(request.GET.get('mirax_image', default='false')))
+    return render(request, 'ome_seadragon/test/test_dataset_shapes.html',
+                  {'image_id': image_id, 'dataset_id': dataset_id, 'host_name': base_url,
+                   'mirax': mirax})
 
 
 @login_required()
@@ -432,6 +447,7 @@ def get_slide_bounds(request, image_id, fetch_original_file=False, file_mimetype
 
 @login_required()
 def register_original_file(request, conn=None, **kwargs):
+    error_on_duplicated = bool(strtobool(request.GET.get('error_on_duplicated', default='false')))
     try:
         fname = request.GET.get('name')
         if not original_files.is_valid_filename(fname):
@@ -440,10 +456,12 @@ def register_original_file(request, conn=None, **kwargs):
         fmtype = request.GET.get('mimetype')
         if not all([fname, fpath, fmtype]):
             return HttpResponseBadRequest('Mandatory field missing')
-        file_id = original_files.save_original_file(conn, fname, fpath, fmtype,
-                                                    int(request.GET.get('size', default=-1)),
-                                                    request.GET.get('sha1', default='UNKNOWN'))
-        return HttpResponse(json.dumps({'omero_id': file_id}), content_type='application/json')
+        file_id, file_created = original_files.save_original_file(conn, fname, fpath, fmtype,
+                                                                  int(request.GET.get('size', default=-1)),
+                                                                  request.GET.get('sha1', default='UNKNOWN'),
+                                                                  error_on_duplicated)
+        return HttpResponse(json.dumps({'omero_id': file_id, 'file_created': file_created}),
+                            content_type='application/json')
     except DuplicatedEntryError as dee:
         return HttpResponseServerError('%s' % dee)
 
@@ -451,20 +469,26 @@ def register_original_file(request, conn=None, **kwargs):
 @login_required()
 def register_mirax_slide(request, conn=None, **kwargs):
     sname = request.GET.get('slide_name')
+    error_on_duplicated = bool(strtobool(request.GET.get('error_on_duplicated', default='false')))
     if not original_files.is_valid_filename(sname):
         return HttpResponseServerError('Invalid slide name received: %s' % sname)
     try:
         mirax_paths = mirax_files.get_mirax_files_paths(sname)
         try:
-            mirax_file_id = original_files.save_original_file(conn, sname, mirax_paths[0], 'mirax/index',
-                                                              -1, 'UNKNOWN')
+            mirax_file_id, mirax_file_created = original_files.save_original_file(conn, sname, mirax_paths[0], 
+                                                                                  'mirax/index', -1, 'UNKNOWN',
+                                                                                  error_on_duplicated)
             try:
-                mirax_folder_id = original_files.save_original_file(conn, sname, mirax_paths[1],
-                                                                    'mirax/datafolder', -1, 'UNKNOWN')
+                mirax_folder_id, mirax_folder_created = original_files.save_original_file(conn, sname, mirax_paths[1],
+                                                                                          'mirax/datafolder',
+                                                                                          -1, 'UNKNOWN',
+                                                                                          error_on_duplicated)
                 return HttpResponse(
                 json.dumps({
                     'mirax_index_omero_id': mirax_file_id,
-                    'mirax_folder_omero_id': mirax_folder_id
+                    'mirax_index_created': mirax_file_created,
+                    'mirax_folder_omero_id': mirax_folder_id,
+                    'mirax_folder_created': mirax_folder_created
                     }),
                     content_type='application/json'
                 )
@@ -512,6 +536,7 @@ def list_array_datasets(request, conn=None, **kwargs):
 @login_required()
 def register_array_dataset(request, conn=None, **kwargs):
     dataset_label = request.GET.get('dataset_label')
+    error_on_duplicated = bool(strtobool(request.GET.get('error_on_duplicated', default='false')))
     if not original_files.is_valid_filename(dataset_label):
         return HttpResponseServerError('Invalid dataset name received: {0}'.format(dataset_label))
     try:
@@ -529,11 +554,18 @@ def register_array_dataset(request, conn=None, **kwargs):
                     return HttpResponseServerError('{0}'.format(dpe))
         try:
             mtype = datasets_files.check_dataset(dataset_path, is_dir)
-            dataset_id = original_files.save_original_file(conn, dataset_label, dataset_path, mtype,
-                                                           int(request.GET.get('size', default=-1)),
-                                                           request.GET.get('sha1', default='UNKNOWN'))
+            dataset_id, dataset_created = original_files.save_original_file(conn, dataset_label, dataset_path, mtype,
+                                                                            int(request.GET.get('size', default=-1)),
+                                                                            request.GET.get('sha1', default='UNKNOWN'),
+                                                                            error_on_duplicated)
             return HttpResponse(
-                json.dumps({'omero_id': dataset_id, 'mimetype': mtype, 'label': dataset_label, 'path': dataset_path}),
+                json.dumps({
+                    'omero_id': dataset_id,
+                    'created': dataset_created, 
+                    'mimetype': mtype,
+                    'label': dataset_label,
+                    'path': dataset_path
+                }),
                 content_type='application/json'
             )
         except datasets_files.DatasetFormatError as dfe:
@@ -652,3 +684,29 @@ def get_array_dataset_tile_by_id(request, dataset_id, level, row, column, conn=N
         return HttpResponseBadRequest(cp_error)
     except InvalidAttribute as a_error:
         return HttpResponseBadRequest(a_error)
+
+
+@login_required()
+def get_array_dataset_shapes(request, dataset_id, conn=None, **kwargs):
+    threshold = float(request.GET.get("threshold", 0.6))
+    cluster_min_distance = float(request.GET.get("cluster_min_distance", 0))
+    cluster_min_area = float(request.GET.get("cluster_min_area", 1))
+    shape_mode = request.GET.get("shape_mode", "contour")
+
+    original_file = get_original_file_by_id(conn, dataset_id)
+    logger.info("retrieving shapes for dataset %s", original_file.name)
+    dataset = get_ds(os.path.join(settings.DATASETS_REPOSITORY, original_file.name))
+    shape_converter = get_shape_converter(shape_mode)
+    shapes = shape_converter.convert(dataset, threshold * 100)
+    if cluster_min_distance:
+        diagonal = math.sqrt(2) * dataset.zoom_factor()
+        clusterizer = DBScanClusterizer(cluster_min_distance * diagonal)
+        shapes = clusterizer.cluster(shapes)
+        if cluster_min_area > 1:
+            min_area = cluster_min_area * ( dataset.zoom_factor() ** 2)
+            shapes = list(filter(lambda s: s.area >= min_area, shapes))
+
+    return HttpResponse(
+        shapes_to_json(shapes),
+        content_type="application/json",
+    )

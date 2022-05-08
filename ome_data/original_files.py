@@ -37,7 +37,7 @@ def is_valid_filename(fname):
     return re.match(r'^[\w\-.]+$', fname)
 
 
-def save_original_file(connection, name, path, mimetype, size, sha1):
+def save_original_file(connection, name, path, mimetype, size, sha1, error_on_duplicated=False):
     of = get_original_file(connection, name, mimetype)
     if of is None:
         of = om.OriginalFileI()
@@ -50,11 +50,14 @@ def save_original_file(connection, name, path, mimetype, size, sha1):
         hasher.setValue(ot.wrap(ChecksumAlgorithmSHA1160))
         of.setHasher(hasher)
         of = connection.getUpdateService().saveAndReturnObject(of)
-        return of.getId().getValue()
+        return of.getId().getValue(), True
     else:
-        raise DuplicatedEntryError(
-            'OriginalFile with name %s and mimetype %s already exists' % (name, mimetype)
-        )
+        if not error_on_duplicated:
+            return of.getId(), False
+        else:
+            raise DuplicatedEntryError(
+                'OriginalFile with name %s and mimetype %s already exists' % (name, mimetype)
+            )
 
 
 def get_original_files(connection, name, mimetype=None):

@@ -57,6 +57,8 @@ urlpatterns = [
         name='ome_seadragon_test_array_viewer'),
     url(r'^examples/overlay_viewer/(?P<image_id>[\w\-.]+)/(?P<dataset_label>[\w\-.]+)/$',
         views.get_example_overlay_viewer, name='ome_seadragon_test_overlay_viewer'),
+    url(r'^examples/shapes_from_array/(?P<image_id>[\w\-.]+)/(?P<dataset_id>[0-9]+)/$',
+        views.get_example_dataset_shapes_viewer, name='ome_seadragon_test_shapes_from_array'),
     # OMERO PROJECTS, DATASETS AND IMAGES
     url(r'^get/projects/$', views.get_projects, name='ome_seadragon_get_projects'),
     url(r'^get/project/(?P<project_id>[0-9]+)/$', views.get_project,
@@ -140,5 +142,7 @@ urlpatterns = [
         name='ome_seadragon_array_datasets_get_tile_by_id'),
     url(r'^arrays/deepzoom/get/(?P<dataset_label>[\w\-.]+)_files/(?P<level>[0-9]+)/'
         r'(?P<column>[0-9]+)_(?P<row>[0-9]+).png$', views.get_array_dataset_tile_by_label,
-        name='ome_seadragon_array_datasets_get_tile')
+        name='ome_seadragon_array_datasets_get_tile'),
+    url(r'^arrays/shapes/get/(?P<dataset_id>[0-9]+)/$', views.get_array_dataset_shapes,
+        name='ome_seadragon_array_datasets_get_shapes')
 ]
