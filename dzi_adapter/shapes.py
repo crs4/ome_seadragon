@@ -129,6 +129,11 @@ class Shape:
         points = [{"point": {"x": p[0], "y": p[1]}} for p in self.points]
         return points
 
+    @property
+    def area(self):
+        polygon = Polygon(self.points)
+        return polygon.area
+
 
 def shapes_to_json(shapes: List[Shape]) -> str:
     return json.dumps({"shapes": shapes}, default=lambda s: s.as_points())
@@ -173,16 +178,40 @@ class OpenCVShapeConverter(ShapeConverter):
         return shapes
 
 
+class PatchToShapeConverter(ShapeConverter):
+    def convert(self, dataset: Dataset, threshold: float) -> List[Shape]:
+        mask = dataset.array
+        patch_indices = np.argwhere(mask >= threshold)
+        shapes = list(
+            map(
+                lambda index: Shape(
+                    [
+                        (index[1], index[0]),
+                        (index[1] + 1, index[0]),
+                        (index[1] + 1, index[0] + 1),
+                        (index[1], index[0] + 1),
+                        (index[1], index[0]),
+                    ]
+                ).rescale(dataset.zoom_factor()),
+                patch_indices,
+            )
+        )
+
+        return shapes
+
+
 def get_shape_converter(cls: str):
-    if cls == "opencv":
+    if cls == "contour":
         return OpenCVShapeConverter()
+    elif cls == "patch":
+        return PatchToShapeConverter()
     else:
         raise KeyError(f"shape converter {cls} does not exist")
 
 
 class Clusterizer(abc.ABC):
     @abc.abstractmethod
-    def cluster(self, shapes: List[Shape])->List[Shape]:
+    def cluster(self, shapes: List[Shape]) -> List[Shape]:
         ...
 
 
@@ -191,7 +220,7 @@ class DBScanClusterizer(Clusterizer):
     max_distance: float
     min_element: int = 1
 
-    def cluster(self, shapes: List[Shape])->List[Shape]:
+    def cluster(self, shapes: List[Shape]) -> List[Shape]:
         df = gpd.GeoDataFrame(geometry=[Polygon(s.points) for s in shapes])
         df["x"] = df["geometry"].centroid.x
         df["y"] = df["geometry"].centroid.y
@@ -210,4 +239,3 @@ class DBScanClusterizer(Clusterizer):
 
         cluster_shapes = [Shape(box(*c.bounds).exterior.coords) for c in clusters]
         return cluster_shapes
-
