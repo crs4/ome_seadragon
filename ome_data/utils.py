@@ -51,12 +51,27 @@ def _adapt_ellipse_roi(roi_json):
         pass
     return new_json
 
+def _adapt_polygon_roi(roi_json):
+    new_json = copy(roi_json)
+    original_points = roi_json['points'].split()
+    points = list()
+    for x in range(0, len(original_points), 3):
+        try:
+            _, x, y = original_points[x:x+3]
+            points.append({"point": {"x": float(x), "y": float(y)}})
+        except ValueError:
+            pass
+    new_json['points'] = points
+    return new_json
+
 
 def adapt_rois_json(rois):
     adapted_rois = list()
     for r in rois:
         if r['type'] == 'Ellipse':
             adapted_rois.append(_adapt_ellipse_roi(r))
+        if r['type'] == 'Polygon':
+            adapted_rois.append(_adapt_polygon_roi(r))
         else:
             adapted_rois.append(r)
     return adapted_rois
