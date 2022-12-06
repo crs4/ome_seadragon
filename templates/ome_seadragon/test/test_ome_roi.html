@@ -135,6 +135,13 @@
                                                 shape_config, false
                                         );
                                         break;
+                                    case "Polygon":
+                                        annotations_canvas.drawPolygon(
+                                            shapes[shape].id, shapes[shape].points,
+                                            TransformMatrixHelper.fromOMETransform(shapes[shape].transform),
+                                            shape_config, false
+                                        );
+                                        break;
                                     default:
                                         console.warn('Unable to handle shape type ' + shape_type);
                                 }
