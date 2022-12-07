@@ -42,10 +42,10 @@ class ROIImporter(abc.ABC):
         ome_slide = self._ome_connection.getObject("Image", attributes={"name": slide})
         reviews = reviews or (self._root_dir / slide).iterdir()
         for review in reviews:
-            self._import_review(slide, ome_slide, review, stroke_color, stroke_width)
+            self._import_review(ome_slide, review, stroke_color, stroke_width)
 
-    def _import_review(self, slide, ome_slide, review, stroke_color, stroke_width):
-        shape_reader = self.get_shape_reader(self._root_dir / slide / review)
+    def _import_review(self, ome_slide, review, stroke_color, stroke_width):
+        shape_reader = self.get_shape_reader(review)
         for shape in shape_reader.shapes():
             ezomero.post_roi(
                 self._ome_connection,
@@ -62,16 +62,16 @@ class ROIImporter(abc.ABC):
 class CSVShapeReader(ShapeReader):
     def __init__(self, csv_path: Path, label_column: str):
         self._csv_path = csv_path
-        with csv_path.open() as f:
-            self._reader = DictReader(f)
         self._label_column = label_column
 
     def shapes(self) -> Iterable[Polygon]:
         csv_basedir = self._csv_path.parent
-        for row in self._reader:
-            shape_filename = row["filename"]
-            with (csv_basedir / shape_filename).open() as f:
-                yield Polygon(points=json.load(f), label=row[self._label_column])
+        with self._csv_path.open() as f:
+            reader = DictReader(f)
+            for row in reader:
+                shape_filename = row["file_name"]
+                with (csv_basedir / shape_filename).open() as f:
+                    yield Polygon(points=json.load(f), label=row[self._label_column])
 
 
 class CoreImporter(ROIImporter):
@@ -103,6 +103,7 @@ def main(path: str, ome_host: str, ome_port: str, ome_user: str, ome_password: s
 
     core_importer.import_rois()
     focus_region_importer.import_rois()
+    ome_connection.close()
 
 
 if __name__ == "__main__":
