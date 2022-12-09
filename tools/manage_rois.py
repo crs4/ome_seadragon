@@ -1,9 +1,10 @@
 import abc
+from itertools import product
 import json
-import os
 from csv import DictReader
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
+import defopt
 
 import ezomero
 from ezomero.rois import Polygon
@@ -84,14 +85,13 @@ class FocusRegionImporter(ROIImporter):
         return CSVShapeReader(path / "focus_regions.csv", "region_label")
 
 
-def main(
-    path: str,
+def _get_ome_connection(
     ome_host: str,
     ome_port: str,
     ome_user: str,
     ome_password: str,
-    slides: Optional[List[str]] = None,
-):
+) -> BlitzGateway:
+
     ome_connection = ezomero.connect(
         host=ome_host,
         port=ome_port,
@@ -102,28 +102,78 @@ def main(
     )
     if ome_connection is None:
         raise RuntimeError("Impossible to connect to omero")
+    return ome_connection
 
-    core_importer = CoreImporter(Path(path) / "cores", ome_connection)
-    focus_region_importer = FocusRegionImporter(
-        Path(path) / "focus_regions", ome_connection
+
+def import_(
+    path: str,
+    *,
+    ome_host: str,
+    ome_port: str,
+    ome_user: str,
+    ome_password: str,
+    slides: Optional[List[str]] = None,
+):
+    ome_connection = _get_ome_connection(
+        ome_host=ome_host,
+        ome_port=ome_port,
+        ome_user=ome_user,
+        ome_password=ome_password,
     )
 
-    slides_dct = {s: [] for s in slides} if slides is not None else None
-    core_importer.import_rois(slides=slides_dct)
-    focus_region_importer.import_rois(slides=slides_dct)
-    ome_connection.close()
+    try:
+        core_importer = CoreImporter(Path(path) / "cores", ome_connection)
+        focus_region_importer = FocusRegionImporter(
+            Path(path) / "focus_regions", ome_connection
+        )
+
+        slides_dct = {s: [] for s in slides} if slides is not None else None
+        core_importer.import_rois(slides=slides_dct)
+        focus_region_importer.import_rois(slides=slides_dct)
+        ome_connection.close()
+    finally:
+        ome_connection.close()
+
+
+def delete(
+    *,
+    project: Optional[int] = None,
+    slides: Optional[List[int]] = None,
+    ome_host: str,
+    ome_port: str,
+    ome_user: str,
+    ome_password: str,
+):
+    if project and slides:
+        raise RuntimeError("project and slides are mutually exclusive")
+
+    if project is None and slides is None:
+        raise RuntimeError("Specify project or slides")
+
+    ome_connection = _get_ome_connection(
+        ome_host=ome_host,
+        ome_port=ome_port,
+        ome_user=ome_user,
+        ome_password=ome_password,
+    )
+
+    try:
+        if project:
+            slides = ezomero.get_image_ids(ome_connection, project=project)
+
+        slides = slides or []
+        for slide in slides:
+            for roi in ezomero.get_roi_ids(ome_connection, slide):
+                ome_connection.deleteObjects(
+                    "Shape", ezomero.get_shape_ids(ome_connection, roi)
+                )
+                ome_connection.deleteObjects(
+                    "ROI",
+                    [roi],
+                )
+    finally:
+        ome_connection.close()
 
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("path")
-    parser.add_argument("--ome-host", dest="ome_host", required=True)
-    parser.add_argument("--ome-port", dest="ome_port", required=True)
-    parser.add_argument("--ome-user", dest="ome_user", required=True)
-    parser.add_argument("--ome-password", dest="ome_password", required=True)
-    parser.add_argument("-s", "-slides", action="append")
-
-    args = parser.parse_args()
-    main(args.path, args.ome_host, args.ome_port, args.ome_user, args.ome_password)
+    defopt.run({"import": import_, "delete": delete})
