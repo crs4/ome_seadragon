@@ -113,6 +113,8 @@ def import_(
     ome_user: str,
     ome_password: str,
     slides: Optional[List[str]] = None,
+    stroke_color: Tuple[int, ...] = (0, 0, 0, 0),
+    stroke_width: int = 20,
 ):
     ome_connection = _get_ome_connection(
         ome_host=ome_host,
@@ -128,8 +130,12 @@ def import_(
         )
 
         slides_dct = {s: [] for s in slides} if slides is not None else None
-        core_importer.import_rois(slides=slides_dct)
-        focus_region_importer.import_rois(slides=slides_dct)
+        core_importer.import_rois(
+            slides=slides_dct, stroke_color=stroke_color, stroke_width=stroke_width
+        )
+        focus_region_importer.import_rois(
+            slides=slides_dct, stroke_color=stroke_color, stroke_width=stroke_width
+        )
         ome_connection.close()
     finally:
         ome_connection.close()
