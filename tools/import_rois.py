@@ -84,7 +84,14 @@ class FocusRegionImporter(ROIImporter):
         return CSVShapeReader(path / "focus_regions.csv", "region_label")
 
 
-def main(path: str, ome_host: str, ome_port: str, ome_user: str, ome_password: str):
+def main(
+    path: str,
+    ome_host: str,
+    ome_port: str,
+    ome_user: str,
+    ome_password: str,
+    slides: Optional[List[str]] = None,
+):
     ome_connection = ezomero.connect(
         host=ome_host,
         port=ome_port,
@@ -101,8 +108,9 @@ def main(path: str, ome_host: str, ome_port: str, ome_user: str, ome_password: s
         Path(path) / "focus_regions", ome_connection
     )
 
-    core_importer.import_rois()
-    focus_region_importer.import_rois()
+    slides_dct = {s: [] for s in slides} if slides is not None else None
+    core_importer.import_rois(slides=slides_dct)
+    focus_region_importer.import_rois(slides=slides_dct)
     ome_connection.close()
 
 
@@ -115,5 +123,7 @@ if __name__ == "__main__":
     parser.add_argument("--ome-port", dest="ome_port", required=True)
     parser.add_argument("--ome-user", dest="ome_user", required=True)
     parser.add_argument("--ome-password", dest="ome_password", required=True)
+    parser.add_argument("-s", "-slides", action="append")
+
     args = parser.parse_args()
     main(args.path, args.ome_host, args.ome_port, args.ome_user, args.ome_password)
